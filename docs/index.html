@@ -9,13 +9,23 @@
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
 </head>
 <body>
+  <nav>
+    <a href="#/">项目</a>
+    <a href="#/home">home</a>
+    <a href="#/blog/java基础/jvm/jvm.md">jvm</a>
+  </nav>
   <div id="app"></div>
   <script>
     window.$docsify = {
       name: 'docsify-doc',
       repo: '',
       loadSidebar: true,
-      coverpage: true
+      coverpage: true,
+      subMaxLevel: 3,
+      loadNavbar: true,
+      alias: {
+      '/.*/_sidebar.md': '/_sidebar.md'
+      }
     }
   </script>
   <!-- Docsify v4 -->

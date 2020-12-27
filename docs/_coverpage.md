@@ -1,4 +1,4 @@
-# MyBlogs
+# Redick's MyBlogs
 
 
 > 
