@@ -51,7 +51,7 @@
     redis-6381  172.17.0.5
     redis-6380  172.17.0.4
     redis-6379  172.17.0.3
-#### 4.进入docker容器内部，查看当前redis角色（是master还是slave）（命令：info replication）
+#### 4.进入docker容器内部（docker exec -it <container_id> redis-cli），查看当前redis角色（是master还是slave）（命令：info replication）
     # Replication
     role:master
     connected_slaves:0
