@@ -207,3 +207,5 @@ redis-sentinel输出主库切换信息
   60秒后原redis主库恢复服务，但降级后当前redis服务已无法恢复原主库身份。
 
 ### 至此reids sentinel配置完成
+
+## Redis Cluster
