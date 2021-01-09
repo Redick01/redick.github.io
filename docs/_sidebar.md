@@ -12,6 +12,9 @@
 * * ***Redis***
 * * * [Redis集群与高可用](blog/中间件/redis/redis_1.md)
 
+* * ***分布式消息***
+* * * [消息队列基础](blog/中间件/mq/mq_1.md)
+
 * **数据库**
 * * ***Mysql***
 * * * [Mysql集群与高可用](blog/数据库/mysql/mysql_1.md)
