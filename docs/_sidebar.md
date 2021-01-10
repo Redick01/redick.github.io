@@ -14,7 +14,11 @@
 
 * * ***分布式消息***
 * * * [消息队列基础](blog/中间件/mq/mq_1.md)
-* * * [Kafka消息中间件](blog/中间件/kafka/kafka_1.md)
+* * * [Java消息队列JMS](blog/中间件/mq/JMS_1.md)
+* * * [ActiveMQ](blog/中间件/mq/activemq_1.md)
+* * * Kafka
+* * * * [Kafka消息中间件](blog/中间件/kafka/kafka_1.md)
+* * * * [SpringBoot集成Kafka](blog/中间件/kafka/kafka_2.md)
 
 * **数据库**
 * * ***Mysql***
