@@ -2,7 +2,7 @@
 
 ## Kafka概念与入门
 
-### 什么事Kafka
+### 什么是Kafka
         Kafka是一个消息系统，由LinkedIn于2011年设计开发，用作LinkedIn的活动流（ActivityStream）和运营数据处理管道（Pipeline）的基础。
 
 Kafka是一种分布式的，基于发布/订阅的消息系统。主要设计目标如下：
