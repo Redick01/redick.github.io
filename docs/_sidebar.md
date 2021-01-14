@@ -31,7 +31,7 @@
 * **源码笔记**
 * * ***soul网关源码笔记***
 * * * [soul网关初探](blog/sourcecode/soul/soul_1.md)
-* * * [soul网关使用](blog/sourcecode/soul/soul_2.md)
+* * * [soul网关使用进阶](blog/sourcecode/soul/soul_2.md)
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)
