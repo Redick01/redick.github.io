@@ -1,10 +1,8 @@
 # Soul网关进阶使用
 
 ## 目标
-- dubbo、springcloud集成Soul网关
-- LoadBalance
-- RateLimiter
-- waf
+- dubbo集成Soul网关
+- springcloud集成Soul网关
 - 总结
 
 ## Alibaba Dubbo + SpringBoot用户集成Soul网关
@@ -49,7 +47,6 @@
 - **网关报错**
 
 ```
-/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/bin/java -XX:TieredStopAtLevel=1 -noverify -Dspring.output.ansi.enabled=always -javaagent:/Applications/IntelliJ IDEA.app/Contents/lib/idea_rt.jar=60719:/Applications/IntelliJ IDEA.app/Contents/bin -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true -Dfile.encoding=UTF-8 -classpath /Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/deploy.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/cldrdata.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/dnsns.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/jaccess.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/jfxrt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/localedata.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/nashorn.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/sunec.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/sunjce_provider.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/sunpkcs11.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/ext/zipfs.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/javaws.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/jfr.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/jfxswt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/management-agent.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/plugin.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/ant-javafx.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/dt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/javafx-mx.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/jconsole.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/packager.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/sa-jdi.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home/lib/tools.jar:/Users/penghuiliu/geek_learn/ruubypay-soul-gateway/target/classes:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-webflux/2.2.2.RELEASE/spring-boot-starter-webflux-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter/2.2.2.RELEASE/spring-boot-starter-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot/2.2.2.RELEASE/spring-boot-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-autoconfigure/2.2.2.RELEASE/spring-boot-autoconfigure-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-logging/2.2.2.RELEASE/spring-boot-starter-logging-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar:/Users/penghuiliu/.m2/repository/ch/qos/logback/logback-core/1.2.3/logback-core-1.2.3.jar:/Users/penghuiliu/.m2/repository/org/apache/logging/log4j/log4j-to-slf4j/2.12.1/log4j-to-slf4j-2.12.1.jar:/Users/penghuiliu/.m2/repository/org/apache/logging/log4j/log4j-api/2.12.1/log4j-api-2.12.1.jar:/Users/penghuiliu/.m2/repository/org/slf4j/jul-to-slf4j/1.7.29/jul-to-slf4j-1.7.29.jar:/Users/penghuiliu/.m2/repository/jakarta/annotation/jakarta.annotation-api/1.3.5/jakarta.annotation-api-1.3.5.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-core/5.2.2.RELEASE/spring-core-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-jcl/5.2.2.RELEASE/spring-jcl-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/yaml/snakeyaml/1.25/snakeyaml-1.25.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-json/2.2.2.RELEASE/spring-boot-starter-json-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.10.1/jackson-databind-2.10.1.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.10.1/jackson-annotations-2.10.1.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.10.1/jackson-core-2.10.1.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.10.1/jackson-datatype-jdk8-2.10.1.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.10.1/jackson-datatype-jsr310-2.10.1.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/jackson/module/jackson-module-parameter-names/2.10.1/jackson-module-parameter-names-2.10.1.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-reactor-netty/2.2.2.RELEASE/spring-boot-starter-reactor-netty-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/io/projectreactor/netty/reactor-netty/0.9.2.RELEASE/reactor-netty-0.9.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-codec-http2/4.1.43.Final/netty-codec-http2-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-handler/4.1.43.Final/netty-handler-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-handler-proxy/4.1.43.Final/netty-handler-proxy-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-codec-socks/4.1.43.Final/netty-codec-socks-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-transport-native-epoll/4.1.43.Final/netty-transport-native-epoll-4.1.43.Final-linux-x86_64.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-transport-native-unix-common/4.1.43.Final/netty-transport-native-unix-common-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/org/glassfish/jakarta.el/3.0.3/jakarta.el-3.0.3.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-validation/2.2.2.RELEASE/spring-boot-starter-validation-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/jakarta/validation/jakarta.validation-api/2.0.1/jakarta.validation-api-2.0.1.jar:/Users/penghuiliu/.m2/repository/org/hibernate/validator/hibernate-validator/6.0.18.Final/hibernate-validator-6.0.18.Final.jar:/Users/penghuiliu/.m2/repository/org/jboss/logging/jboss-logging/3.3.2.Final/jboss-logging-3.3.2.Final.jar:/Users/penghuiliu/.m2/repository/com/fasterxml/classmate/1.3.4/classmate-1.3.4.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-web/5.2.2.RELEASE/spring-web-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-beans/5.2.2.RELEASE/spring-beans-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-webflux/5.2.2.RELEASE/spring-webflux-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/io/projectreactor/reactor-core/3.3.1.RELEASE/reactor-core-3.3.1.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar:/Users/penghuiliu/.m2/repository/org/synchronoss/cloud/nio-multipart-parser/1.1.0/nio-multipart-parser-1.1.0.jar:/Users/penghuiliu/.m2/repository/org/synchronoss/cloud/nio-stream-storage/1.1.3/nio-stream-storage-1.1.3.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-starter-actuator/2.2.2.RELEASE/spring-boot-starter-actuator-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-actuator-autoconfigure/2.2.2.RELEASE/spring-boot-actuator-autoconfigure-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/boot/spring-boot-actuator/2.2.2.RELEASE/spring-boot-actuator-2.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/io/micrometer/micrometer-core/1.3.1/micrometer-core-1.3.1.jar:/Users/penghuiliu/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11.jar:/Users/penghuiliu/.m2/repository/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-gateway/2.2.1/soul-spring-boot-starter-gateway-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-web/2.2.1/soul-web-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-api/2.2.1/soul-plugin-api-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-plugin-global/2.2.1/soul-spring-boot-starter-plugin-global-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-global/2.2.1/soul-plugin-global-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-base/2.2.1/soul-plugin-base-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-common/2.2.1/soul-common-2.2.1.jar:/Users/penghuiliu/.m2/repository/com/google/code/gson/gson/2.8.0/gson-2.8.0.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-metrics-facade/2.2.1/soul-metrics-facade-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-metrics-spi/2.2.1/soul-metrics-spi-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-metrics-prometheus/2.2.1/soul-metrics-prometheus-2.2.1.jar:/Users/penghuiliu/.m2/repository/io/prometheus/simpleclient/0.6.0/simpleclient-0.6.0.jar:/Users/penghuiliu/.m2/repository/io/prometheus/simpleclient_httpserver/0.6.0/simpleclient_httpserver-0.6.0.jar:/Users/penghuiliu/.m2/repository/io/prometheus/simpleclient_common/0.6.0/simpleclient_common-0.6.0.jar:/Users/penghuiliu/.m2/repository/io/prometheus/simpleclient_hotspot/0.6.0/simpleclient_hotspot-0.6.0.jar:/Users/penghuiliu/.m2/repository/com/google/guava/guava/30.1-jre/guava-30.1-jre.jar:/Users/penghuiliu/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/Users/penghuiliu/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/Users/penghuiliu/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/Users/penghuiliu/.m2/repository/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar:/Users/penghuiliu/.m2/repository/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar:/Users/penghuiliu/.m2/repository/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar:/Users/penghuiliu/.m2/repository/org/slf4j/slf4j-api/1.7.29/slf4j-api-1.7.29.jar:/Users/penghuiliu/.m2/repository/org/slf4j/jcl-over-slf4j/1.7.29/jcl-over-slf4j-1.7.29.jar:/Users/penghuiliu/.m2/repository/org/projectlombok/lombok/1.18.12/lombok-1.18.12.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-sync-data-websocket/2.2.1/soul-spring-boot-starter-sync-data-websocket-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-sync-data-websocket/2.2.1/soul-sync-data-websocket-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-sync-data-api/2.2.1/soul-sync-data-api-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/java-websocket/Java-WebSocket/1.5.0/Java-WebSocket-1.5.0.jar:/Users/penghuiliu/.m2/repository/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-plugin-divide/2.2.1/soul-spring-boot-starter-plugin-divide-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-divide/2.2.1/soul-plugin-divide-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spi/2.2.1/soul-spi-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-plugin-httpclient/2.2.1/soul-spring-boot-starter-plugin-httpclient-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-httpclient/2.2.1/soul-plugin-httpclient-2.2.1.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-codec-http/4.1.43.Final/netty-codec-http-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-common/4.1.43.Final/netty-common-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-buffer/4.1.43.Final/netty-buffer-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-transport/4.1.43.Final/netty-transport-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-resolver/4.1.43.Final/netty-resolver-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/netty/netty-codec/4.1.43.Final/netty-codec-4.1.43.Final.jar:/Users/penghuiliu/.m2/repository/io/projectreactor/addons/reactor-extra/3.3.1.RELEASE/reactor-extra-3.3.1.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-plugin-alibaba-dubbo/2.2.1/soul-spring-boot-starter-plugin-alibaba-dubbo-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-alibaba-dubbo/2.2.1/soul-plugin-alibaba-dubbo-2.2.1.jar:/Users/penghuiliu/.m2/repository/com/alibaba/dubbo/2.6.5/dubbo-2.6.5.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-context/4.3.16.RELEASE/spring-context-4.3.16.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-aop/4.3.16.RELEASE/spring-aop-4.3.16.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-expression/4.3.16.RELEASE/spring-expression-4.3.16.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/javassist/javassist/3.20.0-GA/javassist-3.20.0-GA.jar:/Users/penghuiliu/.m2/repository/org/jboss/netty/netty/3.2.5.Final/netty-3.2.5.Final.jar:/Users/penghuiliu/.m2/repository/org/apache/curator/curator-client/4.0.1/curator-client-4.0.1.jar:/Users/penghuiliu/.m2/repository/org/apache/zookeeper/zookeeper/3.5.3-beta/zookeeper-3.5.3-beta.jar:/Users/penghuiliu/.m2/repository/commons-cli/commons-cli/1.2/commons-cli-1.2.jar:/Users/penghuiliu/.m2/repository/log4j/log4j/1.2.17/log4j-1.2.17.jar:/Users/penghuiliu/.m2/repository/io/netty/netty/3.10.5.Final/netty-3.10.5.Final.jar:/Users/penghuiliu/.m2/repository/org/apache/curator/curator-framework/4.0.1/curator-framework-4.0.1.jar:/Users/penghuiliu/.m2/repository/org/apache/curator/curator-recipes/4.0.1/curator-recipes-4.0.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-spring-boot-starter-plugin-ratelimiter/2.2.1/soul-spring-boot-starter-plugin-ratelimiter-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/dromara/soul-plugin-ratelimiter/2.2.1/soul-plugin-ratelimiter-2.2.1.jar:/Users/penghuiliu/.m2/repository/org/springframework/data/spring-data-redis/2.2.3.RELEASE/spring-data-redis-2.2.3.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/data/spring-data-keyvalue/2.2.3.RELEASE/spring-data-keyvalue-2.2.3.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/data/spring-data-commons/2.2.3.RELEASE/spring-data-commons-2.2.3.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-tx/5.2.2.RELEASE/spring-tx-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-oxm/5.2.2.RELEASE/spring-oxm-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/springframework/spring-context-support/5.2.2.RELEASE/spring-context-support-5.2.2.RELEASE.jar:/Users/penghuiliu/.m2/repository/io/lettuce/lettuce-core/5.2.1.RELEASE/lettuce-core-5.2.1.RELEASE.jar:/Users/penghuiliu/.m2/repository/org/apache/commons/commons-pool2/2.7.0/commons-pool2-2.7.0.jar com.ruubypay.soul.bootstrap.SoulBootstrapApplication
 Exception in thread "main" java.lang.AbstractMethodError: org.springframework.boot.context.config.ConfigFileApplicationListener.supportsSourceType(Ljava/lang/Class;)Z
 	at org.springframework.context.event.GenericApplicationListenerAdapter.supportsSourceType(GenericApplicationListenerAdapter.java:79)
 	at org.springframework.context.event.AbstractApplicationEventMulticaster.supportsEvent(AbstractApplicationEventMulticaster.java:289)
@@ -112,6 +109,9 @@ soul.dubbo.app-name=account
 - - dubbo服务实现类的，方法上加上 `@SoulDubboClient` 注解，表示该接口方法注册到网关。
 - - 启动你的提供者,输出日志`dubbo client register success` 大功告成，你的dubbo接口已经发布到 soul网关.如果还有不懂的，可以参考 soul-test-dubbo项目.
 
+请忽略我得`@HmilyTCC`配置
+ ![avatar](_media/../../../../_media/image/source_code/1610682633091.jpg) 
+
 - **Dubbo用户请求及参数**
 
 
@@ -140,5 +140,161 @@ soul.dubbo.app-name=account
             return new A();
     }
     ```
+- **测试Dubbo用户集成Soul网关**
 
-### LoadBalance使用
+- - **启动Dubbo业务服务，出现以下日志，代表集成网关成功，将dubbo接口元信息注册到zk**
+
+    ```
+    2021-01-15 11:34:35.881  INFO 55954 --- [pool-1-thread-1] o.d.s.client.common.utils.RegisterUtils  : dubbo client register success: {"appName":"account","contextPath":"/dubbo/soul","path":"/dubbo/soul/pay","pathDesc":"支付","rpcType":"dubbo","serviceName":"api.AccountService","methodName":"pay","ruleName":"/dubbo/soul/pay","parameterTypes":"dto.PayAccountRequestDTO","rpcExt":"{\"group\":\"\",\"version\":\"1.0.0\",\"loadbalance\":\"random\",\"retries\":2,\"timeout\":12000,\"url\":\"\"}","enabled":true} 
+    ```
+
+- - **测试**
+
+ ![avatar](_media/../../../../_media/image/source_code/1610683620174.jpg) 
+
+## SpringCloud集成Soul网关
+
+### Soul网关加入SpringCloud插件
+
+- **pom** 
+
+```
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>
+            <version>${soul-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
+            <version>${soul-version}</version>
+        </dependency>
+        <!--如果是eureka，添加这个依赖-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+```
+
+- **yml配置**
+
+```
+eureka:
+  client:
+    serviceUrl:
+      # 你的eureka地址
+      defaultZone: http://localhost:8000/eureka/
+  instance:
+    prefer-ip-address: true
+```
+
+### SpringCloud业务服务集成Soul网关
+
+- **pom**
+
+期间可能会遇到jar包冲突，解决即可
+```
+<dependency>
+	  <groupId>org.springframework.cloud</groupId>
+	  <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+	  <!--你自己的版本-->
+      <version>${spring-cloud.version}</version>
+</dependency>
+ <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>soul-spring-boot-starter-client-springcloud</artifactId>
+      <version>${last.version}</version>
+ </dependency>
+```
+
+- **properties或yml配置，这里给出的是properties**
+
+```
+soul.springcloud.admin-url=http://localhost:9095
+soul.springcloud.context-path=/spring-cloud
+# 设置true 代表代理你的整个服务，false表示代理你其中某几个controller
+soul.springcloud.full=false 
+```
+
+- **@SoulSpringCloudClient注解使用**
+
+和代理SpringMvc的Controller一样
+
+- -  代理Controller所有接口，在Controller 类上面, 里面的path属性则为前缀，如果含有 /** 代表你的整个接口需要被网关代理
+```
+@RestController
+@RequestMapping("/hello")
+@SoulSpringCloudClient(path = "/hello/**")
+public class HelloController {
+	
+    @RequestMapping("/index")
+    public String index(@RequestParam String name) {
+        return "hello "+name+"，this is first messge";
+    }
+}
+```
+
+- - 只代理部分接口
+
+```
+@RestController
+@RequestMapping("/hello")
+@SoulSpringCloudClient(path = "/hello")
+public class HelloController {
+	
+    @RequestMapping("/index")
+    public String index(@RequestParam String name) {
+        return "hello "+name+"，this is first messge";
+    }
+
+
+    @RequestMapping("/index_1")
+    @SoulSpringMvcClient(path = "/index_1")
+    public String index_1(@RequestParam String name) {
+        return "hello_1 "+name+"，this is first messge";
+    }
+}
+```
+
+- - 代理整个服务
+
+只要配置了`full: true`，整个服务都会被代理
+```
+soul.springcloud.full=true
+```
+
+- **设置插件**
+
+- - 启动eureka
+- - 启动soul-admin
+- - 在soul-admin中开启springcloud插件
+- - 启动soul网关
+- - 启动springcloud业务服务
+
+- **测试**
+
+- - **不使用网关代理**
+
+ ![avatar](_media/../../../../_media/image/source_code/1610727450757.jpg) 
+
+- - **使用网关代理**
+
+ ![avatar](_media/../../../../_media/image/source_code/1610727533388.jpg)
+
+## 总结
+
+- Soul网关代理dubbo接口时，其实是把http请求通过注册的dubbo元数据转换成了dubbo协议，底层调用使用的是泛化调用，具体调用过程我们在下节分析
+- Soul网关代理SpringCloud服务时，本质上与普通的调用http请求没有区别，只不过网关将域名或path包装了一层
+- Soul网关支持的LoadBalance算法有random、roundRobin和hash
+- 总的来说这两种为服务框架在集成Soul网关时比较简单，需要注意的是可能的jar包冲突（也可能是我自己jar包引的问题）和使用soul-admin配置Soul网关插件同步到网关Server不及时的问题（这个要debug）
