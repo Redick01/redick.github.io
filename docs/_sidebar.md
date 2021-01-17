@@ -32,6 +32,7 @@
 * * **soul网关源码笔记**
 * * * [soul网关初探](blog/sourcecode/soul/soul_1.md)
 * * * [soul网关使用进阶](blog/sourcecode/soul/soul_2.md)
+* * * [soul网关源码分析之soul-admin与soul-gateway数据同步](blog/sourcecode/soul/soul_3.md)
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)

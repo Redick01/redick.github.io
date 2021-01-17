@@ -14,12 +14,12 @@ Kafka是一种分布式的，基于发布/订阅的消息系统。主要设计�
     5.Scaleout：支持在线水平扩展。
 
 ### Kafka的基本概念
-    1.Broker：Kafka集群包含一个或多个服务器，这种服务器被称为broker。
-    2.Topic：每条发布到Kafka集群的消息都有一个类别，这个类别被称为Topic。（物理上不同Topic的消息分开存储，逻辑上一个Topic的消息虽然保存于一个或多个broker上，但用户只需指定消息的Topic即可生产或消费数据而不必关心数据存于何处）。
-    3.Partition：Partition是物理上的概念，每个Topic包含一个或多个Partition。
-    4.Producer：负责发布消息到Kafkabroker。
-    5.Consumer：消息消费者，向Kafkabroker读取消息的客户端。
-    6.ConsumerGroup：每个Consumer属于一个特定的ConsumerGroup（可为每个Consumer指定groupname，若不指定groupname则属于默认的group）。
+- Broker：Kafka集群包含一个或多个服务器，这种服务器被称为broker。
+- Topic：每条发布到Kafka集群的消息都有一个类别，这个类别被称为Topic。（物理上不同Topic的消息分开存储，逻辑上一个Topic的消息虽然保存于一个或多个broker上，但用户只需指定消息的Topic即可生产或消费数据而不必关心数据存于何处）。
+- Partition：Partition是物理上的概念，每个Topic包含一个或多个Partition。
+- Producer：负责发布消息到Kafkabroker。
+- Consumer：消息消费者，向Kafkabroker读取消息的客户端。
+- ConsumerGroup：每个Consumer属于一个特定的ConsumerGroup（可为每个Consumer指定groupname，若不指定groupname则属于默认的group）。
 
 ### Partition和Topic
     多Partition支持水平扩展和并行处理，顺序写入提升吞吐性能，创建Topic时要制定Partition
@@ -29,9 +29,9 @@ Kafka是一种分布式的，基于发布/订阅的消息系统。主要设计�
  ![avatar](_media/../../../../_media/image/1610193329411.jpg)   
 
 ### Kafka单机结构
-```
-    单机结构，kafka提供基于发布-订阅模式的消息模式，在单机部署时通常不建议有大量的partition，也不建议有大量的topic，因为partition和topic对应着一个数据文件，大量的partition或topic意味着大量的数据文件，会产生随机io读写。
-```
+
+&emsp;&emsp;单机结构，kafka提供基于发布-订阅模式的消息模式，在单机部署时通常不建议有大量的partition，也不建议有大量的topic，因为partition和topic对应着一个数据文件，大量的partition或topic意味着大量的数据文件，会产生随机io读写。
+
 
 ### Kafka集群部署结构
 ```
@@ -60,11 +60,10 @@ Kafka是一种分布式的，基于发布/订阅的消息系统。主要设计�
 
 - 2.Data Replication如何Propagate(扩散出去)消息
 
-```
-    每个Partition有一个leader与多个follower，producer往某个Partition中写入数据是，只会往leader中写入数据，然后数据才会被复制进其他的Replica中。
+&emsp;&emsp;每个Partition有一个leader与多个follower，producer往某个Partition中写入数据是，只会往leader中写入数据，然后数据才会被复制进其他的Replica中。
 
-    kafka是由follower周期性或者尝试去pull(拉)过来(其实这个过程与consumer消费过程非常相似)，写是都往leader上写，但是读并不是任意flower上读都行，读也只在leader上读，flower只是数据的一个备份，保证leader被挂掉后顶上来，并不往外提供服务。
-```
+&emsp;&emsp;kafka是由follower周期性或者尝试去pull(拉)过来(其实这个过程与consumer消费过程非常相似)，写是都往leader上写，但是读并不是任意flower上读都行，读也只在leader上读，flower只是数据的一个备份，保证leader被挂掉后顶上来，并不往外提供服务。
+
 
 - 3.Data Replication何时Commit
 
@@ -300,9 +299,8 @@ while (true) {
 
 - 1.安装kafka
 
-```
 下载2.6.0或2.7.0版本的kafka，下载地址：http://kafka.apache.org/downloads，并解压进入kafka目录，修改server.properties配置文件，放开listeners=PLAINTEXT://localhost:9092
-```
+
 - 2.启动kafka
 
 ```
@@ -379,11 +377,11 @@ liupenghui:kafka_2.13-2.7.0 penghuiliu$ bin/kafka-console-producer.sh --bootstra
 ```
 - 4.简单性能测试
 
-```
+
 bin/kafka-producer-perf-test.sh --topic testr --num-records 10000000 --record-size 10000 --throughput 2000000 --producer-props bootstrap.servers=localhost:9092 
 
 bin/kafka-consumer-perf-test.sh ---bootstrap-server localhost:9092 --topic testr --fetch-size 1048576 --messages 100000 --threads1
-```
+
 
 ### Kafka集群配置
 
