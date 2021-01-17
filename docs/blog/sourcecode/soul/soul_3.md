@@ -33,7 +33,7 @@
 - - - soul-spi：soul网关提供`扩展能力`工程
 - - - soul-spring-boot-starter：`soul网关自定义starter`工程，提供了soul-client，soul-plugin，soul-gateway，soul-sync-data-center的starter
 - - - soul-sync-data-center：`soul数据同步`工程，目前支持`websocket`，`http长轮询`，`nacos`，`zookeeper`
-- - - soul-web：`soul网关处理`请求的工程，包括请求入口，Filter等。
+- - - soul-web：`soul网关处理`请求的工程，包括请求入口，数据变更订阅，Filter等。
 
 
 ## soul-admin和soul网关数据同步-Websocket

@@ -20,6 +20,7 @@
 * * * **Kafka**
 * * * * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
 * * * * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
+* * * [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
 
 * **数据库**
 * * **Mysql**
@@ -33,6 +34,7 @@
 * * * [soul网关初探](blog/sourcecode/soul/soul_1.md)
 * * * [soul网关使用进阶](blog/sourcecode/soul/soul_2.md)
 * * * [soul网关源码分析之soul-admin与soul-gateway数据同步](blog/sourcecode/soul/soul_3.md)
+* * * [soul网关源码分析之soul-gateway数据同步后刷新](blog/sourcecode/soul/soul_4.md)
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)

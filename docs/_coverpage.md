@@ -1,6 +1,6 @@
 ![logo](_media/icon.svg)
 
-# Redick's Document Website
+# 刘p辉的 Document Website
 ## 个人文档网站
 
 * Simple and lightweight (~12kb gzipped)
