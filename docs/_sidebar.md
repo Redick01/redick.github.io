@@ -1,5 +1,6 @@
 * **Java基础**
 * * [JVM](blog/java_base/jvm/jvm.md)
+* * [GC日志分析方法](blog/java_base/jvm/gc_test.md)
 * * [Java多线程与并发](blog/java_base/java_thread/java_thread_1.md)
 
 * **算法**
@@ -35,6 +36,8 @@
 * * * [soul网关使用进阶](blog/sourcecode/soul/soul_2.md)
 * * * [soul网关源码分析之soul-admin与soul-gateway数据同步](blog/sourcecode/soul/soul_3.md)
 * * * [soul网关源码分析之soul-gateway数据同步后刷新](blog/sourcecode/soul/soul_4.md)
+* * * [soul网关源码分析之发布接口到网关](blog/sourcecode/soul/soul_5.md)
+
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)
