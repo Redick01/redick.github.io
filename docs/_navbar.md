@@ -19,7 +19,7 @@
   * [ActiveMQ](blog/Middleware/mq/activemq_1.md)
   * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
   * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
-  *  [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
+  * [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
 
 * 数据库
   * [Mysql集群与高可用](blog/database/mysql/mysql_1.md)
@@ -34,6 +34,8 @@
   * [soul网关源码分析之soul-admin与soul-gateway数据同步](blog/sourcecode/soul/soul_3.md)
   * [soul网关源码分析之soul-gateway数据同步后刷新](blog/sourcecode/soul/soul_4.md)
   * [soul网关源码分析之发布接口到网关](blog/sourcecode/soul/soul_5.md)
+  * [soul网关源码分析之一个请求的处理过程（Http篇）](blog/sourcecode/soul/soul_6.md)
+
 
 * 设计模式
   * [单例模式](blog/design_pattern/singleton.md)

@@ -37,7 +37,7 @@
 * * * [soul网关源码分析之soul-admin与soul-gateway数据同步](blog/sourcecode/soul/soul_3.md)
 * * * [soul网关源码分析之soul-gateway数据同步后刷新](blog/sourcecode/soul/soul_4.md)
 * * * [soul网关源码分析之发布接口到网关](blog/sourcecode/soul/soul_5.md)
-
+* * * [soul网关源码分析之一个请求的处理过程（Http篇）](blog/sourcecode/soul/soul_6.md)
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)
