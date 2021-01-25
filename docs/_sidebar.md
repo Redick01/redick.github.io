@@ -44,7 +44,7 @@
 * * * [soul网关源码分析之代理请求插件，选择器，规则的匹配](blog/sourcecode/soul/soul_7.md)
 * * * [soul网关源码分析之网关数据同步-Zookeeper](blog/sourcecode/soul/soul_8.md)
 * * * [soul网关源码分析之网关数据同步-nacos](blog/sourcecode/soul/soul_9.md)
-
+* * * [soul网关源码分析之网关数据同步总结](blog/sourcecode/soul/soul_10.md)
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)
