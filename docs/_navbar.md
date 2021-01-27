@@ -40,6 +40,7 @@
   * [soul网关源码分析之网关数据同步-Zookeeper](blog/sourcecode/soul/soul_8.md)
   * [soul网关源码分析之网关数据同步-nacos](blog/sourcecode/soul/soul_9.md)
   * [soul网关源码分析之网关数据同步总结](blog/sourcecode/soul/soul_10.md)
+  * [soul网关源码分析之divide插件底层原理，负载均衡，ip端口探活](blog/sourcecode/soul/soul_11.md)
 
 * 设计模式
   * [单例模式](blog/design_pattern/singleton.md)
