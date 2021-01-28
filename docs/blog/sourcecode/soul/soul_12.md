@@ -100,18 +100,18 @@ public class SofaTestServiceImpl implements DubboTestService {
 }
 ```
 
-![](/Users/penghuiliu/docsify-doc/docs/_media/image/source_code/soul/soul12/sofademo.jpg)
+![](../../../_media/image/source_code/soul/soul12/sofademo.jpg)
 
 - **soul-admin注册接口结果**
 
-![](/Users/penghuiliu/docsify-doc/docs/_media/image/source_code/soul/soul12/sofaselector.jpg)
+![](../../../_media/image/source_code/soul/soul12/sofaselector.jpg)
 
 ## soul-admin支持sofa插件
 
 - 首先在 `soul-admin` 插件管理中，把`sofa` 插件设置为开启。
 - 其次在 `sofa` 插件中配置你的注册地址或者其他注册中心的地址.
 
-![](/Users/penghuiliu/docsify-doc/docs/_media/image/source_code/soul/soul12/1611762495830.jpg)
+![](../../../_media/image/source_code/soul/soul12/1611762495830.jpg)
 
 ## soul网关完成sofa调用源码分析
 

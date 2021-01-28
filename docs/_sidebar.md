@@ -47,6 +47,7 @@
 * * * [soul网关源码分析之网关数据同步总结](blog/sourcecode/soul/soul_10.md)
 * * * [soul网关源码分析之divide插件底层原理，负载均衡，ip端口探活](blog/sourcecode/soul/soul_11.md)
 * * * [soul网关源码分析之sofa插件](blog/sourcecode/soul/soul_12.md)
+* * * [soul网关源码分析之限流插件](blog/sourcecode/soul/soul_13.md)
 
 
 * **设计模式**
