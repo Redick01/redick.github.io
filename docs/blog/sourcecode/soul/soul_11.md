@@ -185,7 +185,7 @@ soul.upstream.scheduledTime:10
 
 - **soul网关侧**
 
-&nbsp; &nbsp; 在soul网关侧的探活代码主要是在`UpstreamCacheManager`，这个类是一个单例的，视同过`DividePluginDataHandler`的动作初始化的，代码处理逻辑和soul-admin侧类似，具体参考下面代码注释：
+&nbsp; &nbsp; 在soul网关侧的探活代码主要是在`UpstreamCacheManager`，这个类是一个单例的，是通过`DividePluginDataHandler`的动作初始化的，代码处理逻辑和soul-admin侧类似，具体参考下面代码注释：
 
 ```
 @Slf4j
