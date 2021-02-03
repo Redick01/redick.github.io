@@ -33,6 +33,12 @@
 * * [Spring WebFlux与Spring MVC压测对比](blog/spring/springwebflux.md)
  &nbsp;
 
+* **设计模式**
+* * [单例模式](blog/design_pattern/singleton.md)
+
+* **总结**
+* * [总结](blog/structure/study-summary.md)
+
 * **源码笔记**
 * * **soul网关源码笔记**
 * * * [soul网关初探](blog/sourcecode/soul/soul_1.md)
@@ -51,6 +57,3 @@
 * * * [soul网关源码分析之熔断插件](blog/sourcecode/soul/soul_14.md)
 * * * [soul网关源码分析之spingwebflux-subscribeOn设计细节分析](blog/sourcecode/soul/soul_15.md)
 * * * [suol网关源码分析第二周总结 ](blog/sourcecode/soul/soul_16.md)
-
-* **设计模式**
-* * [单例模式](blog/design_pattern/singleton.md)
