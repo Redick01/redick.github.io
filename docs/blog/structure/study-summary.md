@@ -164,9 +164,268 @@
 		- 与 G1 相比，应用吞吐量下降不超过15%
 		- 当前只支持 Linux/x64 位平台，JDK15后支持MacOS和Windows系统
 
-## NIO
+## 网络编程
+
+### 协议
+
+- TCP
+- UDP
+
+### IO模型
+
+- BIO同步阻塞
+- NIO
+
+	- IO 多路复用(IO multiplexing)
+
+	  IO 多路复用(IO multiplexing)，也称事
+	  件驱动 IO(event-driven IO)，就是在单
+	  个线程里同时监控多个套接字，通过
+	  select 或 poll 轮询所负责的所有
+	  socket，当某个 socket 有数据到达了，
+	  就通知用户进程。
+	  IO 复用同非阻塞 IO 本质一样，不过利用
+	  了新的 select 系统调用，由内核来负责
+	  本来是请求进程该做的轮询操作。看似比
+	  非阻塞 IO 还多了一个系统调用开销，不
+	  过因为可以支持多路 IO，才算提高了效
+	  率。
+	  进程先是阻塞在 select/poll 上，再是阻
+	  塞在读操作的第二个阶段上
+
+- AIO异步IO模型
+
+### Netty框架
+
+- 设计特点
+
+	- 异步
+	- 基于事件驱动
+	- 基于NIO
+
+- 应用场景
+
+	- 服务端
+	- 客户端
+	- TCP/UDP
+
+- Netty特性
+
+	- 高吞吐
+	- 低延迟
+	- 低开销
+	- 零拷贝
+	- 可扩容
+	- 松耦合：网络和业务逻辑分离
+	- 使用方便，可维护性好
+
+- Netty基本概念
+
+	- Channel
+
+	  通道，Java NIO 中的基础概念,代表一个打开的连接,可执行读取/写入 IO 操作。
+	  Netty 对 Channel 的所有 IO 操作都是非阻塞的。
+
+	- ChannelFuture
+
+	  Java 的 Future 接口，只能查询操作的完成情况, 或者阻塞当前线程等待操作完成。
+	  Netty 封装一个 ChannelFuture 接口。
+	  我们可以将回调方法传给 ChannelFuture，在操作完成时自动执行。
+
+	- Event & Handler
+
+	  Netty 基于事件驱动，事件和处理器可以关联到入站和出站数据流。
+	  
+	  入站事件：
+	  • 通道激活和停用
+	  • 读操作事件
+	  • 异常事件
+	  • 用户事件
+	  出站事件：
+	  • 打开连接
+	  • 关闭连接
+	  • 写入数据
+	  • 刷新数据
+	  Netty 应用组成: • 网络事件
+	  • 应用程序逻辑事件
+	  • 事件处理程序
+	  
+	  事件处理程序接口: 
+	  • ChannelHandler
+	  • ChannelOutboundHandler
+	  • ChannelInboundHandler
+	  适配器（空实现，需要继承使用）：
+	  • ChannelInboundHandlerAdapter
+	  • ChannelOutboundHandlerAdapter
+
+	- Encoder & Decoder
+
+	  处理网络 IO 时，需要进行序列化和反序列化, 转换 Java 对象与字节流。
+	  对入站数据进行解码, 基类是 ByteToMessageDecoder。
+	  对出站数据进行编码, 基类是 MessageToByteEncoder。
+
+	- ChannelPipeline
+
+	  数据处理管道就是事件处理器链。
+	  有顺序、同一 Channel 的出站处理器和入站处理器在同一个列表中。
 
 ## Spring和ORM等框架
+
+### Spring框架四大常用模块
+
+- SpringCore
+
+	- Bean
+
+		- Bean加载过程
+
+			- 创建对象
+			- 属性赋值
+			- 初始化
+
+				- 检查Aware装配
+				- 前置处理、After处理
+				- 调用init method
+				- 后置处理
+
+			- 注销接口注册
+
+		- Spring XML配置原理
+
+			- 根据Bean的字段结构，自动生成XSD
+			- 根据Bean的字段结构，配置XML文件
+
+	- AOP
+
+		- aop面向切面编程
+
+		  Spring早期版本的核心功能，管理对象生命周期与对象装配。 为了实现管理和装配，一个自然而然的想法就是，加一个中间层代理（字节码增强）来 实现所有对象的托管
+
+			- 反射
+			- 字节码增强
+
+		- IoC控制反转
+
+		  也称为DI（Dependency Injection）依赖注入。 对象装配思路的改进。 从对象A直接引用和操作对象B，变成对象A里指需要依赖一个接口IB，系统启动和装配 阶段，把IB接口的实例对象注入到对象A，这样A就不需要依赖一个IB接口的具体实现， 也就是类B。 从而可以实现在不修改代码的情况，修改配置文件，即可以运行时替换成注入IB接口另 一实现类C的一个对象实例
+
+	- Context
+
+- SpringTest
+
+	- Mock
+	- TestContext
+
+- SpringDaraAccess
+
+	- Tx 事务管理
+
+	  Spring 声明式事务配置参考
+	  事务的传播性：
+	  @Transactional(propagation=Propagation.REQUIRED)
+	  事务的隔离级别：
+	  @Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	  读取未提交数据(会出现脏读, 不可重复读) 基本不使用
+	  只读：
+	  @Transactional(readOnly=true)
+	  该属性用于设置当前事务是否为只读事务，设置为 true 表示只读，false 则表示可读写，默认值为 false。
+	  事务的超时性：
+	  @Transactional(timeout=30)
+	  回滚：
+	  指定单一异常类：@Transactional(rollbackFor=RuntimeException.class)
+	  指定多个异常类：@Transactional(rollbackFor={RuntimeException.class, Exception.class})
+
+	- JDBC
+	- ORM框架
+
+- SpringWeb
+
+	- SpringMVC
+	- SpringWebFlux
+
+### SpringBoot
+
+- SpringBoot的出发点
+
+	- 让开发变得简单
+	- 让配置变得简单
+	- 让运行变得简单
+
+- SpringBoot功能特性
+
+	- 创建独立运行的 Spring 应用
+	- 直接嵌入 Tomcat 或 Jetty，Undertow，无需部署 WAR 包
+	- 提供限定性的 starter 依赖简化配置（就是脚手架）
+	- 在必要时自动化配置 Spring 和其他三方依赖库
+	- 提供生产 production-ready 特性，例如指标度量，健康检查，外部配置等
+	- 完全零代码生产和不需要 XML 配置
+
+- SpringBoot核心原理
+
+	- 自动化配置：简化配置核心
+基于 Configuration，EnableXX，Condition
+
+		- 约定大于配置优势
+
+			- 开箱即用
+			- Maven 的目录结构：默认有 resources 文件夹存放配置文件。默认打包方式为 jar
+			- 默认的配置文件：application.properties 或 application.yml 文件
+			- 默认通过 spring.profiles.active 属性来决定运行环境时的配置文件
+			- EnableAutoConfiguration 默认对于依赖的 starter 进行自动装载
+			- spring-boot-start-web 中默认包含 spring-mvc 相关依赖以及内置的 web容器，使得
+构建一个 web 应用更加简单
+
+		- 自动化配置原理
+
+			- @SpringBootApplication
+
+			  SpringBoot 应用标注在某个类上说明这个类是 SpringBoot 的主配置类，SpringBoot 就会运行
+			  这个类的 main 方法来启动 SpringBoot 项目。
+			  •@SpringBootConfiguration
+			  •@EnableAutoConfiguration
+			  •@AutoConfigurationPackage
+			  •@Import({AutoConfigurationImportSelector.class})
+			  加载所有 META-INF/spring.factories 中存在的配置类（类似 SpringMVC 中加载所有 converter）
+
+			- spring.factories配置文件配置自动装配
+			- @EnableAutoConfiguration开启自动装配
+			- @Configuration扫描配置注解
+
+	- spring-boot-starter：脚手架核心
+整合各种第三方类库，协同工具
+
+		- spring.provides
+		- spring.factories
+		- additional--metadata
+		- 自定义 Configuration 类
+
+### JDBC 与数据库连接池
+
+- JDBC定义的数据库交互接口
+
+	- DriverManager
+	- Connection
+	- Statement
+	- ResultSet
+	- DataSource
+
+- 数据库连接池
+
+	- C3P0
+	- DBCP
+	- Druid
+	- Hikari
+
+### ORM框架
+
+- Hibernate
+
+	- 优点：简单场景不用写 SQL（HQL、Cretiria、SQL）
+	- 缺点：对 DBA 不友好
+
+- Mybatis
+
+	- 优点：原生 SQL（XML 语法），直观，对 DBA 友好
+	- 缺点：繁琐，可以用 MyBatis-generator、MyBatis-Plus 之类的插件
 
 ## 分布式消息队列
 
@@ -510,7 +769,95 @@ InnoDB:
 
 		- 一般情况下都是读已提交（全局锁）、读未提交（无全局锁）
 
+- 分布式事务框架
+
+	- Seata
+	- hmily
+
 ## RPC和微服务
+
+### RPC
+
+- 远程过程调用（Remote Procedure Call）的缩写形式
+- RPC原理
+
+	- 本地代理存根
+	- 本地序列化反序列化
+	- 网络通信
+	- 远程序列化反序列化
+	- 远程服务存根
+	- 调用实际业务服务
+	- 原路返回服务结果
+	- 返回给本地调用方
+
+- RPC技术框架
+
+	- Hessian
+	- Thrift
+	- gRPC
+
+### 微服务
+
+- 微服务发展历程
+
+	- 响应式微服务
+	- 服务网格与云原生
+	- 数据库网络
+	- 单元化架构
+
+- 微服务应用场景
+
+	- 大规模复杂业务系统的架构升级与中台建设
+	- 复杂度较高的系统
+
+- 微服务最佳实践
+
+	- 遗留系统改造
+
+	  ①功能剥离、数据解耦 
+	  ②自然演进、逐步拆分
+	  ③小步快跑、快速迭代
+	  ④灰度发布、谨慎试错 
+	  ⑤提质量线、还技术债
+
+	- 自动化管理
+
+	  自动化测试 
+	  自动化部署 
+	  自动化运维 
+	  降低服务拆分带来的复杂性 提升测试、部署、运维效率
+
+	- 恰当粒度拆分
+
+	  拆分原则： 
+	  1.高内聚低耦合 
+	  2.不同阶段拆分要点不同
+
+	- 分布式事务
+
+	  幂等/去重/补偿 慎用分布式事务！
+
+	- 扩展立方体
+
+	  扩展立方体： 
+	  1. 水平复制：复制系统 
+	  2.功能解耦：拆分业务 
+	  3.数据分区：切分数据
+
+	- 完善监控体系
+
+	  监控与运维： 
+	  1.业务监控 
+	  2.系统监控 
+	  3.容量规划 
+	  4.报警预警 
+	  5.运维流程 
+	  6.故障处理
+
+### 主流框架
+
+- Spring Cloud
+- Dubbo
 
 ## 分布式缓存
 
@@ -636,5 +983,205 @@ InnoDB:
   4、实现熔断限流机制，对系统进行负载能力控制。
 
 ## 并发编程
+
+### Java多线程实现
+
+- 线程生命周期
+
+	- 初始状态
+	- 就绪状态
+	- 执行状态
+	- 阻塞状态
+	- 终止状态
+
+- 继承Thread类
+
+	- 定义类继承Thread
+	- 重写run方法
+	- 调用线程的start方法启动线程
+	- sleep(long time)阻塞当前线程，不释放锁
+
+- 实现Runnable接口
+
+	- 定义类实现Runnable接口
+	- 重写run方法
+	- 通过Thread创建线程对象
+	- 将实现Runnable接口类传给Thread构造函数
+	- 调用线程的start方法启动线程
+
+- 并发安全操作
+
+	- 管程synchronized
+
+		- synchronized同步方法
+		- synchronized同步代码块
+		- synchronized对象监视器
+
+	- volatile关键字
+
+		- 可见性
+		- 不保证原子性
+
+	- final关键字
+
+- 线程间通信
+
+	- 通知机制
+
+		- wait/wait(long time)阻塞线程，释放对象锁
+		- notyfy/notifyAll唤醒其他被阻塞线程（非公平）
+
+	- join在当前线程中当前线程阻塞，其他线程调用join进行执行
+	- ThreadLocal（内部使用ThreadLocakMap存储数据）
+
+		- set 设置本线程对应值
+		- get获取本线程对应值
+		- remove清理本线程对应值
+
+	- yield
+	- suspend/resume
+	- Future/Callable
+	- Semaphore信号量
+	- CountDownLatch
+	- CyclicBarrier线程栅栏
+	- CompletableFuture
+	- 阻塞
+
+### Java并发包 
+
+- 锁机制类
+
+	- Lock
+
+		- lock方法，加锁
+		- unlock方法，解锁
+		- trylock方法，尝试获取锁（无等待），返回值是boolen
+		- lockInterruptibly 获取锁，允许打断
+
+	- Condition
+
+		- newCondition 新增一个绑定到当前Lock的条件
+		- await 等待信号
+		- awaitUninterruptibly 等待信号
+		- await(long time, TimeUnit unit)等待信号，超时返回false
+		- awaitUntil(Date deadline)等待信号，超时返回false
+		- signal给一个等待线程发送唤醒信号
+		- signalAll给所有等待线程发送唤醒信号
+
+	- ReadWriteLock
+
+		- readLock 获取度锁，共享锁
+		- writeLock 获取写锁，独占锁（也排斥读锁）
+
+	- LockSupport 锁当前线程
+
+		- park(Object blocker) 暂停当前线程
+		- unpark(Thread thread) 恢复当前线程
+		- parkNanos(Object blocker, long nanos) 暂停当前线程，有超时时间的限制
+		- parkUntil(Object blocker, long deadline) 暂停当前线程，知道某个时间
+		- park无期限暂停当前线程
+		- parkNanos(long nanos) 暂停当前线程，有超时时间的限制
+		- parkUntil(long deadline) 暂停当前线程，知道某个时间
+		- getBlocker(Thread t)
+
+- 原子操作类（CPU硬件指令支持CAS）
+
+	- AtomicInteger
+	- AtomicLong
+	- ...
+
+- 并发工具类（基于AQS实现）
+
+	- Semaphore信号量
+
+		- acquire 获取信号量
+		- release 释放信号量
+
+	- CountDownLatch
+
+		- await 等待计数归0
+		- await(long timeout, TimeUnit unit)带超时的等待
+		- countDown计数-1
+		- getCount 返回剩于计数
+
+	- CyclicBarrier线程栅栏
+
+		- await 任务线程内部使用，等待所有任务线程执行完毕
+		- await(long timeout, TimeUnit unit)任务线程内部使用，限时等待所有任务线程执行完毕
+		- reset 重新一轮
+
+	- CompletableFuture
+
+		- static final boolean useCommonPool = (ForkJoinPool.getCommonPoolParallelism() > 1);是否使用内置线程池
+		- static final Executor asyncPool = useCommonPool ? ForkJoinPool.commonPool() : new ThreadPerTaskExecutor(); 线程池
+		- runAsync(Runnable task) 异步执行，当心阻塞
+		- runAsync(Runnable task, Executor exe)异步执行，使用自定义线程池
+		- get 等待执行结果
+		- get(long time, TimeUnit unit) 限时等待执行结果
+		- getNow 立即获取结果（默认）
+
+- 并发集合类
+
+	- CopyOnWriteArrayList
+
+		- 读旧引用
+		- 插入/删除在新副本操作
+		- 操作完后将旧引用指向新副本
+
+	- ConcurrentHashMap
+
+		- JDK7 采用分段锁机制
+		- JDK8 采用CAS机制
+
+- 线程池相关类
+
+	- Executor
+
+		- execute方法
+		- submit方法，又返回值用Future封装
+
+	- ExecutorService
+
+		- execute方法
+		- submit方法，有返回值用Future封装
+		- shutdown方法，停止接收新任务，原来任务继续执行 
+		- shutdownNow方法，停止接收新任务，原来任务停止执行 
+		- awaitTermination(long timeOut, TimeUnit unit)当前线程阻塞
+
+	- ThreadFactory
+	- ThreadPoolExecutor
+
+		- corePoolSize核心线程数
+		- maximumPoolSize最大线程数
+		- ThreadFactory 线程工厂
+		- workQueue工作队列
+		- RejectedExecutionHandler拒绝策略
+
+			- 子主ThreadPoolExecutor.AbortPolicy丢弃任务并抛出 RejectedExecutionException 异常题 1
+			- ThreadPoolExecutor.DiscardPolicy丢弃任务，但是不抛异常
+			- ThreadPoolExecutor.DiscardOldestPolicy丢弃队列最前面的任务，然后重新提 交被拒绝的任务
+			- ThreadPoolExecutor.CallerRunsPolicy由调用线程(提交任务的线程)处理该任务
+
+		- execute执行任务
+		- submit提交任务，封装Future返回值
+
+	- Executors
+
+		- newSingleThreadExecutor创建一个单线程的线程池
+		- newFixedThreadPool创建固定大小的线程池
+		- newCachedThreadPool创建一个可缓存的线程池
+		- newScheduledThreadPool创建一个大小无限的线程池，支持定时以及周期性执行任务
+
+	- Callable
+
+		- call方法又返回值
+
+	- Future
+
+		- cancel取消任务
+		- isCancelled是否被取消
+		- isDone是否执行完毕
+		- get获取执行结果
+		- get(long timeout, TimeUtit)限时获取执行结果
 
 *XMind: ZEN - Trial Version*

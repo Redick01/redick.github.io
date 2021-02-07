@@ -40,7 +40,7 @@
 * * [单例模式](blog/design_pattern/singleton.md)
 
 * **总结**
-* * [总结](blog/structure/study-summary.md)
+* * [java 0期毕业总结](blog/structure/study-summary.md)
 
 * **源码笔记**
 * * **soul网关源码笔记**
