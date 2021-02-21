@@ -28,12 +28,14 @@
 
 * Spring
   * [Spring WebFlux与Spring MVC压测对比](blog/spring/springwebflux.md)
+  * [Spring WebFlux集成](blog/spring/springwebflux-1.md)
 
 * 设计模式
   * [单例模式](blog/design_pattern/singleton.md)
 
 * 架构
   * [java 0期毕业总结](blog/structure/study-summary.md)
+  * [微服务架构下的容错性设计](blog/structure/micro-service-design-1.md)
 
 * 源码笔记
   * **soul网关源码笔记**
