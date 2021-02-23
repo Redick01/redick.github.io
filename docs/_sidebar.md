@@ -2,6 +2,8 @@
 * * [JVM](blog/java_base/jvm/jvm.md)
 * * [GC日志分析方法](blog/java_base/jvm/gc_test.md)
 * * [Java多线程与并发](blog/java_base/java_thread/java_thread_1.md)
+* * [Guava Cache官方文档](blog/java_base/tools/guava-cache-official-doc.md)
+* * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
 
 * **算法**
 * * [排序算法](blog/algorithm/sort.md)
