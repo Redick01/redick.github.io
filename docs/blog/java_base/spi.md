@@ -1,4 +1,4 @@
-# Java世界中的SPI
+# Java SPI机制详解
 
 ## SPI介绍
 
