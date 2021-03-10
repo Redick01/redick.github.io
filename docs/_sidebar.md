@@ -17,6 +17,9 @@
 * * **Redis**
 * * * [Redis集群与高可用](blog/Middleware/redis/redis_1.md)
 
+* * **微服务框架**
+* * * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
+
 * * **Arthas**
 * * * [Arthas初探](blog/Middleware/arthas/startup.md)
 
