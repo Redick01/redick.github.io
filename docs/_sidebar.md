@@ -38,6 +38,7 @@
 * * **Mysql**
 * * * [Mysql集群与高可用](blog/database/mysql/mysql_1.md)
 * * * [Mysql集群与高可用之MGR](blog/database/mysql/mysql_2.md)
+* * * [Mysql索引失效](blog/database/mysql/mysql_3.md)
 
 
 * **Spring**
