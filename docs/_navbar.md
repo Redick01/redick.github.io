@@ -20,14 +20,14 @@
   * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
   * [基于Jedis的Redis分布式锁实现](blog/java_base/tools/redislock.md)
   * [Redisson分布式锁1-应用](blog/java_base/tools/redisson-lock.md)
-
-  * 分布式消息
+* 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
   * [Java消息队列JMS](blog/Middleware/mq/JMS_1.md)
   * [ActiveMQ](blog/Middleware/mq/activemq_1.md)
   * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
   * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
   * [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
+  * [阿里云RocketMQ订阅关系一致性](blog/Middleware/mq/rocketmq-product-err.md)
 
 * 数据库
   * [Mysql集群与高可用](blog/database/mysql/mysql_1.md)
