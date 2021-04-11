@@ -24,6 +24,7 @@
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
   * [Java消息队列JMS](blog/Middleware/mq/JMS_1.md)
   * [ActiveMQ](blog/Middleware/mq/activemq_1.md)
+  * [生产中使用ActiveMq消费慢问题排查过程及解决方式](blog/Middleware/mq/activemq-problem-1.md)
   * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
   * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
   * [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
