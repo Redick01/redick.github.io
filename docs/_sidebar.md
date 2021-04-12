@@ -26,6 +26,8 @@
 
 * * **Arthas**
 * * * [Arthas初探](blog/Middleware/arthas/startup.md)
+* * * [Arthas检测死锁](blog/Middleware/arthas/thread.md)
+* * * [Arthas Idea插件](blog/Middleware/arthas/arthas-idea-plugin.md)
 
 * * **分布式消息**
 * * * [消息队列基础](blog/Middleware/mq/mq_1.md)

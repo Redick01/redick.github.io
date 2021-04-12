@@ -17,6 +17,8 @@
 * 中间件
   * [Redis集群与高可用](blog/Middleware/redis/redis_1.md)
   * [Arthas初探](blog/Middleware/arthas/startup.md)
+  * [Arthas检测死锁](blog/Middleware/arthas/thread.md)
+  * [Arthas Idea插件](blog/Middleware/arthas/arthas-idea-plugin.md)
   * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
   * [基于Jedis的Redis分布式锁实现](blog/java_base/tools/redislock.md)
   * [Redisson分布式锁1-应用](blog/java_base/tools/redisson-lock.md)
