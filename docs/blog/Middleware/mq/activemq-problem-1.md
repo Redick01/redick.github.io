@@ -8,7 +8,7 @@
 
 ## 生产环境ActiveMQ消费慢问题始末
 
-&emsp;&emsp; 公司一个系统生产环境应用ActiveMQ进行通信，由于上下层系统的特殊性，消息的对接使用的P2P的模式，上送服务需要对接上百个ActiveMQ的消息队列，下层服务的每一个实例都对接一个消息队列，并且消息量不大，所以消息生产者是一个单线程的程序，并且生产者使用同步的方式发送消息，就是说只有当消息成功被消费者消费掉后才会发下一条数据。
+&emsp;&emsp; 公司一个系统生产环境应用ActiveMQ进行通信，由于上下层系统的特殊性，消息的对接使用的P2P的模式，上送服务需要对接上百个ActiveMQ的消息队列，下层服务的每一个实例都对接一个消息队列，并且消息量不大，所以消息生产者是一个单线程的程序，并且生产者使用同步的方式发送消息，就是说只有当消息发到达broker并刷盘成功才会发下一条数据。
 
 &emsp;&emsp; 突然在某一个时间开始，待处理的数据产生了积压，随着时间的推移积压的量越来越多，该系统的消息量其实是一直在增长的，生产环境的网络环境比较特殊，延迟较大，初步怀疑是网络+数据量增大的原因，所以针对数据量大的问题有同事想到了第一种解决方案（这个方案其实本身就是个坑），那就是将单线程的发送消息改为多线程，注意，这里仅仅是改了多线程发送，这也为后续的坑埋下了伏笔。
 
@@ -73,7 +73,7 @@ jmsQueueTemplate.send(queueName, new MessageCreator() {
 			});
 ```
 
-根据上面日志，进一步定位线程卡住的核心，通过`syncSendPacket`可以看出是使用的同步方式发送数据，根据`org.apache.activemq.transport.FutureResponse.getResult(FutureResponse.java:48)`这段日志可以看到在`FutureResponse`第48行卡住了，我们来看一看这里在干什么，可以看到卡在`responseSlot.take()`，`responseSlot`是一个`ArrayBlockingQueue`，这个阻塞队列就是用于获取消息处理成功的结果，所以大致流程搞清楚了，因为是同步发送需要等待消息消费结果，所以使用一个阻塞队列用于存放消费结果，发送线程一直在`take()`发送结果，如果没有结果就一直阻塞的获取，定位到了程序就是一直获取不到结果所以就阻塞在这里了。
+根据上面日志，进一步定位线程卡住的核心，通过`syncSendPacket`可以看出是使用的同步方式发送数据，根据`org.apache.activemq.transport.FutureResponse.getResult(FutureResponse.java:48)`这段日志可以看到在`FutureResponse`第48行卡住了，我们来看一看这里在干什么，可以看到卡在`responseSlot.take()`，`responseSlot`是一个`ArrayBlockingQueue`，这个阻塞队列就是用于获取消息处理成功的结果，所以大致流程搞清楚了，因为是同步发送需要等待消息刷盘结果，所以使用一个阻塞队列用于存放消费结果，发送线程一直在`take()`发送结果，如果没有结果就一直阻塞的获取，定位到了程序就是一直获取不到结果所以就阻塞在这里了。
 
 ```
     public Response getResult() throws IOException {
