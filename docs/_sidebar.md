@@ -21,9 +21,6 @@
 * * * [基于Jedis的Redis分布式锁实现](blog/java_base/tools/redislock.md)
 * * * [Redisson分布式锁1-应用](blog/java_base/tools/redisson-lock.md)
 
-* * **微服务框架**
-* * * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
-
 * * **Arthas**
 * * * [Arthas初探](blog/Middleware/arthas/startup.md)
 * * * [Arthas检测死锁](blog/Middleware/arthas/thread.md)
@@ -34,6 +31,7 @@
 * * * [Java消息队列JMS](blog/Middleware/mq/JMS_1.md)
 * * * [ActiveMQ](blog/Middleware/mq/activemq_1.md)
 * * * [生产中使用ActiveMq消费慢问题排查过程及解决方式](blog/Middleware/mq/activemq-problem-1.md)
+* * * [ActiveMQ持久化方式](blog/Middleware/mq/activemq-chijiuhua.md)
 * * * **Kafka**
 * * * * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
 * * * * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
@@ -83,6 +81,10 @@
 * * * [suol网关源码分析之sentinel插件、resilience4j插件](blog/sourcecode/soul/soul_17.md)
 * * * [soul限流和熔断的分享](blog/sourcecode/soul/soul_19.md)
 * * * [soul限流插件官方文档-中文](blog/sourcecode/soul/soul-ratelimiter-doc-ch.md.md)
+* * * **Dubbo源码分析**
+* * * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
 * * **Redisson锁实现源码分析**
 * * * [Redisson可重入锁源码分析](blog/sourcecode/redisson/redisson-lock-1.md)
 * * * [Redisson分布式锁开门狗](blog/sourcecode/redisson/redisson-lock-dog.md)
+* * **RocketMQ源码分析**
+* * * [RocketMQ源码解析-本地环境搭建](blog/sourcecode/rocketmq/rocketmq-1.md)
