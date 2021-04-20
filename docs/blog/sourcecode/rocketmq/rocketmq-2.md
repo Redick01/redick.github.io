@@ -1,4 +1,4 @@
-# RocketMQ源码解析-Namesrv
+# RocketMQ源码解析-Namesrv KV存储管理和路由信息管理核心源码分析
 
 
 &nbsp; &nbsp; `Namesrv`为`rocketmq`的注册中心，主要提供的功能是KV存储管理和路由信息管理，该组件的核心代码不是很多，下面的源码分析过程也只针对`Namesrv`提供核心能展开分析
@@ -491,3 +491,36 @@ public void deleteTopic(final String topic)
 ```
 
 ## 路由删除
+
+在`org.apache.rocketmq.namesrv.NamesrvController`的`initialize()`方法中，启动了一个定时任务，该任务每隔10s中去检查一次`brokerLiveTable`列表，当连续120s没有收到来自Broker心跳的时候Namesrv就会移除该Broker的路由信息，源码如下：
+
+```
+    // 每隔10s检测Broker路由列表中Broker的存活情况
+    this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+
+        @Override
+        public void run() {
+            NamesrvController.this.routeInfoManager.scanNotActiveBroker();
+        }
+    }, 
+```
+
+```
+    /**
+     * 扫描brokerLiveTable，连续120s没有收到心跳就会移除broker路由
+     */
+    public void scanNotActiveBroker() {
+        Iterator<Entry<String, BrokerLiveInfo>> it = this.brokerLiveTable.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<String, BrokerLiveInfo> next = it.next();
+            long last = next.getValue().getLastUpdateTimestamp();
+            if ((last + BROKER_CHANNEL_EXPIRED_TIME) < System.currentTimeMillis()) {
+                RemotingUtil.closeChannel(next.getValue().getChannel());
+                //移除broker路由
+                it.remove();
+                log.warn("The broker channel expired, {} {}ms", next.getKey(), BROKER_CHANNEL_EXPIRED_TIME);
+                this.onChannelDestroy(next.getKey(), next.getValue().getChannel());
+            }
+        }
+    }
+```
