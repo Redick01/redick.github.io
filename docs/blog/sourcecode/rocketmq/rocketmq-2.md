@@ -7,7 +7,7 @@
 
 ## KV存储管理模块 KVConfigManager
 
-&nbsp; &nbsp; `KVConfigManager`提供key-value配置管理功能，下面代码就是配置管理的核心了，对应的解析可以参考源码注释，这部分代码比较简单
+&nbsp; &nbsp; `KVConfigManager`提供key-value配置管理功能，下面代码就是配置管理的核心了，对应的解析可以参考源码注释，这部分代码比较简单，首先`org.apache.rocketmq.namesrv.NamesrvController`的`initialize()`会根据配置文件的位置家在配置文件中的配置内容并放到`configTable`中，然后其他组件在有配置变动的时候通过Netty客户端向Namesrv的Netty的服务端进行请求，然后`DefaultRequestProcessor`将请求分发到`KVConfigManager`的具体某一个处理方法上来实现配置的管理。
 
 ```
 public class KVConfigManager {
@@ -524,3 +524,7 @@ public void deleteTopic(final String topic)
         }
     }
 ```
+
+## 总结
+
+`RouterInfoManager`的部分代码先分析到这里，除了Broker的注册注销探活等能力外，还有所管理的内容的序列化等功能，这些能力会在以后的的源码分析中提及，下一片文章主要分析一下`NameServer`作为Netty服务的的启动流程，事件处理的源码。
