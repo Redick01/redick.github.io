@@ -527,4 +527,4 @@ public void deleteTopic(final String topic)
 
 ## 总结
 
-`RouterInfoManager`的部分代码先分析到这里，除了Broker的注册注销探活等能力外，还有所管理的内容的序列化等功能，这些能力会在以后的的源码分析中提及，下一片文章主要分析一下`NameServer`作为Netty服务的的启动流程，事件处理的源码。
+&nbsp; &nbsp; `RouteInfoManager`的代码较多，不一一展开，截止到这里，`rocketmq`的`Namesrv`模块的核心代码逻辑就分析的差不多了，接下来其他核心模块的代码分析中还会与`Namesrv`有联系，如：Producer生产消息topic的路由，Broker集群的管理等等，具体问题具体分析吧，后续模块分析中再看，下一篇文章来继续分析`client`模块，该模块是`producer`和`consumer`的具体实现。
