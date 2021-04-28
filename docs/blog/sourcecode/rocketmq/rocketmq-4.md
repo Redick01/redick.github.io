@@ -178,4 +178,4 @@ public class SimpleBatchProducer {
 
 ## 总结
 
-&nbsp; &nbsp; 一个简单的RocketMQ的生产者的启动过程也相对很简单，首先就是要对`DefaultMQProducer`和`DefaultMQProducerImpl`进行初始化，然后就是生产者的启动，生产者的启动其核心就是创建`MQClientInstance`，然后调用其`start`方法，该方法的核心是创建并启动一个用于网络通信的Netty客户端；创建启动各种定时任务；启动拉取消息的线程；启动一个重新进行负载均衡的线程等，导致了一个生产者客户端的启动流程大致就看完了，感兴趣的可以自己捋一边代码，并且亲手debug一下，下一篇文章我们看一下啊发送消息的流程。
+&nbsp; &nbsp; 一个简单的RocketMQ的生产者的启动过程也相对很简单，首先就是要对`DefaultMQProducer`和`DefaultMQProducerImpl`进行初始化，然后就是生产者的启动，生产者的启动其核心就是创建`MQClientInstance`，然后调用其`start`方法，该方法的核心是创建并启动一个用于网络通信的Netty客户端；创建启动各种定时任务；启动拉取消息的线程；启动一个重新进行负载均衡的线程等，导致了一个生产者客户端的启动流程大致就看完了，感兴趣的可以自己捋一边代码，并且亲手debug一下，下一篇文章我们看一下发送消息的流程。
