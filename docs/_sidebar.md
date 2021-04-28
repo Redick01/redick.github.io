@@ -81,8 +81,8 @@
 * * * [suol网关源码分析之sentinel插件、resilience4j插件](blog/sourcecode/soul/soul_17.md)
 * * * [soul限流和熔断的分享](blog/sourcecode/soul/soul_19.md)
 * * * [soul限流插件官方文档-中文](blog/sourcecode/soul/soul-ratelimiter-doc-ch.md.md)
-* * * **Dubbo源码分析**
-* * * [Dubbo SPI设计实现详解](blog/Middleware/micro-service/dubbo-spi.md)
+* * **Dubbo源码分析**
+* * * [Dubbo SPI设计实现详解](blog/sourcecode/dubbo/dubbo-spi.md)
 * * **Redisson锁实现源码分析**
 * * * [Redisson可重入锁源码分析](blog/sourcecode/redisson/redisson-lock-1.md)
 * * * [Redisson分布式锁开门狗](blog/sourcecode/redisson/redisson-lock-dog.md)
