@@ -277,6 +277,237 @@ public class Producer {
     }
 ```
 
+### DefaultMQProducerImpl#sendKernelImpl
+
+```
+    /**
+     * 发送
+     * @param msg 消息
+     * @param mq mq队列
+     * @param communicationMode 模式
+     * @param sendCallback 回调
+     * @param topicPublishInfo 发布的路由信息
+     * @param timeout 超时时间
+     * @return
+     * @throws MQClientException
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
+    private SendResult sendKernelImpl(final Message msg,
+        final MessageQueue mq,
+        final CommunicationMode communicationMode,
+        final SendCallback sendCallback,
+        final TopicPublishInfo topicPublishInfo,
+        final long timeout) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+        // 记一个开始时间戳
+        long beginStartTime = System.currentTimeMillis();
+        // 获取broker地址
+        String brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
+        // 获取不到broker，就再次根据topic去获取Topic发布信息
+        if (null == brokerAddr) {
+            // 根据topic去获取Topic发布信息
+            tryToFindTopicPublishInfo(mq.getTopic());
+            // broker地址
+            brokerAddr = this.mQClientFactory.findBrokerAddressInPublish(mq.getBrokerName());
+        }
+
+        SendMessageContext context = null;
+        if (brokerAddr != null) {
+            // VIP地址，broker开了两个端口
+            brokerAddr = MixAll.brokerVIPChannel(this.defaultMQProducer.isSendMessageWithVIPChannel(), brokerAddr);
+
+            byte[] prevBody = msg.getBody();
+            try {
+                //for MessageBatch,ID has been set in the generating process
+                if (!(msg instanceof MessageBatch)) {
+                    MessageClientIDSetter.setUniqID(msg);
+                }
+
+                boolean topicWithNamespace = false;
+                if (null != this.mQClientFactory.getClientConfig().getNamespace()) {
+                    // 设置消息实例ID
+                    msg.setInstanceId(this.mQClientFactory.getClientConfig().getNamespace());
+                    topicWithNamespace = true;
+                }
+
+                int sysFlag = 0;
+                boolean msgBodyCompressed = false;
+                // 尝试压缩消息，zip格式，默认消息体超过4K会进行压缩
+                if (this.tryToCompressMessage(msg)) {
+                    sysFlag |= MessageSysFlag.COMPRESSED_FLAG;
+                    msgBodyCompressed = true;
+                }
+
+                // 记录事务交易
+                final String tranMsg = msg.getProperty(MessageConst.PROPERTY_TRANSACTION_PREPARED);
+                if (tranMsg != null && Boolean.parseBoolean(tranMsg)) {
+                    sysFlag |= MessageSysFlag.TRANSACTION_PREPARED_TYPE;
+                }
+
+                // 扩展的钩子执行
+                if (hasCheckForbiddenHook()) {
+                    CheckForbiddenContext checkForbiddenContext = new CheckForbiddenContext();
+                    checkForbiddenContext.setNameSrvAddr(this.defaultMQProducer.getNamesrvAddr());
+                    checkForbiddenContext.setGroup(this.defaultMQProducer.getProducerGroup());
+                    checkForbiddenContext.setCommunicationMode(communicationMode);
+                    checkForbiddenContext.setBrokerAddr(brokerAddr);
+                    checkForbiddenContext.setMessage(msg);
+                    checkForbiddenContext.setMq(mq);
+                    checkForbiddenContext.setUnitMode(this.isUnitMode());
+                    this.executeCheckForbiddenHook(checkForbiddenContext);
+                }
+                // 发送消息钩子执行
+                if (this.hasSendMessageHook()) {
+                    context = new SendMessageContext();
+                    context.setProducer(this);
+                    context.setProducerGroup(this.defaultMQProducer.getProducerGroup());
+                    context.setCommunicationMode(communicationMode);
+                    context.setBornHost(this.defaultMQProducer.getClientIP());
+                    context.setBrokerAddr(brokerAddr);
+                    context.setMessage(msg);
+                    context.setMq(mq);
+                    context.setNamespace(this.defaultMQProducer.getNamespace());
+                    String isTrans = msg.getProperty(MessageConst.PROPERTY_TRANSACTION_PREPARED);
+                    if (isTrans != null && isTrans.equals("true")) {
+                        context.setMsgType(MessageType.Trans_Msg_Half);
+                    }
+
+                    if (msg.getProperty("__STARTDELIVERTIME") != null || msg.getProperty(MessageConst.PROPERTY_DELAY_TIME_LEVEL) != null) {
+                        context.setMsgType(MessageType.Delay_Msg);
+                    }
+                    this.executeSendMessageHookBefore(context);
+                }
+                // 组装消息头
+                SendMessageRequestHeader requestHeader = new SendMessageRequestHeader();
+                requestHeader.setProducerGroup(this.defaultMQProducer.getProducerGroup());
+                requestHeader.setTopic(msg.getTopic());
+                requestHeader.setDefaultTopic(this.defaultMQProducer.getCreateTopicKey());
+                requestHeader.setDefaultTopicQueueNums(this.defaultMQProducer.getDefaultTopicQueueNums());
+                requestHeader.setQueueId(mq.getQueueId());
+                requestHeader.setSysFlag(sysFlag);
+                requestHeader.setBornTimestamp(System.currentTimeMillis());
+                requestHeader.setFlag(msg.getFlag());
+                requestHeader.setProperties(MessageDecoder.messageProperties2String(msg.getProperties()));
+                requestHeader.setReconsumeTimes(0);
+                requestHeader.setUnitMode(this.isUnitMode());
+                requestHeader.setBatch(msg instanceof MessageBatch);
+                // 如果是重试 topic，设置消息重试次数相关属性
+                if (requestHeader.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
+                    String reconsumeTimes = MessageAccessor.getReconsumeTime(msg);
+                    if (reconsumeTimes != null) {
+                        requestHeader.setReconsumeTimes(Integer.valueOf(reconsumeTimes));
+                        MessageAccessor.clearProperty(msg, MessageConst.PROPERTY_RECONSUME_TIME);
+                    }
+
+                    String maxReconsumeTimes = MessageAccessor.getMaxReconsumeTimes(msg);
+                    if (maxReconsumeTimes != null) {
+                        requestHeader.setMaxReconsumeTimes(Integer.valueOf(maxReconsumeTimes));
+                        MessageAccessor.clearProperty(msg, MessageConst.PROPERTY_MAX_RECONSUME_TIMES);
+                    }
+                }
+
+                SendResult sendResult = null;
+                switch (communicationMode) {
+                    case ASYNC:
+                        Message tmpMessage = msg;
+                        boolean messageCloned = false;
+                        if (msgBodyCompressed) {
+                            //If msg body was compressed, msgbody should be reset using prevBody.
+                            //Clone new message using commpressed message body and recover origin massage.
+                            //Fix bug:https://github.com/apache/rocketmq-externals/issues/66
+                            // 消息如果被压缩，克隆一个新的Message用于发送消息，将压缩前的消息的消息体恢复
+                            tmpMessage = MessageAccessor.cloneMessage(msg);
+                            messageCloned = true;
+                            msg.setBody(prevBody);
+                        }
+
+                        if (topicWithNamespace) {
+                            if (!messageCloned) {
+                                tmpMessage = MessageAccessor.cloneMessage(msg);
+                                messageCloned = true;
+                            }
+                            msg.setTopic(NamespaceUtil.withoutNamespace(msg.getTopic(), this.defaultMQProducer.getNamespace()));
+                        }
+                        // 计算是否超时
+                        long costTimeAsync = System.currentTimeMillis() - beginStartTime;
+                        if (timeout < costTimeAsync) {
+                            throw new RemotingTooMuchRequestException("sendKernelImpl call timeout");
+                        }
+                        // 发送消息
+                        sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage(
+                            brokerAddr,
+                            mq.getBrokerName(),
+                            tmpMessage,
+                            requestHeader,
+                            timeout - costTimeAsync,
+                            communicationMode,
+                            sendCallback,
+                            topicPublishInfo,
+                            this.mQClientFactory,
+                            this.defaultMQProducer.getRetryTimesWhenSendAsyncFailed(),
+                            context,
+                            this);
+                        break;
+                    case ONEWAY:
+                    case SYNC:
+                        // 计算是否超时
+                        long costTimeSync = System.currentTimeMillis() - beginStartTime;
+                        if (timeout < costTimeSync) {
+                            throw new RemotingTooMuchRequestException("sendKernelImpl call timeout");
+                        }
+                        // 发送消息
+                        sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage(
+                            brokerAddr,
+                            mq.getBrokerName(),
+                            msg,
+                            requestHeader,
+                            timeout - costTimeSync,
+                            communicationMode,
+                            context,
+                            this);
+                        break;
+                    default:
+                        assert false;
+                        break;
+                }
+
+                if (this.hasSendMessageHook()) {
+                    context.setSendResult(sendResult);
+                    this.executeSendMessageHookAfter(context);
+                }
+
+                return sendResult;
+            } catch (RemotingException e) {
+                if (this.hasSendMessageHook()) {
+                    context.setException(e);
+                    this.executeSendMessageHookAfter(context);
+                }
+                throw e;
+            } catch (MQBrokerException e) {
+                if (this.hasSendMessageHook()) {
+                    context.setException(e);
+                    this.executeSendMessageHookAfter(context);
+                }
+                throw e;
+            } catch (InterruptedException e) {
+                if (this.hasSendMessageHook()) {
+                    context.setException(e);
+                    this.executeSendMessageHookAfter(context);
+                }
+                throw e;
+            } finally {
+                msg.setBody(prevBody);
+                msg.setTopic(NamespaceUtil.withoutNamespace(msg.getTopic(), this.defaultMQProducer.getNamespace()));
+            }
+        }
+
+        throw new MQClientException("The broker[" + mq.getBrokerName() + "] not exist", null);
+    }
+```
+
+### org.apache.rocketmq.client.impl.MQClientAPIImpl#sendMessage
+
 ## 异步发送ASYNC
 
 ## 单向发送OneWay
