@@ -508,6 +508,83 @@ public class Producer {
 
 ### org.apache.rocketmq.client.impl.MQClientAPIImpl#sendMessage
 
+```
+    public SendResult sendMessage(
+        final String addr,
+        final String brokerName,
+        final Message msg,
+        final SendMessageRequestHeader requestHeader,
+        final long timeoutMillis,
+        final CommunicationMode communicationMode,
+        final SendMessageContext context,
+        final DefaultMQProducerImpl producer
+    ) throws RemotingException, MQBrokerException, InterruptedException {
+        return sendMessage(addr, brokerName, msg, requestHeader, timeoutMillis, communicationMode, null, null, null, 0, context, producer);
+    }
+
+    public SendResult sendMessage(
+        final String addr,
+        final String brokerName,
+        final Message msg,
+        final SendMessageRequestHeader requestHeader,
+        final long timeoutMillis,
+        final CommunicationMode communicationMode,
+        final SendCallback sendCallback,
+        final TopicPublishInfo topicPublishInfo,
+        final MQClientInstance instance,
+        final int retryTimesWhenSendFailed,
+        final SendMessageContext context,
+        final DefaultMQProducerImpl producer
+    ) throws RemotingException, MQBrokerException, InterruptedException {
+        long beginStartTime = System.currentTimeMillis();
+        RemotingCommand request = null;
+        String msgType = msg.getProperty(MessageConst.PROPERTY_MESSAGE_TYPE);
+        boolean isReply = msgType != null && msgType.equals(MixAll.REPLY_MESSAGE_FLAG);
+        if (isReply) {
+            if (sendSmartMsg) {
+                SendMessageRequestHeaderV2 requestHeaderV2 = SendMessageRequestHeaderV2.createSendMessageRequestHeaderV2(requestHeader);
+                request = RemotingCommand.createRequestCommand(RequestCode.SEND_REPLY_MESSAGE_V2, requestHeaderV2);
+            } else {
+                request = RemotingCommand.createRequestCommand(RequestCode.SEND_REPLY_MESSAGE, requestHeader);
+            }
+        } else {
+            if (sendSmartMsg || msg instanceof MessageBatch) {
+                SendMessageRequestHeaderV2 requestHeaderV2 = SendMessageRequestHeaderV2.createSendMessageRequestHeaderV2(requestHeader);
+                request = RemotingCommand.createRequestCommand(msg instanceof MessageBatch ? RequestCode.SEND_BATCH_MESSAGE : RequestCode.SEND_MESSAGE_V2, requestHeaderV2);
+            } else {
+                request = RemotingCommand.createRequestCommand(RequestCode.SEND_MESSAGE, requestHeader);
+            }
+        }
+        request.setBody(msg.getBody());
+
+        switch (communicationMode) {
+            case ONEWAY:
+                this.remotingClient.invokeOneway(addr, request, timeoutMillis);
+                return null;
+            case ASYNC:
+                final AtomicInteger times = new AtomicInteger();
+                long costTimeAsync = System.currentTimeMillis() - beginStartTime;
+                if (timeoutMillis < costTimeAsync) {
+                    throw new RemotingTooMuchRequestException("sendMessage call timeout");
+                }
+                this.sendMessageAsync(addr, brokerName, msg, timeoutMillis - costTimeAsync, request, sendCallback, topicPublishInfo, instance,
+                    retryTimesWhenSendFailed, times, context, producer);
+                return null;
+            case SYNC:
+                long costTimeSync = System.currentTimeMillis() - beginStartTime;
+                if (timeoutMillis < costTimeSync) {
+                    throw new RemotingTooMuchRequestException("sendMessage call timeout");
+                }
+                return this.sendMessageSync(addr, brokerName, msg, timeoutMillis - costTimeSync, request);
+            default:
+                assert false;
+                break;
+        }
+
+        return null;
+    }
+```
+
 ## 异步发送ASYNC
 
 ## 单向发送OneWay
