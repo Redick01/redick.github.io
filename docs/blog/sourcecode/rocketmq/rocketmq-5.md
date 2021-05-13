@@ -610,6 +610,60 @@ public class Producer {
             throw new RemotingConnectException(addr);
         }
     }
+
+    /**
+     * 单向发送
+     * @param channel Netty Channel
+     * @param request rocketmq的协议
+     * @param timeoutMillis 超时时间
+     * @throws InterruptedException
+     * @throws RemotingTooMuchRequestException
+     * @throws RemotingTimeoutException
+     * @throws RemotingSendRequestException
+     */
+    public void invokeOnewayImpl(final Channel channel, final RemotingCommand request, final long timeoutMillis)
+        throws InterruptedException, RemotingTooMuchRequestException, RemotingTimeoutException, RemotingSendRequestException {
+        // 单向发送标记
+        request.markOnewayRPC();
+        // 信号量控制是否允许单向发送的，信号量不会阻塞
+        boolean acquired = this.semaphoreOneway.tryAcquire(timeoutMillis, TimeUnit.MILLISECONDS);
+        if (acquired) {
+            final SemaphoreReleaseOnlyOnce once = new SemaphoreReleaseOnlyOnce(this.semaphoreOneway);
+            try {
+                // 通过netty channel发送数据到broker
+                channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture f) throws Exception {
+                        // 发送完成，是方信号量
+                        once.release();
+                        if (!f.isSuccess()) {
+                            log.warn("send a request command to channel <" + channel.remoteAddress() + "> failed.");
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                once.release();
+                log.warn("write send a request command to channel <" + channel.remoteAddress() + "> failed.");
+                throw new RemotingSendRequestException(RemotingHelper.parseChannelRemoteAddr(channel), e);
+            }
+        } else {
+            // 如果超时了，抛出异常
+            if (timeoutMillis <= 0) {
+                throw new RemotingTooMuchRequestException("invokeOnewayImpl invoke too fast");
+            } else {
+                // 记录超时时间，等待线程数，可以获得的信号数
+                String info = String.format(
+                    "invokeOnewayImpl tryAcquire semaphore timeout, %dms, waiting thread nums: %d semaphoreAsyncValue: %d",
+                    timeoutMillis,
+                    this.semaphoreOneway.getQueueLength(),
+                    this.semaphoreOneway.availablePermits()
+                );
+                log.warn(info);
+                // 抛出超时异常
+                throw new RemotingTimeoutException(info);
+            }
+        }
+    }
 ```
 
 ## 总结
