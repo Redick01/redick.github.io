@@ -25,8 +25,6 @@ public class Message implements Serializable {
 }
 ```
 
-## 同步发送SYNC
-
 ### 同步发送Demo
 
 &nbsp; &nbsp; 参考`org.apache.rocketmq.example.simple.Producer`
@@ -585,7 +583,62 @@ public class Producer {
     }
 ```
 
+## 同步发送SYNC
+
+```
+    /**
+     * 同步发送
+     * @param addr 地址
+     * @param request 发送请求
+     * @param timeoutMillis 耗时-超时时间
+     * @return
+     * @throws InterruptedException
+     * @throws RemotingConnectException
+     * @throws RemotingSendRequestException
+     * @throws RemotingTimeoutException
+     */
+    @Override
+    public RemotingCommand invokeSync(String addr, final RemotingCommand request, long timeoutMillis)
+        throws InterruptedException, RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException {
+        long beginStartTime = System.currentTimeMillis();
+        final Channel channel = this.getAndCreateChannel(addr);
+        // 获取到channel并且channel是活的
+        if (channel != null && channel.isActive()) {
+            try {
+                // 执行调用之前的钩子
+                doBeforeRpcHooks(addr, request);
+                long costTime = System.currentTimeMillis() - beginStartTime;
+                if (timeoutMillis < costTime) {
+                    throw new RemotingTimeoutException("invokeSync call timeout");
+                }
+                RemotingCommand response = this.invokeSyncImpl(channel, request, timeoutMillis - costTime);
+                // 执行调用之后的钩子
+                doAfterRpcHooks(RemotingHelper.parseChannelRemoteAddr(channel), request, response);
+                return response;
+            } catch (RemotingSendRequestException e) {
+                log.warn("invokeSync: send request exception, so close the channel[{}]", addr);
+                this.closeChannel(addr, channel);
+                throw e;
+            } catch (RemotingTimeoutException e) {
+                if (nettyClientConfig.isClientCloseSocketIfTimeout()) {
+                    this.closeChannel(addr, channel);
+                    log.warn("invokeSync: close socket because of timeout, {}ms, {}", timeoutMillis, addr);
+                }
+                log.warn("invokeSync: wait response timeout exception, the channel[{}]", addr);
+                throw e;
+            }
+        } else {
+            this.closeChannel(addr, channel);
+            throw new RemotingConnectException(addr);
+        }
+    }
+```
+
 ## 异步发送ASYNC
+
+```
+
+```
 
 ## 单向发送OneWay
 
