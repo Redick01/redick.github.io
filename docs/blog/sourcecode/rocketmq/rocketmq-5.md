@@ -25,9 +25,9 @@ public class Message implements Serializable {
 }
 ```
 
-### 同步发送Demo
+### 消息发送Demo
 
-&nbsp; &nbsp; 参考`org.apache.rocketmq.example.simple.Producer`
+&nbsp; &nbsp; 同步发送，参考`org.apache.rocketmq.example.simple.Producer`
 
 ```
 public class Producer {
@@ -55,6 +55,52 @@ public class Producer {
     }
 }
 ```
+
+&nbsp; &nbsp; 异步发送，参考`org.apache.rocketmq.example.simple.AsyncProducer`
+
+```
+public class AsyncProducer {
+    public static void main(
+        String[] args) throws MQClientException, InterruptedException, UnsupportedEncodingException {
+
+        DefaultMQProducer producer = new DefaultMQProducer("Jodie_Daily_test");
+        producer.start();
+        producer.setRetryTimesWhenSendAsyncFailed(0);
+
+        int messageCount = 100;
+        final CountDownLatch countDownLatch = new CountDownLatch(messageCount);
+        for (int i = 0; i < messageCount; i++) {
+            try {
+                final int index = i;
+                Message msg = new Message("Jodie_topic_1023",
+                    "TagA",
+                    "OrderID188",
+                    "Hello world".getBytes(RemotingHelper.DEFAULT_CHARSET));
+                producer.send(msg, new SendCallback() {
+                    @Override
+                    public void onSuccess(SendResult sendResult) {
+                        countDownLatch.countDown();
+                        System.out.printf("%-10d OK %s %n", index, sendResult.getMsgId());
+                    }
+
+                    @Override
+                    public void onException(Throwable e) {
+                        countDownLatch.countDown();
+                        System.out.printf("%-10d Exception %s %n", index, e);
+                        e.printStackTrace();
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        countDownLatch.await(5, TimeUnit.SECONDS);
+        producer.shutdown();
+    }
+}
+```
+
+## 发送消息接
 
 ### DefaultMQProducer#send()
 ```
@@ -636,8 +682,152 @@ public class Producer {
 
 ## 异步发送ASYNC
 
+&nbsp; &nbsp; `org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl`
+```
+    /**
+     * DEFAULT ASYNC -------------------------------------------------------
+     */
+    public void send(Message msg,
+        SendCallback sendCallback) throws MQClientException, RemotingException, InterruptedException {
+        send(msg, sendCallback, this.defaultMQProducer.getSendMsgTimeout());
+    }
+```
+&nbsp; &nbsp; `org.apache.rocketmq.client.impl.MQClientAPIImpl`
+```
+    /**
+     * 异步发送消息
+     * @param addr broker地址
+     * @param brokerName broker名
+     * @param msg 消息
+     * @param timeoutMillis 超时时间-处理耗时
+     * @param request rocketmq协议
+     * @param sendCallback 回调函数
+     * @param topicPublishInfo topic信息
+     * @param instance mq客户端实例
+     * @param retryTimesWhenSendFailed 失败重试次数
+     * @param times
+     * @param context 发送消息上下文
+     * @param producer 生产者
+     * @throws InterruptedException
+     * @throws RemotingException
+     */
+    private void sendMessageAsync(
+        final String addr,
+        final String brokerName,
+        final Message msg,
+        final long timeoutMillis,
+        final RemotingCommand request,
+        final SendCallback sendCallback,
+        final TopicPublishInfo topicPublishInfo,
+        final MQClientInstance instance,
+        final int retryTimesWhenSendFailed,
+        final AtomicInteger times,
+        final SendMessageContext context,
+        final DefaultMQProducerImpl producer
+    ) throws InterruptedException, RemotingException {
+        final long beginStartTime = System.currentTimeMillis();
+        this.remotingClient.invokeAsync(addr, request, timeoutMillis, new InvokeCallback() {
+            // 发送成功回调
+            @Override
+            public void operationComplete(ResponseFuture responseFuture) {
+                long cost = System.currentTimeMillis() - beginStartTime;
+                RemotingCommand response = responseFuture.getResponseCommand();
+                // 不设置回调函数的处理方式
+                if (null == sendCallback && response != null) {
+
+                    try {
+                        // 发送结果
+                        SendResult sendResult = MQClientAPIImpl.this.processSendResponse(brokerName, msg, response, addr);
+                        // 存在发送结果并且发送上下文不为空，将发送结果set到上下文中并执行发送消息后钩子
+                        if (context != null && sendResult != null) {
+                            context.setSendResult(sendResult);
+                            context.getProducer().executeSendMessageHookAfter(context);
+                        }
+                    } catch (Throwable e) {
+                    }
+                    // 更新容错信息
+                    producer.updateFaultItem(brokerName, System.currentTimeMillis() - responseFuture.getBeginTimestamp(), false);
+                    return;
+                }
+                // 设置回调函数的处理方式
+                if (response != null) {
+                    try {
+                        SendResult sendResult = MQClientAPIImpl.this.processSendResponse(brokerName, msg, response, addr);
+                        assert sendResult != null;
+                        if (context != null) {
+                            context.setSendResult(sendResult);
+                            context.getProducer().executeSendMessageHookAfter(context);
+                        }
+
+                        try {
+                            // 回调函数设置发送结果
+                            sendCallback.onSuccess(sendResult);
+                        } catch (Throwable e) {
+                        }
+                        // 更新容错信息
+                        producer.updateFaultItem(brokerName, System.currentTimeMillis() - responseFuture.getBeginTimestamp(), false);
+                    } catch (Exception e) {
+                        producer.updateFaultItem(brokerName, System.currentTimeMillis() - responseFuture.getBeginTimestamp(), true);
+                        // 异常处理
+                        onExceptionImpl(brokerName, msg, timeoutMillis - cost, request, sendCallback, topicPublishInfo, instance,
+                            retryTimesWhenSendFailed, times, e, context, false, producer);
+                    }
+                } else {
+                    // 更新容错信息
+                    producer.updateFaultItem(brokerName, System.currentTimeMillis() - responseFuture.getBeginTimestamp(), true);
+                    if (!responseFuture.isSendRequestOK()) {
+                        // 发送失败
+                        MQClientException ex = new MQClientException("send request failed", responseFuture.getCause());
+                        onExceptionImpl(brokerName, msg, timeoutMillis - cost, request, sendCallback, topicPublishInfo, instance,
+                            retryTimesWhenSendFailed, times, ex, context, true, producer);
+                    } else if (responseFuture.isTimeout()) {
+                        // 超时
+                        MQClientException ex = new MQClientException("wait response timeout " + responseFuture.getTimeoutMillis() + "ms",
+                            responseFuture.getCause());
+                        onExceptionImpl(brokerName, msg, timeoutMillis - cost, request, sendCallback, topicPublishInfo, instance,
+                            retryTimesWhenSendFailed, times, ex, context, true, producer);
+                    } else {
+                        // 不知道原因
+                        MQClientException ex = new MQClientException("unknow reseaon", responseFuture.getCause());
+                        onExceptionImpl(brokerName, msg, timeoutMillis - cost, request, sendCallback, topicPublishInfo, instance,
+                            retryTimesWhenSendFailed, times, ex, context, true, producer);
+                    }
+                }
+            }
+        });
+    }
 ```
 
+&nbsp; &nbsp;  `org.apache.rocketmq.remoting.netty.NettyRemotingClient`
+```
+    @Override
+    public void invokeAsync(String addr, RemotingCommand request, long timeoutMillis, InvokeCallback invokeCallback)
+        throws InterruptedException, RemotingConnectException, RemotingTooMuchRequestException, RemotingTimeoutException,
+        RemotingSendRequestException {
+        long beginStartTime = System.currentTimeMillis();
+        // 获取channel
+        final Channel channel = this.getAndCreateChannel(addr);
+        if (channel != null && channel.isActive()) {
+            try {
+                // 执行调用前钩子
+                doBeforeRpcHooks(addr, request);
+                long costTime = System.currentTimeMillis() - beginStartTime;
+                if (timeoutMillis < costTime) {
+                    throw new RemotingTooMuchRequestException("invokeAsync call timeout");
+                }
+                this.invokeAsyncImpl(channel, request, timeoutMillis - costTime, invokeCallback);
+            } catch (RemotingSendRequestException e) {
+                log.warn("invokeAsync: send request exception, so close the channel[{}]", addr);
+                // 关闭channel
+                this.closeChannel(addr, channel);
+                throw e;
+            }
+        } else {
+            // 关闭channel
+            this.closeChannel(addr, channel);
+            throw new RemotingConnectException(addr);
+        }
+    }
 ```
 
 ## 单向发送OneWay
