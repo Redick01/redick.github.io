@@ -899,6 +899,120 @@ public class AsyncProducer {
     }
 ```
 
+异步回调`org.apache.rocketmq.remoting.netty.NettyRemotingAbstract`
+
+```
+    /**
+     * Execute callback in callback executor. If callback executor is null, run directly in current thread
+     */
+    private void executeInvokeCallback(final ResponseFuture responseFuture) {
+        boolean runInThisThread = false;
+        ExecutorService executor = this.getCallbackExecutor();
+        if (executor != null) {
+            try {
+                executor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            responseFuture.executeInvokeCallback();
+                        } catch (Throwable e) {
+                            log.warn("execute callback in executor exception, and callback throw", e);
+                        } finally {
+                            responseFuture.release();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                runInThisThread = true;
+                log.warn("execute callback in executor exception, maybe executor busy", e);
+            }
+        } else {
+            runInThisThread = true;
+        }
+```
+
+
+异步发送处理netty响应时执行回调
+```
+    /**
+     * Process response from remote peer to the previous issued requests.
+     *
+     * @param ctx channel handler context.
+     * @param cmd response command instance.
+     */
+    public void processResponseCommand(ChannelHandlerContext ctx, RemotingCommand cmd) {
+        final int opaque = cmd.getOpaque();
+        final ResponseFuture responseFuture = responseTable.get(opaque);
+        if (responseFuture != null) {
+            responseFuture.setResponseCommand(cmd);
+
+            responseTable.remove(opaque);
+            // 异步执行callback， 否则放行同步请求
+            if (responseFuture.getInvokeCallback() != null) {
+                // 执行callback逻辑，核心逻辑是启动一个线程处理ResponseFuture结果，
+                // 执行到回调函数，回调函数参考MQClientAPIImpl类sendMessageAsync方法回调operationComplete
+                executeInvokeCallback(responseFuture);
+            } else {
+                responseFuture.putResponse(cmd);
+                responseFuture.release();
+            }
+        } else {
+            log.warn("receive response, but not matched any request, " + RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+            log.warn(cmd.toString());
+        }
+    }
+    /**
+     * Execute callback in callback executor. If callback executor is null, run directly in current thread
+     */
+    private void executeInvokeCallback(final ResponseFuture responseFuture) {
+        boolean runInThisThread = false;
+        ExecutorService executor = this.getCallbackExecutor();
+        if (executor != null) {
+            try {
+                executor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            responseFuture.executeInvokeCallback();
+                        } catch (Throwable e) {
+                            log.warn("execute callback in executor exception, and callback throw", e);
+                        } finally {
+                            responseFuture.release();
+                        }
+                    }
+                });
+            } catch (Exception e) {
+                runInThisThread = true;
+                log.warn("execute callback in executor exception, maybe executor busy", e);
+            }
+        } else {
+            runInThisThread = true;
+        }
+
+        if (runInThisThread) {
+            try {
+                responseFuture.executeInvokeCallback();
+            } catch (Throwable e) {
+                log.warn("executeInvokeCallback Exception", e);
+            } finally {
+                responseFuture.release();
+            }
+        }
+    }
+```
+
+`org.apache.rocketmq.remoting.netty.ResponseFuture`
+
+```
+    public void executeInvokeCallback() {
+        if (invokeCallback != null) {
+            if (this.executeCallbackOnlyOnce.compareAndSet(false, true)) {
+                invokeCallback.operationComplete(this);
+            }
+        }
+    }
+```
+
 
 ## 单向发送OneWay
 
