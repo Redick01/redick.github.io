@@ -14,7 +14,8 @@
 * **Netty**
 * * [Netty基础](blog/Netty/netty_base.md)
 * * [Netty简单使用](blog/Netty/netty_use_1.md)
-* * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md.md)
+* * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md)
+* * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
 
 * **中间件**
 * * **Redis**
