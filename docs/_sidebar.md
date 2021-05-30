@@ -51,6 +51,7 @@
 * **Spring**
 * * [Spring WebFlux与Spring MVC压测对比](blog/spring/springwebflux.md)
 * * [Spring WebFlux集成](blog/spring/springwebflux-1.md)
+* * [Spring事务管理传播机制](blog/database/mysql/spring-transaction-spread.md)
  &nbsp;
 
 * **设计模式**
