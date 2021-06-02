@@ -239,3 +239,21 @@ DefaultMQPushConsumerImpl#start
 
 ## 时序图
 
+![avatar](../../../_media/image/source_code/rocketmq/2/consumer-start.jpeg)
+
+- DefaultMQPushConsumerImpl标记当前状态为START_FAILED，初始状态为CREATE_JUST
+- 1.1.3 同步设置RebalanceImpl的topic(Map</*topic*/String,/*sub expression*/String>)信息
+- 1.1.4 为每一个客户端实例化一个MQClientInstance实例，MQClientInstance实例由MQClientManager管理，MQClientManager内部使用Map来维护客户端和MQClientInstance的对应关系，初始化MQClientInstance会初始化MQClientAPIImpl、NettyRemoteClient等，集群模式消费只有一台消费者客户端消费，广播模式所有客户端都会有消费
+- 1.1.6 设置RebalanceImpl属性
+- 1.1.7 初始化PlullAPIWrapper,设置消息过滤器钩子列表
+- 1.1.10 初始化OffsetStore，设置offset的存储模式，广播模式使用本地存储；集群模式使用远程存储
+- 1.1.13 初始化ConsumeMessageService，根据监听器类型设定消息消费模式(顺序消费/并行消费)，pull模式需要自己指定offset，push不需要设定。
+- 1.1.15 注册消费者客户端。实现上是客户端放入client实例缓存中，定时器定时上报
+- 1.1.16 调用MQClientInstance的start方法，启动客户端的后台任务
+- 1.1.17 标记客户端当前状态为RUNNING
+- 1.1.18 判断监听信息是否发生改变，从namesrv更新topic的路由信息
+- 1.1.19 调用MQClientInstance的checkClientInBroker方法，确认该实例已经在broker注册成功，否则抛异常
+- 1.1.21 调用MQClientInstance的sendHeartbeatToAllBrokerWithLock方法，向所有Broker上报心跳
+- 1.1.22 调用MQClientInstance的rebalanceImmediately方法，触发一次rebalance
+
+DefaultMQPushConsumer为推模式，RocketMQ还提供了拉模式来消费消息，实现类为DefaultMQPullConsumer，启动过程类似，推模式是用拉模式来实现的，重点实现都在MQClientInstace中。
