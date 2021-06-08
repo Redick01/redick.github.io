@@ -98,3 +98,4 @@
 * * * [RocketMQ源码解析-Producer启动流程分析](blog/sourcecode/rocketmq/rocketmq-4.md)
 * * * [RocketMQ源码解析-Producer发送消息源码分析](blog/sourcecode/rocketmq/rocketmq-5.md)
 * * * [RocketMQ源码解析-Consumer启动流程分析](blog/sourcecode/rocketmq/rocketmq-6.md)
+* * * [RocketMQ源码解析-消费者消费消息](blog/sourcecode/rocketmq/rocketmq-7.md)
