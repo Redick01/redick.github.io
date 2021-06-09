@@ -350,7 +350,72 @@
 
 ### ConsumeMessageService#consumeMessageDirectly消费消息接口
 
-&nbsp; &nbsp; `ConsumeMessageService`消费消息接口，核心抽象方法是`consumeMessageDirectly`，该接口有两个实现``
+&nbsp; &nbsp; `ConsumeMessageService`消费消息接口，核心抽象方法是`consumeMessageDirectly`，该接口有两个实现`ConsumeMessageConcurrentlyService`和`ConsumeMessageOrderlyService`并发消费和顺序消费。以并发消费为例，
+
+```
+    /**
+     * 消费结果，还行消费监听回调，并处理消费结果
+     * @param msg 消息
+     * @param brokerName broker名称
+     * @return
+     */
+    @Override
+    public ConsumeMessageDirectlyResult consumeMessageDirectly(MessageExt msg, String brokerName) {
+        ConsumeMessageDirectlyResult result = new ConsumeMessageDirectlyResult();
+        result.setOrder(false);
+        result.setAutoCommit(true);
+
+        List<MessageExt> msgs = new ArrayList<MessageExt>();
+        msgs.add(msg);
+        MessageQueue mq = new MessageQueue();
+        mq.setBrokerName(brokerName);
+        mq.setTopic(msg.getTopic());
+        mq.setQueueId(msg.getQueueId());
+
+        ConsumeConcurrentlyContext context = new ConsumeConcurrentlyContext(mq);
+
+        this.defaultMQPushConsumerImpl.resetRetryAndNamespace(msgs, this.consumerGroup);
+
+        final long beginTime = System.currentTimeMillis();
+
+        log.info("consumeMessageDirectly receive new message: {}", msg);
+        // 客户端消费结果处理
+        try {
+            ConsumeConcurrentlyStatus status = this.messageListener.consumeMessage(msgs, context);
+            if (status != null) {
+                switch (status) {
+                    case CONSUME_SUCCESS:
+                        result.setConsumeResult(CMResult.CR_SUCCESS);
+                        break;
+                    // 消费失败，重试
+                    case RECONSUME_LATER:
+                        result.setConsumeResult(CMResult.CR_LATER);
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                // 返回空的情况
+                result.setConsumeResult(CMResult.CR_RETURN_NULL);
+            }
+        } catch (Throwable e) {
+            result.setConsumeResult(CMResult.CR_THROW_EXCEPTION);
+            result.setRemark(RemotingHelper.exceptionSimpleDesc(e));
+
+            log.warn(String.format("consumeMessageDirectly exception: %s Group: %s Msgs: %s MQ: %s",
+                RemotingHelper.exceptionSimpleDesc(e),
+                ConsumeMessageConcurrentlyService.this.consumerGroup,
+                msgs,
+                mq), e);
+        }
+        // 耗时
+        result.setSpentTimeMills(System.currentTimeMillis() - beginTime);
+
+        log.info("consumeMessageDirectly Result: {}", result);
+
+        return result;
+    }
+```
 
 NettyRemotingAbstract-》processRequestCommand
 
