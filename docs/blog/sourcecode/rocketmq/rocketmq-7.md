@@ -608,3 +608,8 @@
 
 
 &nbsp; &nbsp; RocketMQ普通的集群消费流程是先启动了消费者启动PullMessageService线程，然后从阻塞队列遍历消费PullRequest对象，然后调用DefaultMQPushConsumerImpl的pullMessage方法，通过PullAPIWrapper的pullKernelImpl方法从broker消费数据，消费者Netty客户端通过NettyClientHandler#channelRead0处理服务端返回数据，NettyRemotingAbstract#processRequestCommand方法处理服务端数据，ClientRemotingProcessor#processRequest分发服务端响应处理有consumeMessageDirectly方法解析消息报文和处理消息结果，然后由ConsumeMessageConcurrentlyService的consumeMessageDirectly方法执行消费者客户端监听和处理消费结果。
+
+- 普通集群消费时序
+
+![avatar](../../../_media/image/source_code/rocketmq/3/consume-message.jpeg)
+
