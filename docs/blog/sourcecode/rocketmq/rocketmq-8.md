@@ -89,3 +89,11 @@
         });
     }
 ```
+
+- 发送消息命令code
+
+public static final int SEND_MESSAGE = 10;
+
+## Broker接收生产者发送消息请求
+
+&nbsp; &nbsp; Broker端启动后注册了请求处理器`SendMessageProcessor`，`SendMessageProcessor#asyncProcessRequest`处理请求
