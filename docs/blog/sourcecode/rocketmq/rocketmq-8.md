@@ -96,4 +96,4 @@ public static final int SEND_MESSAGE = 10;
 
 ## Broker接收生产者发送消息请求
 
-&nbsp; &nbsp; Broker端启动后注册了请求处理器`SendMessageProcessor`，`SendMessageProcessor#asyncProcessRequest`处理请求
+&nbsp; &nbsp; Broker端启动后注册了请求处理器`SendMessageProcessor`，`SendMessageProcessor#asyncProcessRequest`处理请求，Broker消息存储有三个主要的类，分别是：CommitLog，MappedFileQueue，MappedFile；三个对象的比例是1:1:N，即一个日志文件对应一个文件对应多个消息存储文件。
