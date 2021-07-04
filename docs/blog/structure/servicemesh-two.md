@@ -1,11 +1,16 @@
 # Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)
 
+&nbsp;
+&nbsp; 
+&nbsp;
+&nbsp; 
+
 - Kubernetes环境准备
 - Istio
 
-## Kubernetes环境准备
+## 1.1. Kubernetes环境准备
 
-### 安装Docker Desktop
+### 1.1.1. 安装Docker Desktop
 
 &nbsp; &nbsp; Istio 依托于 Kubernetes，因此，首先我们先安装 Kubernetes。Kubernetes 有许多安装的方法，包括：Minikube、kubeadm、Docker Desktop。本文选用较为便捷的 Docker Desktop。
 
@@ -13,11 +18,11 @@
 
 ![avatar](../../../_media/image/structure/servicemesh/docker-desktop.png)
 
-### 安装Kubernetes
+### 1.1.2. 安装Kubernetes
 
 
 
-### 验证Kubernetes
+### 1.1.3. 验证Kubernetes
 
 - 首先，先切换 Kubernetes 的 config 到 docker-desktop
 
@@ -37,7 +42,7 @@ kube-public       Active   3h35m
 kube-system       Active   3h35m
 ```
 
-### 部署dashboard
+### 1.1.4. 部署dashboard
 
 Kubernetes dashboard托管在`https://github.com/kubernetes/dashboard`
 
@@ -67,7 +72,7 @@ service/dashboard-metrics-scraper created
 deployment.apps/dashboard-metrics-scraper created
 ```
 
-### 查看dashboard
+### 1.1.5. 查看dashboard
 
 ```shell
 liupenghui:~ penghuiliu$ kubectl proxy
@@ -138,9 +143,9 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNxZkt4VnFnMEFwMTRzZjJJS1BzcWNIT1lCV1Qy
 
 至此，Kubernetes已安装完毕，下面将Istio安装到Kubernetes中。
 
-## Istio
+## 1.2. Istio
 
-### 下载Istio
+### 1.2.1. 下载Istio
 
 1、访问 [Istio release](https://github.com/istio/istio/releases/) 页面下载与您操作系统对应的安装文件。在 macOS 或 Linux 系统中，也可以通过以下命令下载最新版本的 Istio：
 
@@ -191,9 +196,9 @@ $ cp tools/istioctl.bash ~
 $ source ~/istioctl.bash
 ```
 
-### 安装 Istio
+### 1.2.2. 安装 Istio
 
-#### 配置文件
+#### 1.2.2.1. 配置文件
 
 istioctl 内置了几个[配置文件(config profiles)](https://istio.io/latest/docs/setup/additional-setup/config-profiles/)供我们选择。
 
@@ -243,7 +248,7 @@ spec:
 ...
 ```
 
-### 安装
+### 1.2.3. 安装
 
 为了更接近生产环境。因此，这里选用**default**配置文件部署Istio。
 
@@ -258,7 +263,7 @@ This will install the Istio 1.10.2 default profile with ["Istio core" "Istiod" "
 Thank you for installing Istio 1.10.  Please take a few minutes to tell us about your install/upgrade experience!  https://forms.gle/KjkrDnMPByq7akrYA
 ```
 
-#### 启动自动注入
+#### 1.2.3.1. 启动自动注入
 
 通过以下命令，为 default 命名空间开启 sidecar 自动注入。
 
@@ -267,7 +272,7 @@ liupenghui:istio-1.10.2 penghuiliu$ kubectl label namespace default istio-inject
 namespace/default labeled
 ```
 
-#### 验证Istio
+#### 1.2.3.2. 验证Istio
 
 1、部署 Bookinfo 例子程序
 
@@ -345,11 +350,71 @@ istiod                 ClusterIP      10.98.207.134   <none>        15010/TCP,15
 
 ![avatar](../../../_media/image/structure/servicemesh/bookinfo-page.png)
 
-## 小结
+### 1.2.4. 安装网格可视化Kiali
+
+#### 1.2.4.1. 通过Istio插件安装（本文使用）
+
+Istio 1.7+已经推出的所有功能于一身的yamls安装第三方插件组件，如Kiali，普罗米修斯，积家，Grafana和其他。
+
+  这些仅用于演示，并未针对性能或安全性进行调整。
+
+要使用您的 Istio 版本随附的一体式 yaml 安装 Kiali 服务器，请运行以下命令：
+
+```shell
+liupenghui:istio-1.10.2 penghuiliu$ kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
+customresourcedefinition.apiextensions.k8s.io/monitoringdashboards.monitoring.kiali.io created
+serviceaccount/kiali created
+configmap/kiali created
+clusterrole.rbac.authorization.k8s.io/kiali-viewer created
+clusterrole.rbac.authorization.k8s.io/kiali created
+clusterrolebinding.rbac.authorization.k8s.io/kiali created
+role.rbac.authorization.k8s.io/kiali-controlplane created
+rolebinding.rbac.authorization.k8s.io/kiali-controlplane created
+service/kiali created
+deployment.apps/kiali created
+```
+
+安装prometheus
+
+```shell
+liupenghui:addons penghuiliu$ kubectl apply -f prometheus.yaml 
+serviceaccount/prometheus created
+configmap/prometheus created
+clusterrole.rbac.authorization.k8s.io/prometheus created
+clusterrolebinding.rbac.authorization.k8s.io/prometheus created
+service/prometheus created
+deployment.apps/prometheus created
+```
+
+安装grafana
+
+```shell
+liupenghui:addons penghuiliu$ kubectl apply -f grafana.yaml 
+serviceaccount/grafana created
+configmap/grafana created
+service/grafana created
+deployment.apps/grafana created
+configmap/istio-grafana-dashboards created
+configmap/istio-services-grafana-dashboards created
+```
+
+打开网格可视化
+
+```shell
+liupenghui:istio-1.10.2 penghuiliu$ istioctl dashboard kiali
+http://localhost:20001/kiali
+```
+
+流量图如下：
+
+![avatar](../../../_media/image/structure/servicemesh/kiali.png)
+
+## 1.3. 小结
 
 至此，我们已经将 Kubernetes & Istio 开发环境搭建完毕
 
+## 1.4. 参考
 
-## 参考
+[Service Mesh - Istio](https://makeoptim.com/service-mesh/kubernetes-istio-setup)
 
-- https://makeoptim.com/service-mesh/kubernetes-istio-setup
+[网格可视化安装](https://kiali.io/documentation/latest/quick-start/)
