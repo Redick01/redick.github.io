@@ -6,6 +6,7 @@
   * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
   * [Java世界中的SPI](blog/java_base/spi.md)
   * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
+  * [使用TransmittableThreadLocal实现异步场景日志链路追踪](blog/java_base/java_thread/trace-log-mdc.md)
   
 * 算法
   * [排序算法](blog/algorithm/sort.md)
@@ -52,6 +53,9 @@
 * 架构
   * [java 0期毕业总结](blog/structure/study-summary.md)
   * [微服务架构下的容错性设计](blog/structure/micro-service-design-1.md)
+  * [Service Mesh（服务网格）演进](blog/structure/servicemesh-first.md)
+  * [Service Mesh - Istio](blog/structure/servicemesh-three.md)
+  * [Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)](blog/structure/servicemesh-two.md)
 
 * 网络
   * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
