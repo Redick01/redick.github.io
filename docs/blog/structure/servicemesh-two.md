@@ -16,7 +16,7 @@
 
 &nbsp; &nbsp; 前往[Docker Desktop](https://www.docker.com/products/docker-desktop)官网选择对应系统安装包下载并安装。
 
-![avatar](../../../_media/image/structure/servicemesh/docker-desktop.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/docker-desktop.png)
 
 ### 1.1.2. 安装Kubernetes
 
@@ -81,7 +81,7 @@ Starting to serve on 127.0.0.1:8001
 
 打开[http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/)
 
-![avatar](../../../_media/image/structure/servicemesh/k8s-dashboard.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/k8s-dashboard.png)
 
 这是因为权限的原因，可通过以下方法获取 Token。
 
@@ -139,7 +139,7 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNxZkt4VnFnMEFwMTRzZjJJS1BzcWNIT1lCV1Qy
 
 拷贝token，并粘贴，即可进入dashboard
 
-![avatar](../../../_media/image/structure/servicemesh/k8s-dashboard-1.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/k8s-dashboard-1.png)
 
 至此，Kubernetes已安装完毕，下面将Istio安装到Kubernetes中。
 
@@ -348,7 +348,7 @@ istiod                 ClusterIP      10.98.207.134   <none>        15010/TCP,15
 
 通过查看`istio-ingressgateway`的`EXTERNAL-IP`为`localhost`，可得知访问地址为 http://localhost/productpage
 
-![avatar](../../../_media/image/structure/servicemesh/bookinfo-page.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/bookinfo-page.png)
 
 ### 1.2.4. 安装网格可视化Kiali
 
@@ -407,7 +407,7 @@ http://localhost:20001/kiali
 
 流量图如下：
 
-![avatar](../../../_media/image/structure/servicemesh/kiali.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/kiali.png)
 
 ## 1.3. 小结
 

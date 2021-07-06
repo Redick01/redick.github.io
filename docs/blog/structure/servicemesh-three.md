@@ -20,7 +20,7 @@
 
 &nbsp; &nbsp; Kubernetes 提供了**部署、升级和有限的运行流量管理**能力，但并不具备**熔断、限流降级、调用链追踪**等能力。Kubernetes 的本质是通过声明式配置对应用进行**生命周期管理**，其强项在于**容器的调度和编排**，而 Istio 的本质是提供应用间的**流量**和**安全**以及**可观察性**等。Istio 很好地补齐了 Kubernetes 在微服务治理上的诸多能力，为 Kubernetes 提供更好的应用和服务管理。因此，Istio 与 Kubernetes 是极为互补的。
 
-![avatar](../../../_media/image/structure/servicemesh/kube-and-istio.jpeg)
+![avatar](_media/../../../../_media/image/structure/servicemesh/kube-and-istio.jpeg)
 
 ## 为什么需要Istio
 
@@ -74,7 +74,7 @@ Istio 为**可扩展性**而设计，可以满足不同的部署需求。
 - **遥测（Observe）**
   > istio对服务进行多样化、自动化的追踪、监控以及记录日志，以便实时了解服务运行状态。
 
-![avatar](../../../_media/image/structure/servicemesh/istio-ability.png)
+![avatar](_media/../../../../_media/image/structure/servicemesh/istio-ability.png)
 
 ## Istio特性
 
@@ -117,7 +117,7 @@ Istio 的**Mixer（1.5版本后移除）**组件负责**策略控制**和**遥�
 - 数据平面由一组智能代理（**Envoy**）组成，被部署为 sidecar。这些代理协调和控制所有的微服务之间的所有网络通信。同时，它们也收集和遥测所有网格的流量。
 - 控制平面管理并配置代理来进行流量路由。
 
-![avatar](../../../_media/image/structure/servicemesh/istio-mesh.svg)
+![avatar](_media/../../../../_media/image/structure/servicemesh/istio-mesh.svg)
 
 Istio 中的流量分为**数据平面流量**和**控制平面流量**。数据平面流量是指工作负载的**业务逻辑**发送和接收的消息。控制平面流量是指在 Istio 组件之间发送的**配置和控制**消息用来编排网格的行为。Istio 中的流量管理特指数据平面流量
 
@@ -153,7 +153,7 @@ Pilot 将控制流量行为的**高级路由规则**转换为特定于环境的�
 
 下图展示了平台适配器和 Envoy 代理如何交互。
 
-![avatar](../../../_media/image/structure/servicemesh/pilot.svg)
+![avatar](_media/../../../../_media/image/structure/servicemesh/pilot.svg)
 
 - 平台启动一个服务的新实例，该实例通知其平台适配器。
 - 平台适配器使用 Pilot 抽象模型注册实例。
