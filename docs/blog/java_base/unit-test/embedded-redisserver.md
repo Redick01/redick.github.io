@@ -1,6 +1,6 @@
-# 单元测试之-embedded-redisserver
+# 单元测试之-embedded-redisserver <!-- {docsify-ignore-all} -->
 
-## 目标
+## 目标 
 
 - 单元测试redis执行的lua脚本
 - 技术选型之embedded-redisserver

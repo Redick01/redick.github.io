@@ -3,13 +3,15 @@
 # 刘p辉的 Document Website
 ## 个人文档网站
 
-* Simple and lightweight (~12kb gzipped)
-* Multiple themes
-* Not build static html files
+
 
 
 > 
 
 [GitHub](https://github.com/Redick01)
 [Get Started](/README.md)
+
+<!-- 背景图片 -->
+
+![](_media/30002000.jpeg)
 
