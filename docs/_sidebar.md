@@ -14,6 +14,7 @@
 * * [排序算法](blog/algorithm/sort.md)
 * * [树、图](blog/algorithm/tree.md)
 * * [递归与相关题目](blog/algorithm/digui.md)
+* * [分治、回溯](blog/algorithm/fenzhi-huisu.md)
 
 * **Netty**
 * * [Netty基础](blog/Netty/netty_base.md)
@@ -68,6 +69,7 @@
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh-three.md)
 * * [Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)](blog/structure/servicemesh-two.md)
+* * [Kubernetes上基于Istio和SpringBoot搭建服务网格](blog/structure/istio-springboot.md)
 
 * **网络**
 * * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
