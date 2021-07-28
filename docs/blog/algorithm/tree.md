@@ -1,4 +1,4 @@
-# 树
+# 树 <!-- {docsify-ignore-all} -->
 
 ## 树结构代码
 

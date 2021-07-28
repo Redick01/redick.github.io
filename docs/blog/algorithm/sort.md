@@ -1,4 +1,4 @@
-# 排序算法
+# 排序算法 <!-- {docsify-ignore-all} -->
 
 
 

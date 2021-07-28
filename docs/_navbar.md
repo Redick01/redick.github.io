@@ -14,6 +14,7 @@
   * [树、图](blog/algorithm/tree.md)
   * [递归与相关题目](blog/algorithm/digui.md)
   * [分治、回溯](blog/algorithm/fenzhi-huisu.md)
+  * [深度优先搜索和广度优先搜索](blog/algorithm/dfs-bfs.md)
 
 * Netty
   * [Netty基础](blog/Netty/netty_base.md)
