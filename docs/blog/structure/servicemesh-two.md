@@ -1,4 +1,4 @@
-# Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)
+# Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS) <!-- {docsify-ignore-all} -->
 
 &nbsp;
 &nbsp; 

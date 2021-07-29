@@ -1,4 +1,4 @@
-# Java 0期毕业总结
+# Java 0期毕业总结 <!-- {docsify-ignore-all} -->
 
 ## JVM
 
