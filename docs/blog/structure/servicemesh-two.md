@@ -10,7 +10,7 @@
 
 ## 1.1. Kubernetes环境准备
 
-### 1.1.1. 安装Docker Desktop
+### 1.1.1. 安装Docker Desktopi
 
 &nbsp; &nbsp; Istio 依托于 Kubernetes，因此，首先我们先安装 Kubernetes。Kubernetes 有许多安装的方法，包括：Minikube、kubeadm、Docker Desktop。本文选用较为便捷的 Docker Desktop。
 
@@ -20,6 +20,11 @@
 
 ### 1.1.2. 安装Kubernetes
 
+- 打开Docker Desktop，点击Preferences，选择左侧的Kubernetes并勾选Enable Kubernetes，最后点击Apply&Restart
+
+![avatar](../../_media/image/structure/servicemesh/docker-kube-install.png)
+
+- **安装Kubernetes后，Kubernetes显示Running状态，打开Resource，在Advance中将CPU设置4个核心（至少4个），内存设置为至少8GB，点击Apply&Restart**
 
 
 ### 1.1.3. 验证Kubernetes
@@ -189,11 +194,18 @@ $ istioctl version --remote=false
 ```
   注：在使用 Bash 或 ZSH 控制台时，可以选择启动[auto-completion option](https://istio.io/latest/docs/ops/diagnostic-tools/istioctl/#enabling-auto-completion)。具体步骤如下：
 
-- Bash
+- Linux Bash
 
 ```shell
 $ cp tools/istioctl.bash ~
 $ source ~/istioctl.bash
+```
+
+- macOS
+
+```shell
+$ cp tools/_istioctl ~
+$ source ~/_istioctl
 ```
 
 ### 1.2.2. 安装 Istio
