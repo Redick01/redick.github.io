@@ -8,13 +8,13 @@
 
 &nbsp; &nbsp; 创建两个应用`callme-service`和`caller-service`，其中`callme-service`有两个版本v1和v2，`caller-service`是服务的调用方，`callme-service`是调用提供方，两个服务之间交互的流量由`Istio`管理，它将20%的请求发送到应用程序的v1版本，将80%的请求发送到该v2版本，并且还为33%的流量增加了三秒的延迟。应用的架构图如下：
 
-![avatar](../../_media/image/structure/servicemesh/caller-service.png)
+![avatar](../../../_media/image/structure/servicemesh/caller-service.png)
 
 [项目参考地址：](https://github.com/Redick01/sample-istio-services)
 
 **callme-service**服务结构如下，该项目基于`SpringBoot`。
 
-![avatar](../../_media/image/structure/servicemesh/springboot/callme.jpeg)
+![avatar](../../../_media/image/structure/servicemesh/springboot/callme.jpeg)
 
 `CallmeController`提供Http接口，通过环境变量`VERSION`注入了一个版本号，`/ping`接口会返回版本号。
 
@@ -332,7 +332,7 @@ spec:
 
 在k8s控制台查看应用
 
-![avatar](../../_media/image/structure/servicemesh/springboot/kube-dashboard.png)
+![avatar](../../../_media/image/structure/servicemesh/springboot/kube-dashboard.png)
 
 验证Istio Spring Boot 通信，HTTP/1.1 200 OK，通信成功了
 
@@ -359,7 +359,7 @@ I'm caller-service v1. Calling... I'm callme-service v2%
 
 看一下Istio控制台的服务调用链路
 
-![avatar](../../_media/image/structure/servicemesh/springboot/WechatIMG394.png)
+![avatar](../../../_media/image/structure/servicemesh/springboot/WechatIMG394.png)
 
 
 

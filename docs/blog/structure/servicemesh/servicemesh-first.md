@@ -10,31 +10,31 @@
 
 - **时代0：**开发人员想象中不同服务之间的通信方式，抽象表示如下：
 
-![avatar](../../_media/image/structure/servicemesh/time0-style.png)
+![avatar](../../../_media/image/structure/servicemesh/time0-style.png)
 
 - **时代1：原始通信时代**
 
 通信需要底层能够传输字节码和电子信号的物理层来完成，在TCP协议出现之前，服务需要自己处理网络通信所面临的丢包、乱序、重试等一系列流控问题，因此服务实现中，除了业务逻辑外，还夹杂着对网络传输问题的处理逻辑。
 
-![avatar](../../_media/image/structure/servicemesh/time1-style.png)
+![avatar](../../../_media/image/structure/servicemesh/time1-style.png)
 
 - **时代2：TCP时代**
 
 为了避免每个服务都需要自己实现一套相似的网络传输处理逻辑，TCP协议出现了，它解决了网络传输中通用的流量控制问题，将技术栈下移，从服务的实现中抽离出来，成为操作系统网络层的一部分。
 
-![avatar](../../_media/image/structure/servicemesh/time2-style.png)
+![avatar](../../../_media/image/structure/servicemesh/time2-style.png)
 
 - **时代3：第一代微服务**
 
 有了TCP，服务之间的通信不再是难题，以GFS/BigTable/MapReduce为代表的分布式系统得以蓬勃发展。这时分布式系统特有的一些通信特点出现了，如熔断策略、负载均衡、服务发现、认证和授权、调用链路追踪和监控等等，于是业务系统就要根据需要来实现这些通信语意，使得业务代码和分布式系统的语意实现耦合在一起。
 
-![avatar](../../_media/image/structure/servicemesh/time3-style.png)
+![avatar](../../../_media/image/structure/servicemesh/time3-style.png)
 
 - **时代4：第二代微服务**
 
 为了避免每个服务都需要自己实现一套分布式系统通信的语义功能，随着技术的发展，一些面向微服务架构的开发框架出现了，如Alibaba的Dubbo、Twitter的Finagle和Spring Cloud等等，这些框架实现了分布式系统的通用语意，如负载均衡、服务注册发现、限流、熔断、重试等，使得应用程序在一定程序上屏蔽了这些通信细节，使得开发人员使用较少的框架代码就能开发出健壮的分布式系统。
 
-![avatar](../../_media/image/structure/servicemesh/time4-style.png)
+![avatar](../../../_media/image/structure/servicemesh/time4-style.png)
 
 - **时代5：第一代Service Mesh**
 
@@ -46,15 +46,15 @@
 
 因此以Linkerd，Envoy，NginxMesh为代表的代理模式（边车模式）应运而生，这就是第一代Service Mesh，它将分布式服务的通信抽象为单独一层，在这一层中实现负载均衡、服务发现、认证授权、监控追踪、流量控制等分布式系统所需要的功能，作为一个和服务对等的代理服务，和服务部署在一起，接管服务的流量，通过代理之间的通信间接完成服务之间的通信请求，这样上边所说的三个问题也迎刃而解。
 
-![avatar](../../_media/image/structure/servicemesh/time5-1.jpeg)
+![avatar](../../../_media/image/structure/servicemesh/time5-1.jpeg)
 
 如果我们从一个全局视角来看，就会得到如下部署图：
 
-![avatar](../../_media/image/structure/servicemesh/time5-2.jpeg)
+![avatar](../../../_media/image/structure/servicemesh/time5-2.jpeg)
 
 如果我们暂时略去业务服务，只看Service Mesh的单机组件组成的网络：
 
-![avatar](../../_media/image/structure/servicemesh/time5-3.jpeg)
+![avatar](../../../_media/image/structure/servicemesh/time5-3.jpeg)
 
 所谓Service Mesh就是服务网格了，他看起来就像一个由若干服务代理所组成的错综复杂的网格。
 
@@ -62,11 +62,11 @@
 
 第一代Service Mesh由一系列独立运行的单机代理服务构成，为了提供统一的上层运维入口，演化出了集中式的控制面板，所有的单机代理组件通过和控制面板交互进行网络拓扑策略的更新和单机数据的汇报。这就是以Istio为代表的第二代Service Mesh。
 
-![avatar](../../_media/image/structure/servicemesh/service-mesh-arch.png)
+![avatar](../../../_media/image/structure/servicemesh/service-mesh-arch.png)
 
 单机代理组件（数据面板）和控制面板的Service Mesh全局部署视图如下：
 
-![avatar](../../_media/image/structure/servicemesh/time6-1.jpeg)
+![avatar](../../../_media/image/structure/servicemesh/time6-1.jpeg)
 
 ## 1.2. 服务网格演进总结
 

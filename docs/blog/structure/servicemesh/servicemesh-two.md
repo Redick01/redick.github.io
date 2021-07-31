@@ -16,13 +16,13 @@
 
 &nbsp; &nbsp; 前往[Docker Desktop](https://www.docker.com/products/docker-desktop)官网选择对应系统安装包下载并安装。
 
-![avatar](../../_media/image/structure/servicemesh/docker-desktop.png)
+![avatar](../../../_media/image/structure/servicemesh/docker-desktop.png)
 
 ### 1.1.2. 安装Kubernetes
 
 - 打开Docker Desktop，点击Preferences，选择左侧的Kubernetes并勾选Enable Kubernetes，最后点击Apply&Restart
 
-![avatar](../../_media/image/structure/servicemesh/docker-kube-install.png)
+![avatar](../../../_media/image/structure/servicemesh/docker-kube-install.png)
 
 - **安装Kubernetes后，Kubernetes显示Running状态，打开Resource，在Advance中将CPU设置4个核心（至少4个），内存设置为至少8GB，点击Apply&Restart**
 
@@ -86,7 +86,7 @@ Starting to serve on 127.0.0.1:8001
 
 打开[http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/](http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/)
 
-![avatar](../../_media/image/structure/servicemesh/k8s-dashboard.png)
+![avatar](../../../_media/image/structure/servicemesh/k8s-dashboard.png)
 
 这是因为权限的原因，可通过以下方法获取 Token。
 
@@ -144,7 +144,7 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNxZkt4VnFnMEFwMTRzZjJJS1BzcWNIT1lCV1Qy
 
 拷贝token，并粘贴，即可进入dashboard
 
-![avatar](../../_media/image/structure/servicemesh/k8s-dashboard-1.png)
+![avatar](../../../_media/image/structure/servicemesh/k8s-dashboard-1.png)
 
 至此，Kubernetes已安装完毕，下面将Istio安装到Kubernetes中。
 
@@ -360,66 +360,7 @@ istiod                 ClusterIP      10.98.207.134   <none>        15010/TCP,15
 
 通过查看`istio-ingressgateway`的`EXTERNAL-IP`为`localhost`，可得知访问地址为 http://localhost/productpage
 
-![avatar](../../_media/image/structure/servicemesh/bookinfo-page.png)
-
-### 1.2.4. 安装网格可视化Kiali
-
-#### 1.2.4.1. 通过Istio插件安装（本文使用）
-
-Istio 1.7+已经推出的所有功能于一身的yamls安装第三方插件组件，如Kiali，普罗米修斯，积家，Grafana和其他。
-
-  这些仅用于演示，并未针对性能或安全性进行调整。
-
-要使用您的 Istio 版本随附的一体式 yaml 安装 Kiali 服务器，请运行以下命令：
-
-```shell
-liupenghui:istio-1.10.2 penghuiliu$ kubectl apply -f ${ISTIO_HOME}/samples/addons/kiali.yaml
-customresourcedefinition.apiextensions.k8s.io/monitoringdashboards.monitoring.kiali.io created
-serviceaccount/kiali created
-configmap/kiali created
-clusterrole.rbac.authorization.k8s.io/kiali-viewer created
-clusterrole.rbac.authorization.k8s.io/kiali created
-clusterrolebinding.rbac.authorization.k8s.io/kiali created
-role.rbac.authorization.k8s.io/kiali-controlplane created
-rolebinding.rbac.authorization.k8s.io/kiali-controlplane created
-service/kiali created
-deployment.apps/kiali created
-```
-
-安装prometheus
-
-```shell
-liupenghui:addons penghuiliu$ kubectl apply -f prometheus.yaml 
-serviceaccount/prometheus created
-configmap/prometheus created
-clusterrole.rbac.authorization.k8s.io/prometheus created
-clusterrolebinding.rbac.authorization.k8s.io/prometheus created
-service/prometheus created
-deployment.apps/prometheus created
-```
-
-安装grafana
-
-```shell
-liupenghui:addons penghuiliu$ kubectl apply -f grafana.yaml 
-serviceaccount/grafana created
-configmap/grafana created
-service/grafana created
-deployment.apps/grafana created
-configmap/istio-grafana-dashboards created
-configmap/istio-services-grafana-dashboards created
-```
-
-打开网格可视化
-
-```shell
-liupenghui:istio-1.10.2 penghuiliu$ istioctl dashboard kiali
-http://localhost:20001/kiali
-```
-
-流量图如下：
-
-![avatar](../../_media/image/structure/servicemesh/kiali.png)
+![avatar](../../../_media/image/structure/servicemesh/bookinfo-page.png)
 
 ## 1.3. 小结
 
