@@ -369,5 +369,3 @@ istiod                 ClusterIP      10.98.207.134   <none>        15010/TCP,15
 ## 1.4. 参考
 
 [Service Mesh - Istio](https://makeoptim.com/service-mesh/kubernetes-istio-setup)
-
-[网格可视化安装](https://kiali.io/documentation/latest/quick-start/)

@@ -152,3 +152,7 @@ spec:
 ## 总结
 
 &nbsp; &nbsp; **Istio通过网关管理网格入站网站流量，再通过VirtualService配置路由规则**，将请求路由到服务。**网关好比“园区” （网格）的门口管理员**管理着进来的“人” （流量），而**VirtualService则是园区里面每一条“家” （服务）的小径**。
+
+## 参考
+
+[网格可视化安装](https://kiali.io/documentation/latest/quick-start/)
