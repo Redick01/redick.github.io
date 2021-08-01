@@ -1,12 +1,14 @@
-# 1. Service Mesh（服务网格）演进 <!-- {docsify-ignore-all} -->
+# Service Mesh（服务网格）演进 <!-- {docsify-ignore-all} -->
 
 - 什么是服务网格
+- 微服务及服务网格技术演进
 - 服务网格演进总结
 
-## 1.1. 什么是服务网格
+## 什么是服务网格
 
 &nbsp; &nbsp; 用一句话简单概括什么是Service Mesh，可以将其比作是应用程序或者说微服务间的TCP/IP，负责服务之间的网络调用、限流、熔断和监控。编写应用程序来说无需关心TCP/IP这一层，同样使用Service Mesh无需关心服务之间的那些通过微服务框架实现的事情，比如 限流，熔断，负载均衡等，现在只需要交给Service Mesh就可以了。为了更清晰的理解Service Mesh就需要了解微服务和Service Mesh技术的历史发展脉络，参考资料[什么是Service Mesh](https://zhuanlan.zhihu.com/p/61901608)来看一下微服务技术的发展脉络。
 
+## 微服务及服务网格技术演进
 
 - **时代0：**开发人员想象中不同服务之间的通信方式，抽象表示如下：
 
@@ -68,7 +70,7 @@
 
 ![avatar](../../../_media/image/structure/servicemesh/time6-1.jpeg)
 
-## 1.2. 服务网格演进总结
+## 服务网格演进总结
 
 &nbsp; &nbsp; 微服务系统架构演进大致如此，下面是Service Mesh这个词发明人对Service Mesh的定义：
 
@@ -93,7 +95,8 @@ Service Mesh目前也面临一些挑战：
 
 
 
-## 1.3. 参考
+## 参考
 
 https://zhuanlan.zhihu.com/p/61901608
+
 https://jimmysong.io/blog/what-is-a-service-mesh/
