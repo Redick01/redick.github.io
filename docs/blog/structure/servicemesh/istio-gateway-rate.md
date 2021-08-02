@@ -68,7 +68,7 @@ http://localhost:20001/kiali
 
 ## 网关（ingressgateway）
 
-&nbsp; &nbsp; Istio网关可以管理入站/出站网络流量，与Sidecar代理不同，网关主要被配置用于运行在网格边界的独立代理。与Kubernetes入口API这种控制进入系统流量的机制不同，网关的流量路有更加强大状语从句：灵活。因为是网关可以配置4-6层的负载均衡属性，对外如暴露的端口，TLS设置等，而应用层流量路由则交给VirtualService，它可以绑定到一个网关上。让你可以像管理网格中其他数据的平面流量一样去管理网关流量。
+&nbsp; &nbsp; Istio网关可以管理入站/出站网络流量，与Sidecar代理不同，网关主要被配置用于运行在网格边界的独立代理。与Kubernetes入口API这种控制进入系统流量的机制不同，网关的流量路由更加强大状语从句：灵活。因为是网关可以配置4-6层的负载均衡属性，对外如暴露的端口，TLS设置等，而应用层流量路由则交给VirtualService，它可以绑定到一个网关上。让你可以像管理网格中其他数据的平面流量一样去管理网关流量。
 
 Istio 提供了一些采集配置网关（istio-ingressgateway 和 istio-egressgateway）供我们使用，下面是Bookinfo例子中的网关和配置。
 

@@ -314,7 +314,9 @@ spec:
 #      timeout: 0.5s # - to enable if using Istio fault on callme-service route
 ```
 
-## 测试 Istio Spring Boot 通信
+## 测试Istio Spring Boot程序通信
+
+### 部署方式1，使用用Jib和Skaffold
 
 部署应用程序的最快方法是使用Jib和Skaffold。首先，您转到目录callme-service并skaffold dev使用可选--port-forward参数执行命令。
 
@@ -328,6 +330,30 @@ spec:
 ```shell
 ➜  sample-istio-services git:(master) ✗ cd caller-service
 ➜  caller-service git:(master) ✗ skaffold dev --port-forward
+```
+
+### 部署方式2，发布docker镜像，编写应用的yaml文件和Istio的规则配置
+
+- 发布docker
+
+```shell
+./mvnw spring-boot:build-image
+```
+
+- 创建tag
+
+```shell
+docker tag [image name]:[version] [tag]
+如：
+docker tag caller-service:1.0.0 piomin/caller-service
+```
+
+- k8s部署应用和运营istio规则
+
+```shell
+kubectl apply -f callme-service/k8s/deployment.yaml
+
+kubectl apply -f caller-service/k8s/istio-rules.yaml
 ```
 
 在k8s控制台查看应用
