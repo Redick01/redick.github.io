@@ -325,6 +325,10 @@ drwxr-xr-x 4 root root   4096 Aug  9 16:35 logs
 -rw-r--r-- 1 root root 398293 Aug  9 16:23 MISS.ABS.UNIONPAYCARD.jar
 ```
 
+**网格可视化**
+
+> 参考：https://help.aliyun.com/document_detail/200336.html?spm=a2c4g.11186623.6.637.50a0871ct87QKj
+
 ## 服务改造方案
 
 > zk，rocketmq，redis，drds，rds等保持不变
