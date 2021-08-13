@@ -271,3 +271,144 @@ public class Application {
 	}
 }
 ```
+
+### 增强线程池JUC的ThreadPoolExecutor和Spring的ThreadPoolTaskExecutor
+
+&nbsp; &nbsp; 使用线程池的异步任务场景必须要对线程池进行一定的修饰，如果不对线程池进行增强，是无法做到traceId的正确性的，会造成traceId混乱，复用等情况的发生，导致这个问题的原因这里不做暂不做解释，下面代码分别是对JUC的ThreadPoolExecutor和Spring的ThreadPoolTaskExecutor的修饰代码，也就是说我们在业务代码使用线程池的时候就不要直接使用原生的线程池了，直接使用我们经过Ttl修饰过的线程池。
+
+**修饰ThreadPoolExecutor**
+```java
+public class TtlThreadPoolExecutor extends ThreadPoolExecutor {
+
+    public TtlThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+    }
+
+    public TtlThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+    }
+
+    public TtlThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, RejectedExecutionHandler handler) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, handler);
+    }
+
+    public TtlThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory, RejectedExecutionHandler handler) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+    }
+
+    @Override
+    public void execute(Runnable command) {
+        Runnable runnable = TtlRunnable.get(command);
+        super.execute(runnable);
+    }
+
+    @Override
+    public <T> Future<T> submit(Runnable task, T result) {
+        Runnable runnable = TtlRunnable.get(task);
+        return super.submit(runnable, result);
+    }
+
+    @Override
+    public Future<?> submit(Runnable task) {
+        Runnable runnable = TtlRunnable.get(task);
+        return super.submit(runnable);
+    }
+
+    @Override
+    public <T> Future<T> submit(Callable<T> task) {
+        Callable command = TtlCallable.get(task);
+        return super.submit(command);
+    }
+
+    @Override
+    protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+        Runnable command = TtlRunnable.get(runnable);
+        return super.newTaskFor(command, value);
+    }
+
+    @Override
+    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+        Callable command = TtlCallable.get(callable);
+        return super.newTaskFor(command);
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+        Collection<? extends Callable<T>> callables = TtlCallable.gets(tasks);
+        return super.invokeAny(callables);
+    }
+
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        Collection<? extends Callable<T>> callables = TtlCallable.gets(tasks);
+        return super.invokeAny(callables, timeout, unit);
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+        Collection<? extends Callable<T>> callables = TtlCallable.gets(tasks);
+        return super.invokeAll(callables);
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+        Collection<? extends Callable<T>> callables = TtlCallable.gets(tasks);
+        return super.invokeAll(callables, timeout, unit);
+    }
+}
+```
+
+**修饰ThreadPoolTaskExecutor**
+
+```java
+public class TtlThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
+
+    @Override
+    public void execute(Runnable command) {
+        Runnable ttlRunnable = TtlRunnable.get(command);
+        super.execute(ttlRunnable);
+    }
+
+    @Override
+    public <T> Future<T> submit(Callable<T> task) {
+        Callable ttCallable = TtlCallable.get(task);
+        return super.submit(ttCallable);
+    }
+
+    @Override
+    public Future<?> submit(Runnable task) {
+        Runnable ttlRunnable = TtlRunnable.get(task);
+        return super.submit(ttlRunnable);
+    }
+
+    @Override
+    public ListenableFuture<?> submitListenable(Runnable task) {
+        Runnable ttlRunnable = TtlRunnable.get(task);
+        return super.submitListenable(ttlRunnable);
+    }
+
+    @Override
+    public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+        Callable ttlCallable = TtlCallable.get(task);
+        return super.submitListenable(ttlCallable);
+    }
+}
+```
+
+**使用示例**
+
+```java
+    public static void main(String[] args) {
+        TtlThreadPoolTaskExecutor paymentThreadPool = new TtlThreadPoolTaskExecutor();
+        paymentThreadPool.setCorePoolSize(5);
+        paymentThreadPool.setMaxPoolSize(10);
+        paymentThreadPool.setKeepAliveSeconds(60);
+        paymentThreadPool.setQueueCapacity(1000);
+        paymentThreadPool.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("trans-dispose-%d").build());
+        paymentThreadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+        paymentThreadPool.initialize();
+        paymentThreadPool.execute(() -> {
+            System.out.println("异步线程执行");
+        });
+    }
+```
