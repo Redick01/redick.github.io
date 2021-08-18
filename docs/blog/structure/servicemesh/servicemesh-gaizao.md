@@ -192,6 +192,7 @@ kubectl apply -f deployment.yaml
 以miss-abs-unionpaycard服务为例，以istio-respurce.yaml命名
 
 ```yaml
+# 如果网格外部应用访问网格内应用，需要为其配置Istio 网关，否则不需要配置
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway # Istio网关
 metadata:
