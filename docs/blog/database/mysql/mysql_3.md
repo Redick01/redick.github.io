@@ -1,4 +1,4 @@
-# MySql索引失效
+# MySql索引失效 <!-- {docsify-ignore-all} -->
 
 
 ## 简介
@@ -12,7 +12,7 @@
 
 ### 测试用DDL和DML
 
-```
+```sql
 /*
  Navicat Premium Data Transfer
 
@@ -65,8 +65,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ### 全值匹配（索引最佳）
 
-顺序匹配所有的字段，走索引idx_1，扫描行数为1
-```
+&nbsp; &nbsp; 顺序匹配所有的字段，走索引idx_1，扫描行数为1
+```sql
 mysql> explain select * from `order` where number='543995759748632576' and `status`=1 and total_amount=20 and user_id='10000';
 +----+-------------+-------+------------+------+---------------+-------+---------+-------------------------+------+----------+-------+
 | id | select_type | table | partitions | type | possible_keys | key   | key_len | ref                     | rows | filtered | Extra |
@@ -75,8 +75,8 @@ mysql> explain select * from `order` where number='543995759748632576' and `stat
 +----+-------------+-------+------------+------+---------------+-------+---------+-------------------------+------+----------+-------+
 ```
 
-索引顺序打乱了，仍然走索引，全值匹配和索引顺序无关，MySQL底层的优化器会进行优化，调整索引的顺序
-```
+&nbsp; &nbsp; 索引顺序打乱了，仍然走索引，全值匹配和索引顺序无关，MySQL底层的优化器会进行优化，调整索引的顺序
+```sql
 mysql> explain select * from `order` where number='543995759748632576' and `status`=1 and user_id='10000' and total_amount=20;
 +----+-------------+-------+------------+------+---------------+-------+---------+-------------------------+------+----------+-------+
 | id | select_type | table | partitions | type | possible_keys | key   | key_len | ref                     | rows | filtered | Extra |
@@ -87,8 +87,8 @@ mysql> explain select * from `order` where number='543995759748632576' and `stat
 
 ### 违反最左原则
 
-未匹配到联合索引最左边的索引，索引失效，全表扫描
-```
+&nbsp; &nbsp; 未匹配到联合索引最左边的索引，索引失效，全表扫描
+```sql
 mysql> explain select * from `order` where `status`=1 and total_amount=20;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
@@ -99,8 +99,8 @@ mysql> explain select * from `order` where `status`=1 and total_amount=20;
 
 ### 在索引列上做任何操作
 
-number字段是`varchar`类型，这里去掉单引号就是`int`类型了，这时候索引失效，全表扫描；第二个sql对number字段进行了函数操作，索引也失效了，
-```
+&nbsp; &nbsp; number字段是`varchar`类型，这里去掉单引号就是`int`类型了，这时候索引失效，全表扫描；第二个sql对number字段进行了函数操作，索引也失效了，
+```sql
 mysql> explain select * from `order` where number=543995759748632576 and `status`=1 and user_id='10000' and total_amount=20;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
@@ -117,8 +117,8 @@ mysql> explain select * from `order` where left(number,5)='543995759748632576' a
 
 ### 索引范围条件右边的索引列会失效
 
-这条sql也匹配到了索引，但是索引范围条件右边的索引列失效了
-```
+&nbsp; &nbsp; 这条sql也匹配到了索引，但是索引范围条件右边的索引列失效了
+```sql
 mysql> explain select * from `order` where number='543995759748632576' and `status`=1  and total_amount>20 and user_id='10000';
 +----+-------------+-------+------------+-------+---------------+-------+---------+------+------+----------+-----------------------+
 | id | select_type | table | partitions | type  | possible_keys | key   | key_len | ref  | rows | filtered | Extra                 |
@@ -129,8 +129,8 @@ mysql> explain select * from `order` where number='543995759748632576' and `stat
 
 ### 尽量使用覆盖索引
 
-索引列和查询列一致，匹配到了索引，违反最左原则索引失效了
-```
+&nbsp; &nbsp; 索引列和查询列一致，匹配到了索引，违反最左原则索引失效了
+```sql
 mysql> explain select number,`status`,total_amount,user_id  from `order` where `status`=1;
 +----+-------------+-------+------------+-------+---------------+-------+---------+------+------+----------+--------------------------+
 | id | select_type | table | partitions | type  | possible_keys | key   | key_len | ref  | rows | filtered | Extra                    |
@@ -141,8 +141,8 @@ mysql> explain select number,`status`,total_amount,user_id  from `order` where `
 
 ### 使用不等于（!=、<>）（除覆盖索引外）
 
-mysql在使用不等于（!=、<>）的时候无法使用索引会导致全表扫描
-```
+&nbsp; &nbsp; mysql在使用不等于（!=、<>）的时候无法使用索引会导致全表扫描
+```sql
 mysql> explain select *  from `order` where number!='543995759748632576' and `status`=1;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
@@ -162,9 +162,9 @@ mysql> explain select *  from `order` where number<>'543995759748632576' and `st
 
 - 下面是个反例
 
-下面sql条件虽然是<>，但是因为查询列覆盖索引了，索引索引未失效
+&nbsp; &nbsp; 下面sql条件虽然是<>，但是因为查询列覆盖索引了，索引索引未失效
 
-```
+```sql
 mysql> explain select number,`status`,total_amount,user_id from `order` where number<>'543995759748632576' and `status`=1;
 +----+-------------+-------+------------+-------+---------------+-------+---------+------+------+----------+--------------------------+
 | id | select_type | table | partitions | type  | possible_keys | key   | key_len | ref  | rows | filtered | Extra                    |
@@ -176,8 +176,8 @@ mysql> explain select number,`status`,total_amount,user_id from `order` where nu
 
 ### like以通配符开头（'%abc'）
 
-通配符'%abc'索引失效，'abc%'索引不会失效
-```
+&nbsp; &nbsp; 通配符'%abc'索引失效，'abc%'索引不会失效
+```sql
 mysql> explain select * from `order` where number LIKE '%543995759748632' and `status`=1;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
@@ -195,9 +195,9 @@ mysql> explain select * from `order` where number LIKE '5759748632576%' and `sta
 1 row in set, 1 warning (0.00 sec)
 ```
 
-### 字符串不加单引号索引失效
+### 字符串不加单引号索引失效（数据类型隐式转换）
 
-```
+```sql
 mysql> explain select * from `order` where number =543995759748632576 and `status`=1;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
@@ -209,8 +209,10 @@ mysql> explain select * from `order` where number =543995759748632576 and `statu
 
 ### or连接索引失效
 
-```
-mysql> explain select * from `order` where number ='543995759748632576' or `status`=1;
+&nbsp; &nbsp; 用`or`分割开的条件，如果`or`前的条件中的列有索引，而后面的列中没有索引，那么设计的索引不会被用到，因为`or`后面的条件列表中没有索引，那么后面的查询条件肯定要走全表扫描。在存在的全表扫描的情况下，就没有必要多一次索引扫描增加I/O访问，一次全表扫描过滤条件就足够了。
+
+```sql
+mysql> explain select * from `order` where number ='543995759748632576' or `count`=1;
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
 | id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
 +----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
@@ -221,9 +223,9 @@ mysql> explain select * from `order` where number ='543995759748632576' or `stat
 
 ### order by
 
-正常（索引参与了排序），索引未失效，索引有两个作用，排序和查找
+&nbsp; &nbsp; 正常（索引参与了排序），索引未失效，索引有两个作用，排序和查找
 
-```
+```sql
 mysql> explain select * from `order` where number ='543995759748632576' and `status`=1 ORDER BY total_amount;
 +----+-------------+-------+------------+------+---------------+-------+---------+-------------+------+----------+-----------------------+
 | id | select_type | table | partitions | type | possible_keys | key   | key_len | ref         | rows | filtered | Extra                 |
@@ -233,14 +235,14 @@ mysql> explain select * from `order` where number ='543995759748632576' and `sta
 1 row in set, 1 warning (0.00 sec)
 ```
 
-可以看到两个sql都走了索引，但是由于order by后边的子句没有匹配索引，`Extra`中有`Using filesort`代表额外的文件排序（会降低性能）
+&nbsp; &nbsp; 可以看到两个sql都走了索引，但是由于order by后边的子句没有匹配索引，`Extra`中有`Using filesort`代表额外的文件排序（会降低性能）
 
 // 违反最左原则
 explain select number,user_id from `order` where number ='543995759748632576' ORDER BY user_id;
 // order by字段不是索引字段
 explain select number,user_id from `order` where number ='543995759748632576' ORDER BY count;
 
-```
+```sql
 +----+-------------+-------+------------+------+---------------+-------+---------+-------+------+----------+------------------------------------------+
 | id | select_type | table | partitions | type | possible_keys | key   | key_len | ref   | rows | filtered | Extra                                    |
 +----+-------------+-------+------------+------+---------------+-------+---------+-------+------+----------+------------------------------------------+
@@ -256,8 +258,8 @@ explain select number,user_id from `order` where number ='543995759748632576' OR
 
 ### group by
 
-导致产生临时表（会降低性能）
-```
+&nbsp; &nbsp; 导致产生临时表（会降低性能）
+```sql
 mysql> explain select number,total_amount from `order` where number ='543995759748632576' GROUP BY total_amount;
 +----+-------------+-------+------------+------+---------------+-------+---------+-------+------+----------+-----------------------------------------------------------+
 | id | select_type | table | partitions | type | possible_keys | key   | key_len | ref   | rows | filtered | Extra                                                     |
@@ -275,3 +277,20 @@ mysql> explain select number,total_amount from `order` where number ='5439957597
 +----+-------------+-------+------------+------+---------------+-------+---------+-------+------+----------+--------------------------------------------------------+
 1 row in set, 1 warning (0.00 sec)
 ```
+
+## 查看索引使用情况
+
+```sql
+SHOW STATUS LIKE 'Handler_read%';
+结果：
+Handler_read_first	3
+Handler_read_key	563
+Handler_read_last	0
+Handler_read_next	62
+Handler_read_prev	0
+Handler_read_rnd	478
+Handler_read_rnd_next	27722
+```
+&nbsp; &nbsp; 如果索引工作，Handler_read_key的值将很高，这个值代表了一个行被索引值的次数，很低的值表明增加索引得到的性能改善不高，因为索引并不经常使用。
+
+&nbsp; &nbsp; Handler_read_rnd_next的值高则意味着查询运行低效，并且应该建立索引补救。这个值的含义实在数据文件中读下一行的请求数，如果正在进行大量的表扫描，Handler_read_rnd_next的值较高，则通常说明表索引不正确或写入的查询没有利用索引。
