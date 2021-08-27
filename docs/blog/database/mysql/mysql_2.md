@@ -1,4 +1,4 @@
-# Mysql集群与高可用之MGR（组复制）
+# Mysql集群与高可用之MGR（组复制） <!-- {docsify-ignore-all} -->
 
 ## 一.背景介绍
 

@@ -1,4 +1,4 @@
-# Spring事务管理传播机制
+# Spring事务管理传播机制 <!-- {docsify-ignore-all} -->
 
 - 什么是事务传播机制
 - Spring事务传播的机制

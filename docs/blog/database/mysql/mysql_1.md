@@ -1,4 +1,4 @@
-# Mysql集群与高可用
+# Mysql集群与高可用 <!-- {docsify-ignore-all} -->
 
 ## Docker搭建最基本的Mysql主从
 

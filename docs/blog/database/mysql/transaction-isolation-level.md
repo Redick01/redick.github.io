@@ -1,4 +1,4 @@
-# Mysql InnoDB的事务隔离级别
+# Mysql InnoDB的事务隔离级别 <!-- {docsify-ignore-all} -->
 
 - 参考：https://www.cnblogs.com/wyaokai/p/10921323.html
 
