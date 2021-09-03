@@ -49,11 +49,12 @@
 
 * **数据库**
 * * **Mysql**
-* * * [Mysql集群与高可用](blog/database/mysql/mysql_1.md)
-* * * [Mysql集群与高可用之MGR](blog/database/mysql/mysql_2.md)
-* * * [Mysql索引失效](blog/database/mysql/mysql_3.md)
-* * * [Mysql InnoDB的事务隔离级别](blog/database/mysql/transaction-isolation-level.md)
+* * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
+* * * [MySQL集群与高可用之MGR](blog/database/mysql/mysql_2.md)
+* * * [MySQL索引失效](blog/database/mysql/mysql_3.md)
+* * * [MySQL InnoDB的事务隔离级别](blog/database/mysql/transaction-isolation-level.md)
 * * * [MySQL-SQL优化](blog/database/mysql/mysql-good.md)
+* * * [MySQL InnoDB下的锁问题](blog/database/mysql/innodb-lock.md)
 
 * **Spring**
 * * [Spring WebFlux与Spring MVC压测对比](blog/spring/springwebflux.md)
