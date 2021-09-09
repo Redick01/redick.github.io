@@ -17,6 +17,7 @@
 * * [分治、回溯](blog/algorithm/fenzhi-huisu.md)
 * * [深度优先搜索和广度优先搜索](blog/algorithm/dfs-bfs.md)
 * * [动态规划](blog/algorithm/dp.md)
+* * [位运算](blog/algorithm/bit-calc.md)
 
 * **Netty**
 * * [Netty基础](blog/Netty/netty_base.md)
