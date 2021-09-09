@@ -77,13 +77,54 @@
 
 - **第一步，自动装配开关是否开启**
 
+1. 判读`spring.boot.enableautoconfiguration`配置，如果没有配置默认是true代表默认开启自动装配，否则如果显示配置了false就不进行自动装配返回一个空的字符串数组。
+
 ```java
     protected boolean isEnabled(AnnotationMetadata metadata) {
 		if (getClass() == AutoConfigurationImportSelector.class) {
+			// 1
 			return getEnvironment().getProperty(
 					EnableAutoConfiguration.ENABLED_OVERRIDE_PROPERTY, Boolean.class,
 					true);
 		}
 		return true;
 	}
+```
+
+- **第二步，读取所有自动装配的bean**
+
+1. 读取META-INF/spring-autoconfigure-metadata.properties中所有自动装配bean的配置
+2. 将读取到的所有自动装配的bean初始化到Properties中
+3. 将所有自动装配的bean加载到AutoConfigurationMetadata
+
+```java
+	public static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader) {
+		return loadMetadata(classLoader, PATH);
+	}
+
+	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader, String path) {
+		try {
+			// 1. META-INF/spring-autoconfigure-metadata.properties
+			Enumeration<URL> urls = (classLoader != null ? classLoader.getResources(path)
+					: ClassLoader.getSystemResources(path));
+			Properties properties = new Properties();
+			while (urls.hasMoreElements()) {
+				// 2
+				properties.putAll(PropertiesLoaderUtils
+						.loadProperties(new UrlResource(urls.nextElement())));
+			}
+			// 3
+			return loadMetadata(properties);
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException(
+					"Unable to load @ConditionalOnClass location [" + path + "]", ex);
+		}
+	}
+
+	static AutoConfigurationMetadata loadMetadata(Properties properties) {
+		return new PropertiesAutoConfigurationMetadata(properties);
+	}
+
+	...
 ```
