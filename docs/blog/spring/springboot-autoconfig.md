@@ -28,14 +28,14 @@
 
 ### AutoConfigurationImportSelector.java
 
-> 该类的继承关系如下：
+#### 该类的继承关系如下：
 
 红框中的继承关系是实现自动装配的核心，其核心的接口是`ImportSelector`，`AutoConfigurationImportSelector`实现了该接口并且重写了`selectImports`方法，方法返回需要装配的类的全路径名的字符串数组。
 
 ![avatar](../../_media/image/spring/autoconfigurationimportselector.png)
 
 
-> 下面面试AutoConfigurationImportSelector#selectImports具体实现的代码
+#### **下面是AutoConfigurationImportSelector#selectImports具体实现的代码**
 
 ```java
     /**
@@ -75,7 +75,7 @@
 	}
 ```
 
-- **第一步，自动装配开关是否开启**
+##### **第一步，自动装配开关是否开启**
 
 1. 判读`spring.boot.enableautoconfiguration`配置，如果没有配置默认是true代表默认开启自动装配，否则如果显示配置了false就不进行自动装配返回一个空的字符串数组。
 
@@ -91,7 +91,7 @@
 	}
 ```
 
-- **第二步，读取所有自动装配的bean**
+##### **第二步，读取所有自动装配的bean**
 
 1. 读取META-INF/spring-autoconfigure-metadata.properties中所有自动装配bean的配置
 2. 将读取到的所有自动装配的bean初始化到Properties中
@@ -127,4 +127,133 @@
 	}
 
 	...
+```
+
+##### **第三步，获取@EnableAutoConfiguration注解exclude和excludeName属性**
+
+1. 获取@EnableAutoConfiguration注解name
+2. 初始化exclude和excludeName属性，该属性是排除不需要自动装配的bean的配置
+
+```java
+    protected AnnotationAttributes getAttributes(AnnotationMetadata metadata) {
+        // 1
+		String name = getAnnotationClass().getName();
+        // 2
+		AnnotationAttributes attributes = AnnotationAttributes
+				.fromMap(metadata.getAnnotationAttributes(name, true));
+		Assert.notNull(attributes,
+				"No auto-configuration attributes found. Is " + metadata.getClassName()
+						+ " annotated with " + ClassUtils.getShortName(name) + "?");
+		return attributes;
+	}
+```
+
+##### **第四步，读取spring-boot-autoconfigure包META-INF/spring.factories中所有自动装配的bean**
+
+![avatar](../../_media/image/spring/factories-config.jpeg)
+
+简单的看一下下面的代码，下面的代码是从spring-boot-autoconfigure包META-INF/spring.factories获取自动装配bean的列表的过程。
+
+```java
+    protected List<String> getCandidateConfigurations(AnnotationMetadata metadata,
+			AnnotationAttributes attributes) {
+        // 1
+		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(
+				getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());
+		Assert.notEmpty(configurations,
+				"No auto configuration classes found in META-INF/spring.factories. If you "
+						+ "are using a custom packaging, make sure that file is correct.");
+		return configurations;
+	}
+
+    public static List<String> loadFactoryNames(Class<?> factoryClass, @Nullable ClassLoader classLoader) {
+		String factoryClassName = factoryClass.getName();
+        // 2
+		return loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());
+	}
+
+	private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoader classLoader) {
+		MultiValueMap<String, String> result = cache.get(classLoader);
+		if (result != null)
+			return result;
+		try {
+            // 4
+			Enumeration<URL> urls = (classLoader != null ?
+					classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
+					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
+			result = new LinkedMultiValueMap<>();
+			while (urls.hasMoreElements()) {
+				URL url = urls.nextElement();
+				UrlResource resource = new UrlResource(url);
+				Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+				for (Map.Entry<?, ?> entry : properties.entrySet()) {
+					List<String> factoryClassNames = Arrays.asList(
+							StringUtils.commaDelimitedListToStringArray((String) entry.getValue()));
+					result.addAll((String) entry.getKey(), factoryClassNames);
+				}
+			}
+			cache.put(classLoader, result);
+			return result;
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException("Unable to load factories from location [" +
+					FACTORIES_RESOURCE_LOCATION + "]", ex);
+		}
+	}
+```
+
+#### **第五步，自动装配bean去重**
+
+这一步没什么好说的使用Set做去重。
+
+```java
+    protected final <T> List<T> removeDuplicates(List<T> list) {
+		return new ArrayList<>(new LinkedHashSet<>(list));
+	}
+```
+
+#### **第六步，根据@Order注解排序**
+
+这一步也没什么好说的，根绝@Order注解将自动装配的Bean先排序
+
+```java
+    private List<String> sort(List<String> configurations,
+			AutoConfigurationMetadata autoConfigurationMetadata) throws IOException {
+		configurations = new AutoConfigurationSorter(getMetadataReaderFactory(),
+				autoConfigurationMetadata).getInPriorityOrder(configurations);
+		return configurations;
+	}
+```
+
+#### **第七步，根据第三步exclude和excludeName属性排除指定不要需要自动装配的class**
+
+
+
+```java
+
+    @Override
+	public String[] selectImports(AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return NO_IMPORTS;
+		}
+		try {
+			...
+			Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+			checkExcludedClasses(configurations, exclusions);
+			configurations.removeAll(exclusions);
+			...
+		}
+		catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+	}
+
+    protected Set<String> getExclusions(AnnotationMetadata metadata,
+			AnnotationAttributes attributes) {
+		Set<String> excluded = new LinkedHashSet<>();
+		excluded.addAll(asList(attributes, "exclude"));
+		excluded.addAll(Arrays.asList(attributes.getStringArray("excludeName")));
+		excluded.addAll(getExcludeAutoConfigurationsProperty());
+		return excluded;
+	}
 ```
