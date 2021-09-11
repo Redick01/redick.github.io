@@ -227,7 +227,7 @@
 
 #### **第七步，根据第三步exclude和excludeName属性排除指定不要需要自动装配的class**
 
-
+这里也没什么好说的，根据第三步的exclude和excludeName得到一个要排除自动装配的bean的集合，然后removeAll移除
 
 ```java
 
@@ -257,3 +257,7 @@
 		return excluded;
 	}
 ```
+
+#### **第八步，过滤不需要自动装配的bean，做到按需装配**
+
+
