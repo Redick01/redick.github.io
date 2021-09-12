@@ -48,7 +48,7 @@
 			return NO_IMPORTS;
 		}
 		try {
-            // 2.读取所有自动装配的bean
+            // 2.读取所有自动装配的bean的元数据
 			AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader
 					.loadMetadata(this.beanClassLoader);
             // 3.注解属性exclude和excludeName属性
@@ -93,7 +93,7 @@
 
 ##### **第二步，读取所有自动装配的bean**
 
-1. 读取META-INF/spring-autoconfigure-metadata.properties中所有自动装配bean的配置
+1. 读取META-INF/spring-autoconfigure-metadata.properties中所有自动装配bean的元数据
 2. 将读取到的所有自动装配的bean初始化到Properties中
 3. 将所有自动装配的bean加载到AutoConfigurationMetadata
 
@@ -260,4 +260,62 @@
 
 #### **第八步，过滤不需要自动装配的bean，做到按需装配**
 
+&nbsp; &nbsp; 在这个步骤中，会过滤掉不需要自动装配的bean，我们会发现`configurations`变小了，这里过滤的流程比较复杂，这其中核心逻辑基本都是现在`OnClassCondition`和`SpringBootCondition`类中，具体的逻辑由于特别多我们忽略掉，可以看到过滤后需要自动装配的bean由110个剩下了33个。
 
+![avatar](../../_media/image/spring/auto-filter.png)
+
+&nbsp; &nbsp; 这里实现过滤自动装配bean的核心是`@ConditionalOnXXX`注解，只有满足配置类的`@ConditionalOnXXX`条件才会实现自动装配，再实现自定义的starter时，我们也可以使用这个方案来实现自动装配。这里以Redis配置的自动装配来看一下；
+
+1. `@ConditionalOnClass(RedisOperations.class)`该代码意思是检查`RedisOperations`是否存在，存在了才会加载，否则不会加载
+2. 2和3是同一个注解，意思是，只有当括号中配置的bean不存在时才会加载，这样做的目的是有时候我们会自己写配置而不用自动装配的配置，这么做目的是为了防止重复加载。
+
+```java
+@Configuration
+// 1 
+@ConditionalOnClass(RedisOperations.class)
+@EnableConfigurationProperties(RedisProperties.class)
+@Import({ LettuceConnectionConfiguration.class, JedisConnectionConfiguration.class })
+public class RedisAutoConfiguration {
+
+	@Bean
+	// 2
+	@ConditionalOnMissingBean(name = "redisTemplate")
+	public RedisTemplate<Object, Object> redisTemplate(
+			RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+		RedisTemplate<Object, Object> template = new RedisTemplate<>();
+		template.setConnectionFactory(redisConnectionFactory);
+		return template;
+	}
+
+	@Bean
+	// 3
+	@ConditionalOnMissingBean(StringRedisTemplate.class)
+	public StringRedisTemplate stringRedisTemplate(
+			RedisConnectionFactory redisConnectionFactory) throws UnknownHostException {
+		StringRedisTemplate template = new StringRedisTemplate();
+		template.setConnectionFactory(redisConnectionFactory);
+		return template;
+	}
+
+}
+```
+
+&nbsp; &nbsp; 下面介绍一下所有有关自动装配bean过滤的`@ConditionalOnXXX`注解。
+
+- **@ConditionalOnBean**：当容器里有指定 Bean 的条件下
+- **@ConditionalOnMissingBean**：当容器里没有指定 Bean 的情况下
+- **@ConditionalOnSingleCandidate**：当指定 Bean 在容器中只有一个，或者虽然有多个但是指定首选 Bean
+- **@ConditionalOnClass**：当类路径下有指定类的条件下
+- **@ConditionalOnMissingClass**：当类路径下没有指定类的条件下
+- **@ConditionalOnProperty**：指定的属性是否有指定的值
+- **@ConditionalOnResource**：类路径是否有指定的值
+- **@ConditionalOnExpression**：基于 SpEL 表达式作为判断条件
+- **@ConditionalOnJava**：基于 Java 版本作为判断条件
+- **@ConditionalOnJndi**：在 JNDI 存在的条件下差在指定的位置
+- **@ConditionalOnNotWebApplication**：当前项目不是 Web 项目的条件下
+- **@ConditionalOnWebApplication**：当前项目是 Web 项 目的条件下
+
+
+## 总结
+
+&nbsp; &nbsp; SpringBoot通过`@EnableAutoConfiguration`注解声明开启自动装配，`@SpringBootApplication`注解是一个注解的组合，它包含了`@EnableAutoConfiguration`，SpringBoot自动装配的核心是现是在`AutoConfigurationImportSelector#selectImports`方法中，其实现了`ImportSelector`接口并重写了`selectImports`方法，自动装配的的大致步骤是通过`SpringFactoriesLoader`扫描部引用的jar包中/META-INF/spring.factories文件文件，然后去重，排除等操作，最后进行按需装配，其按需装配的实现是基于`@Conditional`注解，例如`@ConditionalOnBean`注解表示在容器中存在指定的bean或者存在指定的类才会加载，否则就会过滤掉。
