@@ -2,134 +2,136 @@
 
 
 
-## 一.计数排序
+## 比较类排序
 
-### 计数排序概念
+&nbsp; &nbsp; 通过比较来决定元素间的相对次序，由于其时间复杂度不能突破0(nlogn)，因此也称为非线性时间比较类排序。
 
-​    计数排序不是一个比较排序算法，该算法于1954年由 Harold H. Seward提出，通过计数将时间复杂度降到了O(N)。
+## 非比较类排序
 
-### 基础版算法步骤
+&nbsp; &nbsp; 不通过比较来决定元素间的相对次序，他可以突破基于比较排序的时间下界，以线性时间运行，因此也称为线性时间非比较类排序。
 
-```
-第一步：找出原数组中元素值最大的，记为max。
+![avatar](../../_media/image/algorithm/sort.png)
 
-第二步：创建一个新数组count，其长度是max加1，其元素默认值都为0。
 
-第三步：遍历原数组中的元素，以原数组中的元素作为count数组的索引，以原数组中的元素出现次数作为count数组的元素值。
+时间及空间复杂度
 
-第四步：创建结果数组result，起始索引index。
+![avatar](../../_media/image/algorithm/time-space.png)
 
-第五步：遍历count数组，找出其中元素值大于0的元素，将其对应的索引作为元素值填充到result数组中去，每处理一次，count中的该元素值减1，直到该元素值不大于0，依次处理count中剩下的元素。
+## 初级排序-O(n^2)
 
-第六步：返回结果数组result。
-```
+> 选择排序：
 
-### 基础版代码实现
+每次找最小值，然后放到待排序数组的起始位置
 
-```
-public static int[] countingSort(int[] n) {
-        // 找到待排序数组中最大值
-        int max = Integer.MIN_VALUE;
-        for (int a : n) {
-            max = Math.max(max, a);
-        }
-        // 创建中间数组，数组长度最大值+1
-        int[] count = new int[max + 1];
-        for (int a : n) {
-            count[a]++;
-        }
-        // 创建结果数组
-        int[] result = new int[n.length];
-        // 创建结果数组的起始索引
-        int index = 0;
-        // 遍历计数数组，将计数数组的索引填充到结果数组中
-        for (int i=0; i<count.length; i++) {
-            while (count[i]>0) {
-                result[index++] = i;
-                count[i]--;
-            }
-        }
-        // 返回结果数组
-        return result;
-}
-```
-
-### 优化版
-
-​    基础版能够解决一般的情况，但是它有一个缺陷，那就是存在空间浪费的问题。比如一组数据{101,109,108,102,110,107,103}，其中最大值为110，按照基础版的思路，我们需要创建一个长度为111的计数数组，但是我们可以发现，它前面的[0,100]的空间完全浪费了，那怎样优化呢？将数组长度定为max-min+1，即不仅要找出最大值，还要找出最小值，根据两者的差来确定计数数组的长度。
+```java
 
 ```
-public static int[] countingSort2(int[] n) {
-        // 找到待排序数组中最大值
-        int max = Integer.MIN_VALUE;
-        int min = Integer.MAX_VALUE;
-        for (int a : n) {
-            max = Math.max(max, a);
-            min = Math.min(min, a);
-        }
-        // 创建中间数组，数组长度最大值+1
-        int[] count = new int[max - min + 1];
-        for (int a : n) {
-            count[a - min]++;
-        }
-        // 创建结果数组
-        int[] result = new int[n.length];
-        // 创建结果数组的起始索引
-        int index = 0;
-        // 遍历计数数组，将计数数组的索引填充到结果数组中
-        for (int i=0; i<count.length; i++) {
-            while (count[i]>0) {
-                result[index++] = i + min;
-                count[i]--;
-            }
-        }
-        // 返回结果数组
-        return result;
-}
+
+> 插入排序：
+
+从前到后逐步构建有序序列；对于未排序数据，在已排序序列中从后向前扫描，找到相应位置并插入。
+
+```java
+
 ```
 
-## 二.快速排序
+> 冒泡排序：
 
-### 快速排序概念
-    快速排序的基本思想（分治）：通过一趟排序将待排记录分隔成独立的两部分，其中一部分记录的关键字均比另一部分的关键字小，则可分别对这两部分记录继续进行排序，以达到整个序列有序。
-### 算法步骤
-    快速排序使用分治法来把一个串（list）分为两个子串（sub-lists）。具体算法描述如下：
+嵌套循环，每次查看相邻的元素，如果逆序，则交换。
 
-    从数列中挑出一个元素，称为 “基准”（pivot）；
-    重新排序数列，所有元素比基准值小的摆放在基准前面，所有元素比基准值大的摆在基准的后面（相同的数可以到任一边）。在这个分区退出之后，该基准就处于数列的中间位置。这个称为分区（partition）操作；
-    递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序。
-### 代码实现
+```java
+
 ```
-function quickSort(arr, left, right) {
-    varlen = arr.length,
-        partitionIndex,
-        left = typeofleft != 'number'? 0 : left,
-        right = typeofright != 'number'? len - 1 : right;
- 
-    if(left < right) {
-        partitionIndex = partition(arr, left, right);
-        quickSort(arr, left, partitionIndex-1);
-        quickSort(arr, partitionIndex+1, right);
+
+## 高级排序-O(nlogn)
+
+> 快速排序：
+
+数组取标杆pivot，将小元素放到pivot左边，大元素放到pivot右边，然后一次对左边和右边的子数组继续快排，以达到整个序列有序。
+
+```java
+public static void quickSort(int[] array, int begin, int end) {
+    if (end <= begin) {
+        return;
     }
-    returnarr;
+    int pivot = partition(array, begin, end);
+    quickSort(array, begin, pivot - 1);
+    quickSort(array, pivot + 1; end);
 }
- 
-function partition(arr, left ,right) {     // 分区操作
-    varpivot = left,                      // 设定基准值（pivot）
-        index = pivot + 1;
-    for(vari = index; i <= right; i++) {
-        if(arr[i] < arr[pivot]) {
-            swap(arr, i, index);
-            index++;
-        }       
+
+public static int partition(int[] a, int begin, int end) {
+    // pivot标杆, counter小于pivot的元素个数
+    int pivot = end, counter = begin;
+    for (int i = begin; i < end; i++) {
+        if (a[i] < a[pivot]) {
+            int temp = a[counter]; a[counter] = a[i]; a[i] = temp;
+            counter++;
+        }
     }
-    swap(arr, pivot, index - 1);
-    returnindex-1;
-}
- 
-function swap(arr, i, j) {
-    vartemp = arr[i];
-    arr[i] = arr[j];
-    arr[j] = temp;
+    int temp = a[pivot]; a[pivot] = a[counter]; a[counter] = temp;
+    return counter;
 }
 ```
+
+> 归并排序-分治：
+
+1. 把长度为n的输入序列分成两个长度为n/2的子序列；
+2. 对这两个子序列分别采用归并排序；
+3. 将两个排序好的子序列合并成一个最终的排序序列。
+
+```java
+    public void sort(int[] array) {
+        mergeSort(array, 0, array.length - 1);
+    }
+
+    public void mergeSort(int[] array, int begin, int end) {
+        if (begin >= end) {
+            return;
+        }
+        int mid = (begin + end) >> 1;
+        mergeSort(array, begin, mid);
+        mergeSort(array, mid + 1, end);
+        merge(array, begin, mid, end);
+    }
+
+    private void merge(int[] array, int begin, int mid, int end) {
+        // 临时数组
+        int[] temp = new int[end - begin + 1];
+        int i = begin, j = mid + 1, k = 0;
+        while (i <= mid && j <= end) {
+            temp[k++] = array[i] <= array[j] ? array[i++] : array[j++];
+        }
+        while (i <= mid) {
+            temp[k++] = array[i++];
+        }
+        while (j <= end) {
+            temp[k++] = array[j++];
+        }
+        System.arraycopy(temp, 0, array, begin, temp.length);
+    }
+```
+
+归并排序和快速排序具有相似性，但步骤顺序相反
+
+归并：先排序左右数组，然后合并有序子数组
+
+快排：先调配出左右子数组，然后对左右子数组进行快排
+
+> 堆排序-堆插入O(logn)，取最大/小值O(1)
+
+1. 数组元素依次建立小顶堆
+2. 依次取堆顶元素，并删除
+
+## 特殊排序-O(n)
+
+> 计数排序：
+
+计数排序要求输入的数据必须是有确定范围的整数，将输入的数据值转化为键存储在额外开辟的数组空间中；然后依次把计数大于1的填充回原数组
+
+> 桶排序：
+
+桶排序的工作原理：假设输入数据服从均匀分布，将数据分到有限量的桶里，每个桶在分别排序（有可能再使别的排序算法或是以递归方式继续使用桶排序进行排序）
+
+> 基数排序
+
+基数排序是按照低位先排序，然后收集；再按照高位排序，然后再收集，依此类推，直到最高位，有时候有些属性是有优先级顺序的，先按低优先级顺序，再按高优先级顺序排序。
