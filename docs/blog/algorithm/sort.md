@@ -24,7 +24,21 @@
 每次找最小值，然后放到待排序数组的起始位置
 
 ```java
-
+    public void selectSort(int[] array) {
+        int temp = 0;
+        int minIndex = 0;
+        for (int i = 0; i < array.length - 1; i++) {
+            minIndex = i;
+            for (int j = i + 1; j < array.length; j++) {
+                if (array[j] < array[minIndex]) {
+                    minIndex = j;
+                }
+            }
+            temp = array[i];
+            array[i] = array[minIndex];
+            array[minIndex] = temp;
+        }
+    }
 ```
 
 > 插入排序：
@@ -32,7 +46,17 @@
 从前到后逐步构建有序序列；对于未排序数据，在已排序序列中从后向前扫描，找到相应位置并插入。
 
 ```java
-
+    public void insertSort(int[] array) {
+        for (int i = 1; i < array.length; i++) {
+            int preIndex = i - 1;
+            int current = array[i];
+            while (preIndex >= 0 && array[preIndex] > current) {
+                array[preIndex + 1] = array[preIndex];
+                preIndex--;
+            }
+            array[preIndex + 1] = current;
+        }
+    }
 ```
 
 > 冒泡排序：
@@ -40,7 +64,18 @@
 嵌套循环，每次查看相邻的元素，如果逆序，则交换。
 
 ```java
-
+    public void maoPao(int[] array) {
+        for (int i = 0; i < array.length; i++) {
+            for (int j = i + 1; j < array.length; j++) {
+                if (array[i] > array[j]) {
+                    int temp = 0;
+                    temp = array[i];
+                    array[i] = array[j];
+                    array[j] = temp;
+                }
+            }
+        }
+    }
 ```
 
 ## 高级排序-O(nlogn)

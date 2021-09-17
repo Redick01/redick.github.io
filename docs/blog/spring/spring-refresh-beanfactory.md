@@ -1,6 +1,10 @@
 # Spring IOC容器刷新BeanFactory
 
 
+## 前言
+
+&nbsp; &nbsp; Spring IOC容器刷新BeanFactory是一个很复杂的过程，本文将基于XML配置的方式展开分析一下Spring IOC容器刷新BeanFactory的过程，如有误还请指出。
+
 ## 告诉子类刷新内部BeanFactory
 
 ```java
