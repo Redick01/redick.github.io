@@ -65,6 +65,7 @@
 * * [Spring事务管理传播机制](blog/database/mysql/spring-transaction-spread.md)
 * * [Spring事务失效](blog/spring/spring-tx-shixiao.md)
 * * [Spring IOC容器刷新BeanFactory](blog/spring/spring-refresh-beanfactory.md)
+* * [Spring框架@PostConstruct注解详解](blog/spring/spring-postconstruct.md)
 * * [SpringBoot自动装配](blog/spring/springboot-autoconfig.md)
  &nbsp;
 

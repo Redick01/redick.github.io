@@ -1,4 +1,4 @@
-# Spring IOC容器刷新BeanFactory
+# Spring IOC容器刷新BeanFactory <!-- {docsify-ignore-all} -->
 
 
 ## 前言
