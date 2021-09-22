@@ -1,4 +1,4 @@
-# Guava 布隆过滤器 <!-- {docsify-ignore-all} -->
+# Guava布隆过滤器简单应用 <!-- {docsify-ignore-all} -->
 
 - 布隆过滤器概念
 - 应用场景
@@ -18,6 +18,10 @@
 
 &nbsp; &nbsp; 布隆过滤器的原理是，当一个元素被加入集合时，通过K个散列函数将这个元素映射成一个位数组中的K个点，把它们置为1。检索时，我们只要看看这些点是不是都是1就（大约）知道集合中有没有它了：如果这些点有任何一个0，则被检元素一定不在；如果都是1，则被检元素很可能在。这就是布隆过滤器的基本思想。
 
+
+ ![avatar](_media/../../../../_media/image/algorithm/bloom-filter.png)
+
+
 ### 优点
 
 &nbsp; &nbsp; 相比于其它的数据结构，布隆过滤器在空间和时间方面都有巨大的优势。布隆过滤器存储空间和插入/查询时间都是常数（O(k)）。另外，散列函数相互之间没有关系，方便由硬件并行实现。布隆过滤器不需要存储元素本身，在某些对保密要求非常严格的场合有优势。
@@ -36,10 +40,60 @@
 
 ### 应用场景
 
-> 网页爬虫对URL的去重，避免爬取相同的URL地址；
+> 海量数据去重；
 
 > 反垃圾邮件，从数十亿个垃圾邮件列表中判断某邮箱是否垃圾邮箱；
 
 > 缓存击穿，将已存在的缓存放到布隆过滤器中，当黑客访问不存在的缓存时迅速返回避免缓存及DB挂掉。
 
-### Guava实现布隆过滤器应用
+### Guava实现布隆过滤器
+
+```java
+public class BloomFilterUtil {
+
+    private static BloomFilterUtil instance;
+
+    private BloomFilterUtil() {}
+
+
+    public static class BloomFilterUtilInstance {
+        private static final BloomFilterUtil INSTANCE = new BloomFilterUtil();
+    }
+
+    public static BloomFilterUtil getInstance() {
+        return BloomFilterUtilInstance.INSTANCE;
+    }
+
+    /**
+     * 预估数据量
+     */
+    private static final int INSERTIONS = 100000;
+
+    /**
+     * 判重错误率
+     */
+    private static final double FPP = 0.0001;
+
+    private BloomFilter<String> bloomFilter = BloomFilter.create(Funnels.stringFunnel(Charset.defaultCharset()), INSERTIONS, FPP);
+
+    public void addElement(String value) {
+        bloomFilter.put(value);
+    }
+
+    public boolean containsElement(String value) {
+        return bloomFilter.mightContain(value);
+    }
+
+    public static void main(String[] args) {
+        BloomFilterUtil bloomFilterUtil = BloomFilterUtil.getInstance();
+
+        bloomFilterUtil.addElement("lph");
+        System.out.println(bloomFilterUtil.containsElement("lph"));
+
+    }
+}
+```
+
+## 总结
+
+&nbsp; &nbsp; 布隆过滤器的实现关键在于位数组容量，判重错误率和哈希函数，在可以容忍一定的错误率的情况下，能够高效的处理海量数据判重。具体的API细节可以参考Guava的官方API文档，文档地址如下：https://guava.dev/releases/snapshot-jre/api/docs/com/google/common/hash/BloomFilter.html
