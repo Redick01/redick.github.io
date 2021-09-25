@@ -66,6 +66,7 @@
 * 架构
   * [java 0期毕业总结](blog/structure/study-summary.md)
   * [微服务架构下的容错性设计](blog/structure/microservice/micro-service-design-1.md)
+  * [分布式锁的几种实现方式](blog/structure/distributed-lock.md)
   * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
   * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
   * [Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)](blog/structure/servicemesh/servicemesh-two.md)
