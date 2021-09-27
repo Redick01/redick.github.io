@@ -28,6 +28,117 @@
 > `Zookeeper`实现分布式锁流程
 
 
+```java
+public class ZkLockUtil {
+
+    private volatile String PATH;
+
+    private volatile String BEFORE_PATH;
+
+    private static final String NODE = "/lock";
+
+    private ZkLockUtil() {}
+
+    private final ZkClient client = new ZkClient("127.0.0.1:2181");
+
+    public boolean lockFailFast(String path) {
+        return tryLock();
+    }
+
+    public void lock() {
+        // 获取锁
+        if (tryLock()) {
+            return;
+        }
+        // 等待
+        waitForLock();
+        // 再次获取锁
+        lock();
+    }
+
+    public void release() {
+        client.delete(PATH);
+    }
+
+    private static volatile boolean waitLock = true;
+
+    private void waitForLock() {
+        IZkDataListener listener = new IZkDataListener() {
+            @Override
+            public void handleDataChange(String dataPath, Object data) throws Exception {
+
+            }
+
+            @Override
+            public void handleDataDeleted(String dataPath) throws Exception {
+                System.out.println("节点删除");
+                waitLock = false;
+            }
+        };
+        client.subscribeDataChanges(BEFORE_PATH, listener);
+        if (client.exists(BEFORE_PATH)) {
+            System.out.println("加锁失败，等待");
+            while (true) {
+                if (!waitLock) {
+                    break;
+                }
+            }
+        }
+        // 释放监听
+        client.unsubscribeDataChanges(BEFORE_PATH, listener);
+    }
+
+    /**
+     * 加锁
+     *
+     *
+     ** @return
+     */
+    private boolean tryLock() {
+        // 创建节点
+        if (StringUtils.isBlank(PATH)) {
+            PATH = client.createEphemeralSequential(NODE + "/", "lock1");
+        }
+        // 对节点排序
+        List<String> children = client.getChildren(NODE);
+        Collections.sort(children);
+        if (PATH.equals(NODE + "/" + children.get(0))) {
+            System.out.println("获取锁成功");
+            return true;
+        } else {
+            // 不是最小节点，找到自己的前一个，以此类推
+            int i = Collections.binarySearch(children, PATH.substring(NODE.length() + 1));
+            BEFORE_PATH = NODE + "/" + children.get(i - 1);
+        }
+        return false;
+    }
+
+    private static int inventory = 2;
+
+    public static void main(String[] args) {
+        try {
+            for (int i = 1; i <= 10; i++) {
+                new Thread(() -> {
+                    ZkLockUtil zkLockUtil = new ZkLockUtil();
+                    try {
+                        zkLockUtil.lock();
+                        if (inventory > 0) {
+                            inventory--;
+                        }
+                        System.out.println(inventory);
+                    } finally {
+                        zkLockUtil.release();
+                        System.out.println("释放锁");
+                    }
+                }).start();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+```
 
 
 总结一下，实现分布式的方式：
