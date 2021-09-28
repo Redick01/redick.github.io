@@ -192,6 +192,9 @@ public class ZkLockUtil {
 ```
 
 
+### MySQL实现分布式锁
+
+
 总结一下，实现分布式的方式：
 1）数据库for update，
 2）redis的过期key/redission，
