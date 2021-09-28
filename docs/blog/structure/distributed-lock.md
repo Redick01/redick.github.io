@@ -194,10 +194,148 @@ public class ZkLockUtil {
 
 ### MySQL实现分布式锁
 
+&nbsp; &nbsp; MySQL实现分布式锁利用了MySQL InnoDB引擎的行锁和唯一索引实现。
 
-总结一下，实现分布式的方式：
-1）数据库for update，
-2）redis的过期key/redission，
-3）zookeeper临时节点，
-4）etcd的lease，
-5）内存网格hazelcast和ignite的纯java分布式锁。
+#### **实现逻辑**
+
+- **创建一张锁资源表，包含主要字段如下**
+
+```table
+lock_resource 表名
+id 主键
+resource_name 锁定资源（创建该字段的唯一索引）
+node_thread_info 持有锁线程信息
+count 重入次数
+create_at 创建时间
+update_at 更新时间
+desc 描述
+```
+
+- **实现锁的前提是要支持并在代码中开启事务，如以下伪代码**
+
+```java
+@Service
+public class MySqlLock {
+
+    @Transactional(rollbackFor = LockException.class)
+    public void lock() {
+
+    }
+}
+
+class LockException extends RuntimeException {
+
+    public LockException(String message) {
+        super(message);
+    }
+}
+```
+
+- **lock()阻塞获取锁**
+
+1. 根据锁定资源获取锁，获取不到insert锁资源数据
+2. 获取到锁资源，判断锁数据node_thread_info是否是当前线程信息，如果是获取锁成功，不是的话自旋获取锁
+3. tryLock()的实现是非阻塞快速失败的锁实现
+4. 伪代码如下
+
+```java
+    @Transactional(rollbackFor = LockException.class, propagation = Propagation.REQUIRED)
+    public void lock() {
+        while (true) {
+            if (tryLock()) {
+                return;
+            }
+            // 休眠3ms时间后重试
+            LockSupport.parkNanos(1000 * 1000 * 3);
+        }
+    }
+
+    /**
+     * 伪代码
+     * @return
+     */
+    @Transactional(rollbackFor = LockException.class, propagation = Propagation.REQUIRED)
+    public boolean tryLock(String resourceName) {
+        String currentNodeInfo = address.getHostName() + Thread.currentThread().getId();
+        // 从数据库中获取锁资源
+        if (("select * from lock_resource where resource_name = '" + resourceName + "' for update;") == "success") {
+            // 当前机器节点信息等于锁资源的机器节点信息，获取锁成功
+            if (currentNodeInfo.equals("node_thread_info")) {
+                // 重入次数 + 1 ，update 数据库
+                String result = "update lock_resource set count = count + 1, update_at = current_time where resource_name = '" + resourceName + "';";
+                return true;
+            } else {
+                // 获取锁失败
+                return false;
+            }
+        } else {
+            try {
+                String result = "insert into lock_resource value (?, ?, ?, ?);";
+                return true;
+            } catch (DuplicateKeyException e) {
+                // 获取锁失败
+                return false;
+            }
+        }
+    }
+```
+
+- **释放锁release()**
+
+1. 获取锁资源
+2. 获取不到就直接返回true
+3. 获取到锁资源，判断释放的锁是不是自己加的
+4. 是自己加的锁，判断重入次数，如果重入次数大于1，递减重试次数，并返回释放成功
+5. 是自己加的锁，重入次数小于等于0，删除锁资源，返回释放锁成功
+
+```java
+    /**
+     * 释放锁 伪代码
+     * @param resourceName
+     * @return
+     */
+    @Transactional(rollbackFor = LockException.class, propagation = Propagation.REQUIRED)
+    public boolean release(String resourceName) {
+        String currentNodeInfo = address.getHostName() + Thread.currentThread().getId();
+        // 从数据库中获取锁资源
+        if (("select * from lock_resource where resource_name = '" + resourceName + "' for update;") == "success") {
+            // 当前机器节点信息等于锁资源的机器节点信息，是要释放的锁
+            if (currentNodeInfo.equals("node_thread_info")) {
+                // 判断重入次数
+                if (count > 1) {
+                    // 重入次数递减
+                    String result = "update lock_resource set count = count - 1, update_at = current_time where resource_name = '" + resourceName + "';";
+                } else {
+                    // 删除锁资源
+                    String result = "delete from lock_resource where resource_name = '" + resourceName + "'";
+                }
+                return true;
+            } else {
+                // 获取锁失败
+                return false;
+            }
+        } else {
+            // 要释放的锁不存在
+            return true;
+        }
+    }
+```
+
+- **锁超时**
+
+&nbsp; &nbsp; 上面的加锁，释放锁流程看似没问题，但是会有一个问题，假如客户端在获取到锁资源后宕机了，这时候锁资源就会一直在数据库中存在，对于这个问题可以启动一个定时任务，用于处理超时的锁，具体的逻辑如下：
+
+1. 启动一个定时任务
+2. 预估业务处理时间5s以内完成
+3. 定时任务扫描5秒钟以前创建还没被释放的锁，将其释放掉，为增加容错，可以将时间间隔扩大。
+
+#### **MySQL实现分布式锁总结**
+
+&nbsp; &nbsp; MySQL实现的分布式锁逻辑清晰容易理解，不需要依赖其他第三方中间件，其实现依赖MySQL的行锁和唯一索引；但是其缺点也比较明显，理解起来虽然容易，但是实现起来也比较繁琐，还需要自己控制事务已经处理锁超时，并且性能低，对于高并发场景不是很适合。
+
+
+## 总结
+
+&nbsp; &nbsp; 本文主要介绍了三种分布式锁的实现，基于内存数据库Redis实现的分布式锁非常适合高性能场景；zookeeper实现的分布式锁适用于性能要求不是很高，可用性要求较高的场景；MySQL实现分布式锁适用于性能要求不高，不依赖于其他第三方中间件，可用性要求较高的场景。总的来说使用Redis实现的分布式锁应用比较多，Redis Cluster模式也能够保证高可用并且Redis性能很强。本文的代码不可用于生产系统，仅以伪代码的形式说明其实现原理；
+
+&nbsp; &nbsp; 实现分布式锁的方案还有其他的，感兴趣的同学可以研究下，比如基于ETCD，hazelcast等实现的分布式锁。
