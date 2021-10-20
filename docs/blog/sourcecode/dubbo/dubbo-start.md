@@ -184,3 +184,48 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
 
 #### DubboBootstrap#start()
 
+```java
+    public DubboBootstrap start() {
+        if (started.compareAndSet(false, true)) {
+            ready.set(false);
+            initialize();
+            if (logger.isInfoEnabled()) {
+                logger.info(NAME + " is starting...");
+            }
+            // 1. export Dubbo Services
+            exportServices();
+
+            // Not only provider register
+            if (!isOnlyRegisterProvider() || hasExportedServices()) {
+                // 2. export MetadataService
+                exportMetadataService();
+                //3. Register the local ServiceInstance if required
+                registerServiceInstance();
+            }
+
+            referServices();
+            if (asyncExportingFutures.size() > 0) {
+                new Thread(() -> {
+                    try {
+                        this.awaitFinish();
+                    } catch (Exception e) {
+                        logger.warn(NAME + " exportAsync occurred an exception.");
+                    }
+                    ready.set(true);
+                    if (logger.isInfoEnabled()) {
+                        logger.info(NAME + " is ready.");
+                    }
+                }).start();
+            } else {
+                ready.set(true);
+                if (logger.isInfoEnabled()) {
+                    logger.info(NAME + " is ready.");
+                }
+            }
+            if (logger.isInfoEnabled()) {
+                logger.info(NAME + " has started.");
+            }
+        }
+        return this;
+    }
+```
