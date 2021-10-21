@@ -182,22 +182,24 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
 	}
 ```
 
-#### DubboBootstrap#start()
+#### DubboBootstrap#start()dubbo启动
 
 ```java
     public DubboBootstrap start() {
+        // 是否启动过
         if (started.compareAndSet(false, true)) {
             ready.set(false);
+            // 初始化
             initialize();
             if (logger.isInfoEnabled()) {
                 logger.info(NAME + " is starting...");
             }
-            // 1. export Dubbo Services
+            // 1. 发布dubbo服务
             exportServices();
 
             // Not only provider register
             if (!isOnlyRegisterProvider() || hasExportedServices()) {
-                // 2. export MetadataService
+                // 2. 发布元数据
                 exportMetadataService();
                 //3. Register the local ServiceInstance if required
                 registerServiceInstance();
@@ -229,3 +231,4 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
         return this;
     }
 ```
+
