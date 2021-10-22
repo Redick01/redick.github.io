@@ -197,7 +197,7 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
             // 1. 发布dubbo服务
             exportServices();
 
-            // Not only provider register
+            // Not only provider register，原数据发布一次
             if (!isOnlyRegisterProvider() || hasExportedServices()) {
                 // 2. 发布元数据
                 exportMetadataService();
@@ -232,3 +232,43 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
     }
 ```
 
+
+#### 初始化initialize();
+
+```java
+    private void initialize() {
+        // 1. 校验是否初始化过
+        if (!initialized.compareAndSet(false, true)) {
+            return;
+        }
+        // 2. 初始化扩展框架
+        ApplicationModel.initFrameworkExts();
+        // 3. 启动配置中心 
+        startConfigCenter();
+        // 4. 是否需要注册中心作为配置中心
+        useRegistryAsConfigCenterIfNecessary();
+        // 5. 加载远程配置
+        loadRemoteConfigs();
+        // 6. 检查配置
+        checkGlobalConfigs();
+        // 7. 初始化MetaService
+        initMetadataService();
+        // 8. 时间监听初始化
+        initEventListener();
+
+        if (logger.isInfoEnabled()) {
+            logger.info(NAME + " has been initialized!");
+        }
+    }
+```
+
+> 初始化扩展框架，通过dubbo SPI机制加载扩展框架，
+
+```java
+    public static void initFrameworkExts() {
+        Set<FrameworkExt> exts = ExtensionLoader.getExtensionLoader(FrameworkExt.class).getSupportedExtensionInstances();
+        for (FrameworkExt ext : exts) {
+            ext.initialize();
+        }
+    }
+```
