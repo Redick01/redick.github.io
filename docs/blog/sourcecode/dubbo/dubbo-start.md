@@ -88,6 +88,7 @@ public class DubboBootstrapApplicationListener extends OneTimeExecutionApplicati
     private final DubboBootstrap dubboBootstrap;
 
     public DubboBootstrapApplicationListener() {
+        // 获取DubboBootstrap对象，会通过SPI加载Environment，ConfigManager
         this.dubboBootstrap = DubboBootstrap.getInstance();
     }
 
@@ -262,7 +263,9 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
     }
 ```
 
-> 初始化扩展框架，通过dubbo SPI机制加载扩展框架，
+##### ApplicationModel.initFrameworkExts();
+
+> dubbo通过SPI机制加载三个类，分别是：Environment，ConfigManager，ServiceRepostitory；Environment是Dubbo的环境信息类，会加载配置信息，从配置文件系统参数，外部配置中心等加载配置信息。
 
 ```java
     public static void initFrameworkExts() {
@@ -270,5 +273,225 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
         for (FrameworkExt ext : exts) {
             ext.initialize();
         }
+    }
+```
+
+> Environment会加载五种配置，PropertiesConfiguration从properties中加载配置，SystemConfiguration系统配置，EnvironmentConfiguration加载系统环境配置信息，externalConfiguration和appExternalConfiguration这两个成员变量的对象是同一种类InmemoryConfiguration，initialize()方法会获取所有配置中心的配置，将配置信息放到externalConfiguration和appExternalConfiguration，initialize()方法会在加载SPI后调用，就是上一段代码的ext.initialize();
+
+```java
+    private final PropertiesConfiguration propertiesConfiguration;
+    private final SystemConfiguration systemConfiguration;
+    private final EnvironmentConfiguration environmentConfiguration;
+    private final InmemoryConfiguration externalConfiguration;
+    private final InmemoryConfiguration appExternalConfiguration;
+
+    
+    private Map<String, String> externalConfigurationMap = new HashMap<>();
+    private Map<String, String> appExternalConfigurationMap = new HashMap<>();
+
+    
+
+    public Environment() {
+        this.propertiesConfiguration = new PropertiesConfiguration();
+        this.systemConfiguration = new SystemConfiguration();
+        this.environmentConfiguration = new EnvironmentConfiguration();
+        this.externalConfiguration = new InmemoryConfiguration();
+        this.appExternalConfiguration = new InmemoryConfiguration();
+    }
+
+    @Override
+    public void initialize() throws IllegalStateException {
+        ConfigManager configManager = ApplicationModel.getConfigManager();
+        // 获取所有配置
+        Optional<Collection<ConfigCenterConfig>> defaultConfigs = configManager.getDefaultConfigCenter();
+        defaultConfigs.ifPresent(configs -> {
+            // 将配置信息放到externalConfiguration和appExternalConfiguration
+            for (ConfigCenterConfig config : configs) {
+                this.setExternalConfigMap(config.getExternalConfiguration());
+                this.setAppExternalConfigMap(config.getAppExternalConfiguration());
+            }
+        });
+
+        this.externalConfiguration.setProperties(externalConfigurationMap);
+        this.appExternalConfiguration.setProperties(appExternalConfigurationMap);
+    }
+```
+
+> Environment会根据优先级将配置加载到CompositeConfiguration中，代码如下
+
+```java
+    public synchronized CompositeConfiguration getPrefixedConfiguration(AbstractConfig config) {
+        CompositeConfiguration prefixedConfiguration = new CompositeConfiguration(config.getPrefix(), config.getId());
+        Configuration configuration = new ConfigConfigurationAdapter(config);
+        if (this.isConfigCenterFirst()) {
+            // The sequence would be: SystemConfiguration -> AppExternalConfiguration -> ExternalConfiguration -> AbstractConfig -> PropertiesConfiguration
+            // Config center has the highest priority
+            prefixedConfiguration.addConfiguration(systemConfiguration);
+            prefixedConfiguration.addConfiguration(environmentConfiguration);
+            prefixedConfiguration.addConfiguration(appExternalConfiguration);
+            prefixedConfiguration.addConfiguration(externalConfiguration);
+            prefixedConfiguration.addConfiguration(configuration);
+            prefixedConfiguration.addConfiguration(propertiesConfiguration);
+        } else {
+            // The sequence would be: SystemConfiguration -> AbstractConfig -> AppExternalConfiguration -> ExternalConfiguration -> PropertiesConfiguration
+            // Config center has the highest priority
+            prefixedConfiguration.addConfiguration(systemConfiguration);
+            prefixedConfiguration.addConfiguration(environmentConfiguration);
+            prefixedConfiguration.addConfiguration(configuration);
+            prefixedConfiguration.addConfiguration(appExternalConfiguration);
+            prefixedConfiguration.addConfiguration(externalConfiguration);
+            prefixedConfiguration.addConfiguration(propertiesConfiguration);
+        }
+        return prefixedConfiguration;
+    }
+```
+
+##### startConfigCenter();
+
+> startConfigCenter();启动配置中心
+
+如果不单独配置配置中心不会加载配置中心
+
+```java
+    private void startConfigCenter() {
+        // 配置中心配置
+        Collection<ConfigCenterConfig> configCenters = configManager.getConfigCenters();
+
+        // configCenters是空的
+        if (CollectionUtils.isEmpty(configCenters)) {
+            ConfigCenterConfig configCenterConfig = new ConfigCenterConfig();
+            // 从Environment刷新配置
+            configCenterConfig.refresh();
+            // 检查配置，配置中的address和protocol不能是空的并且address要包含"//"
+            if (configCenterConfig.isValid()) {
+                configManager.addConfigCenter(configCenterConfig);
+                configCenters = configManager.getConfigCenters();
+            }
+        } else {
+            for (ConfigCenterConfig configCenterConfig : configCenters) {
+                configCenterConfig.refresh();
+                ConfigValidationUtils.validateConfigCenterConfig(configCenterConfig);
+            }
+        }
+        // 配置中心配置不为空，DynamicConfig处理，支持Apollo，Etcd，zookeeper，consul，nacos等动态配置
+        if (CollectionUtils.isNotEmpty(configCenters)) {
+            CompositeDynamicConfiguration compositeDynamicConfiguration = new CompositeDynamicConfiguration();
+            for (ConfigCenterConfig configCenter : configCenters) {
+                // 根据配置中心配置，创建动态配置，prepareEnvironment负责配置中心准备，比如zk就会创建基于zk的动态配置，会创建zk客户端和配置监听
+                compositeDynamicConfiguration.addConfiguration(prepareEnvironment(configCenter));
+            }
+            environment.setDynamicConfiguration(compositeDynamicConfiguration);
+        }
+        // 刷新所有配置，ApplicationConfig，MonitorConfig，ModuleConfig，ProtocolConfig，RegistryConfig，ProviderConfig，ConsumerConfig
+        configManager.refreshAll();
+    }
+```
+
+##### useRegistryAsConfigCenterIfNecessary();是否需要注册中心作为配置中心
+
+```java
+    private void useRegistryAsConfigCenterIfNecessary() {
+        // we use the loading status of DynamicConfiguration to decide whether ConfigCenter has been initiated.
+        // DynamicConfiguration加载过，ConfigCenter已经初始化了，不用将注册中心作为配置中心了
+        if (environment.getDynamicConfiguration().isPresent()) {
+            return;
+        }
+        // 已经加载过配置中心了，就不用将注册中心作为配置中心了
+        if (CollectionUtils.isNotEmpty(configManager.getConfigCenters())) {
+            return;
+        }
+        // 将注册中心配置加到配置中心配置中
+        configManager.getDefaultRegistries().stream()
+                .filter(registryConfig -> registryConfig.getUseAsConfigCenter() == null || registryConfig.getUseAsConfigCenter())
+                .forEach(registryConfig -> {
+                    String protocol = registryConfig.getProtocol();
+                    String id = "config-center-" + protocol + "-" + registryConfig.getPort();
+                    ConfigCenterConfig cc = new ConfigCenterConfig();
+                    cc.setId(id);
+                    if (cc.getParameters() == null) {
+                        cc.setParameters(new HashMap<>());
+                    }
+                    if (registryConfig.getParameters() != null) {
+                        cc.getParameters().putAll(registryConfig.getParameters());
+                    }
+                    cc.getParameters().put(CLIENT_KEY, registryConfig.getClient());
+                    cc.setProtocol(registryConfig.getProtocol());
+                    cc.setPort(registryConfig.getPort());
+                    cc.setAddress(registryConfig.getAddress());
+                    cc.setNamespace(registryConfig.getGroup());
+                    cc.setUsername(registryConfig.getUsername());
+                    cc.setPassword(registryConfig.getPassword());
+                    if (registryConfig.getTimeout() != null) {
+                        cc.setTimeout(registryConfig.getTimeout().longValue());
+                    }
+                    cc.setHighestPriority(false);
+                    configManager.addConfigCenter(cc);
+                });
+        // 再次startConfigCenter
+        startConfigCenter();
+    }
+```
+
+##### checkGlobalConfigs();检查全置
+
+&nbsp; &nbsp; 校验各种配置，不展开说了
+
+```java
+    private void checkGlobalConfigs() {
+        // check Application
+        ConfigValidationUtils.validateApplicationConfig(getApplication());
+
+        // 检查原数据配置
+        Collection<MetadataReportConfig> metadatas = configManager.getMetadataConfigs();
+        if (CollectionUtils.isEmpty(metadatas)) {
+            MetadataReportConfig metadataReportConfig = new MetadataReportConfig();
+            metadataReportConfig.refresh();
+            if (metadataReportConfig.isValid()) {
+                configManager.addMetadataReport(metadataReportConfig);
+                metadatas = configManager.getMetadataConfigs();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(metadatas)) {
+            for (MetadataReportConfig metadataReportConfig : metadatas) {
+                metadataReportConfig.refresh();
+                ConfigValidationUtils.validateMetadataConfig(metadataReportConfig);
+            }
+        }
+
+        // check Provider
+        Collection<ProviderConfig> providers = configManager.getProviders();
+        if (CollectionUtils.isEmpty(providers)) {
+            configManager.getDefaultProvider().orElseGet(() -> {
+                ProviderConfig providerConfig = new ProviderConfig();
+                configManager.addProvider(providerConfig);
+                providerConfig.refresh();
+                return providerConfig;
+            });
+        }
+        for (ProviderConfig providerConfig : configManager.getProviders()) {
+            ConfigValidationUtils.validateProviderConfig(providerConfig);
+        }
+        // check Consumer
+        Collection<ConsumerConfig> consumers = configManager.getConsumers();
+        if (CollectionUtils.isEmpty(consumers)) {
+            configManager.getDefaultConsumer().orElseGet(() -> {
+                ConsumerConfig consumerConfig = new ConsumerConfig();
+                configManager.addConsumer(consumerConfig);
+                consumerConfig.refresh();
+                return consumerConfig;
+            });
+        }
+        for (ConsumerConfig consumerConfig : configManager.getConsumers()) {
+            ConfigValidationUtils.validateConsumerConfig(consumerConfig);
+        }
+
+        // check Monitor
+        ConfigValidationUtils.validateMonitorConfig(getMonitor());
+        // check Metrics
+        ConfigValidationUtils.validateMetricsConfig(getMetrics());
+        // check Module
+        ConfigValidationUtils.validateModuleConfig(getModule());
+        // check Ssl
+        ConfigValidationUtils.validateSslConfig(getSsl());
     }
 ```
