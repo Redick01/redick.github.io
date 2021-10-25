@@ -63,13 +63,12 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport {
 }
 ```
 
-## Dubbo消费者
+## Dubbo启动
 
 &nbsp; &nbsp; 在上面的dubbo bean加载章节中我们知道dubbo通过Spring自定义标签，在程序启动时创建了实例并进行了实例赋值，接下来我们看一下Dubbo消费者是如何启动并进行远程调用的
 
-### Dubbo消费者启动
 
-#### Dubbo客户端启动监听DubboBootstrapApplicationListener
+### Dubbo客户端启动监听DubboBootstrapApplicationListener
 
 > 上一章节说到了通过spring自定义标签已经创建了comsumer的bean，consumer的bean创建成功了，我们来分析下消费者启动的过程，dubbo实现了Spring的监听接口`ApplicationListener`接口，实现监听接口是为了当Spring容器refresh完成后能够接到容器刷新完成的事件。当Spring容器刷新完后通过时间监听执行dubbo客户端启动，代码如下：
 
@@ -183,7 +182,7 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
 	}
 ```
 
-#### DubboBootstrap#start()dubbo启动
+### DubboBootstrap#start()dubbo启动
 
 ```java
     public DubboBootstrap start() {
@@ -205,7 +204,7 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
                 //3. Register the local ServiceInstance if required
                 registerServiceInstance();
             }
-
+            // 4. 订阅服务 
             referServices();
             if (asyncExportingFutures.size() > 0) {
                 new Thread(() -> {
@@ -495,3 +494,293 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
         ConfigValidationUtils.validateSslConfig(getSsl());
     }
 ```
+
+##### initMetadataService();
+
+&nbsp; &nbsp; 初始化元数据服务，并加载原数据服务的服务提供者
+
+```java
+    private void initMetadataService() {
+        startMetadataReport();
+        this.metadataService = getExtension(getMetadataType());
+        this.metadataServiceExporter = new ConfigurableMetadataServiceExporter(metadataService);
+    }
+
+    private void startMetadataReport() {
+        ApplicationConfig applicationConfig = getApplication();
+
+        String metadataType = applicationConfig.getMetadataType();
+        // FIXME, multiple metadata config support.
+        Collection<MetadataReportConfig> metadataReportConfigs = configManager.getMetadataConfigs();
+        if (CollectionUtils.isEmpty(metadataReportConfigs)) {
+            if (REMOTE_METADATA_STORAGE_TYPE.equals(metadataType)) {
+                throw new IllegalStateException("No MetadataConfig found, you must specify the remote Metadata Center address when 'metadata=remote' is enabled.");
+            }
+            return;
+        }
+        MetadataReportConfig metadataReportConfig = metadataReportConfigs.iterator().next();
+        ConfigValidationUtils.validateMetadataConfig(metadataReportConfig);
+        if (!metadataReportConfig.isValid()) {
+            return;
+        }
+
+        MetadataReportInstance.init(metadataReportConfig.toUrl());
+    }
+```
+
+##### initEventListener();
+
+&nbsp; &nbsp; 初始化Dubbo事件监听器，Dubbo自己实现了一套事件监听机制，这里不细说
+
+![avatar](_media/../../../../_media/image/source_code/dubbo/eventdispatcher.png)
+
+```java
+    private void initEventListener() {
+        // Add current instance into listeners
+        addEventListener(this);
+    }
+
+    public DubboBootstrap addEventListener(EventListener<?> listener) {
+        eventDispatcher.addEventListener(listener);
+        return this;
+    }
+```
+
+#### exportServices();发布dubbo服务
+
+```java
+    private void exportServices() {
+        configManager.getServices().forEach(sc -> {
+            // TODO, compatible with ServiceConfig.export()
+            ServiceConfig serviceConfig = (ServiceConfig) sc;
+            serviceConfig.setBootstrap(this);
+            // 异步发布
+            if (exportAsync) {
+                ExecutorService executor = executorRepository.getServiceExporterExecutor();
+                Future<?> future = executor.submit(() -> {
+                    sc.export();
+                    exportedServices.add(sc);
+                });
+                asyncExportingFutures.add(future);
+            } else {
+                // 发布服务
+                sc.export();
+                // 将发布服务放到已发布服务列表里
+                exportedServices.add(sc);
+            }
+        });
+    }
+```
+
+> ServiceConfig#export发布服务
+
+```java
+    public synchronized void export() {
+        if (!shouldExport()) {
+            return;
+        }
+        // bootstrap没有初始化，则初始化bootstrap
+        if (bootstrap == null) {
+            bootstrap = DubboBootstrap.getInstance();
+            bootstrap.init();
+        }
+
+        checkAndUpdateSubConfigs();
+
+        //init serviceMetadata
+        serviceMetadata.setVersion(version);
+        serviceMetadata.setGroup(group);
+        serviceMetadata.setDefaultGroup(group);
+        serviceMetadata.setServiceType(getInterfaceClass());
+        serviceMetadata.setServiceInterfaceName(getInterface());
+        serviceMetadata.setTarget(getRef());
+
+        if (shouldDelay()) {
+            DELAY_EXPORT_EXECUTOR.schedule(this::doExport, getDelay(), TimeUnit.MILLISECONDS);
+        } else {
+            doExport();
+        }
+
+        exported();
+    }
+```
+
+> ServiceConfig#doExport();
+
+
+- 注册dubbo服务
+- 启动Qos服务
+- 
+
+
+```java
+    protected synchronized void doExport() {
+        if (unexported) {
+            throw new IllegalStateException("The service " + interfaceClass.getName() + " has already unexported!");
+        }
+        if (exported) {
+            return;
+        }
+        // 设置exported状态
+        exported = true;
+
+        if (StringUtils.isEmpty(path)) {
+            path = interfaceName;
+        }
+        // 发布服务
+        doExportUrls();
+    }
+```
+
+```java
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void doExportUrls() {
+        ServiceRepository repository = ApplicationModel.getServiceRepository();
+        ServiceDescriptor serviceDescriptor = repository.registerService(getInterfaceClass());
+        repository.registerProvider(
+                getUniqueServiceName(),
+                ref,
+                serviceDescriptor,
+                this,
+                serviceMetadata
+        );
+
+        List<URL> registryURLs = ConfigValidationUtils.loadRegistries(this, true);
+
+        for (ProtocolConfig protocolConfig : protocols) {
+            String pathKey = URL.buildKey(getContextPath(protocolConfig)
+                    .map(p -> p + "/" + path)
+                    .orElse(path), group, version);
+            // In case user specified path, register service one more time to map it to path.
+            repository.registerService(pathKey, interfaceClass);
+            // TODO, uncomment this line once service key is unified
+            serviceMetadata.setServiceKey(pathKey);
+            doExportUrlsFor1Protocol(protocolConfig, registryURLs);
+        }
+    }
+```
+
+> ServiceConfig#exportLocal发布服务到本地
+
+```java
+    /**
+     * always export injvm
+     */
+    private void exportLocal(URL url) {
+        URL local = URLBuilder.from(url)
+                .setProtocol(LOCAL_PROTOCOL)
+                .setHost(LOCALHOST_VALUE)
+                .setPort(0)
+                .build();
+        // SPI机制获取Exporter
+        Exporter<?> exporter = PROTOCOL.export(
+                PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
+        exporters.add(exporter);
+        logger.info("Export dubbo service " + interfaceClass.getName() + " to local registry url : " + local);
+    }
+```
+
+> ServiceConfig#doExportUrlsFor1Protocol发布服务到远程
+
+```java
+    private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
+        String name = protocolConfig.getName();
+        if (StringUtils.isEmpty(name)) {
+            name = DUBBO;
+        }
+
+        Map<String, String> map = new HashMap<String, String>();
+        map.put(SIDE_KEY, PROVIDER_SIDE);
+
+        ServiceConfig.appendRuntimeParameters(map);
+        AbstractConfig.appendParameters(map, getMetrics());
+        AbstractConfig.appendParameters(map, getApplication());
+        AbstractConfig.appendParameters(map, getModule());
+        // remove 'default.' prefix for configs from ProviderConfig
+        // appendParameters(map, provider, Constants.DEFAULT_KEY);
+        AbstractConfig.appendParameters(map, provider);
+        AbstractConfig.appendParameters(map, protocolConfig);
+        AbstractConfig.appendParameters(map, this);
+        ...
+        //init serviceMetadata attachments
+        serviceMetadata.getAttachments().putAll(map);
+
+        // export service
+        String host = findConfigedHosts(protocolConfig, registryURLs, map);
+        Integer port = findConfigedPorts(protocolConfig, name, map);
+        URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
+
+        // You can customize Configurator to append extra parameters
+        if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+                .hasExtension(url.getProtocol())) {
+            url = ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
+                    .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
+        }
+
+        String scope = url.getParameter(SCOPE_KEY);
+        // don't export when none is configured
+        if (!SCOPE_NONE.equalsIgnoreCase(scope)) {
+
+            // 发布本地
+            if (!SCOPE_REMOTE.equalsIgnoreCase(scope)) {
+                exportLocal(url);
+            }
+            // 发不到远程
+            if (!SCOPE_LOCAL.equalsIgnoreCase(scope)) {
+                if (CollectionUtils.isNotEmpty(registryURLs)) {
+                    for (URL registryURL : registryURLs) {
+                        //if protocol is only injvm ,not register
+                        if (LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {
+                            continue;
+                        }
+                        url = url.addParameterIfAbsent(DYNAMIC_KEY, registryURL.getParameter(DYNAMIC_KEY));
+                        URL monitorUrl = ConfigValidationUtils.loadMonitor(this, registryURL);
+                        if (monitorUrl != null) {
+                            url = url.addParameterAndEncoded(MONITOR_KEY, monitorUrl.toFullString());
+                        }
+                        if (logger.isInfoEnabled()) {
+                            if (url.getParameter(REGISTER_KEY, true)) {
+                                logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
+                            } else {
+                                logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
+                            }
+                        }
+
+                        // For providers, this is used to enable custom proxy to generate invoker
+                        String proxy = url.getParameter(PROXY_KEY);
+                        if (StringUtils.isNotEmpty(proxy)) {
+                            registryURL = registryURL.addParameter(PROXY_KEY, proxy);
+                        }
+
+                        Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
+                        // 包装Invoker
+                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+
+                        Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
+                        exporters.add(exporter);
+                    }
+                } else {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
+                    }
+                    Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, url);
+                    DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+
+                    Exporter<?> exporter = PROTOCOL.export(wrapperInvoker);
+                    exporters.add(exporter);
+                }
+                /**
+                 * @since 2.7.0
+                 * ServiceData Store
+                 */
+                WritableMetadataService metadataService = WritableMetadataService.getExtension(url.getParameter(METADATA_KEY, DEFAULT_METADATA_STORAGE_TYPE));
+                if (metadataService != null) {
+                    metadataService.publishServiceDefinition(url);
+                }
+            }
+        }
+        this.urls.add(url);
+    }
+```
+
+
