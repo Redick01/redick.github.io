@@ -1,8 +1,8 @@
-# Dubbo服务启动-Dubbo发布服务 <!-- {docsify-ignore-all} -->
+# Dubbo服务启动-Dubbo Provider发布服务 <!-- {docsify-ignore-all} -->
 
 
 
-## exportServices();发布dubbo服务
+## DubboBootstrap#exportServices();发布dubbo服务
 
 ```java
     private void exportServices() {
@@ -119,7 +119,7 @@
 
 > ServiceConfig#doExportUrlsFor1Protocol发布服务
 
-doExportUrlsFor1Protocol主要发布服务到本地和远程
+&nbsp; &nbsp; doExportUrlsFor1Protocol主要发布服务到本地和远程
 
 ```java
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
@@ -199,6 +199,7 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
                             registryURL = registryURL.addParameter(PROXY_KEY, proxy);
                         }
                         // 通过SPI机制加载实现动态代理方式，默认是javassist操作字节码，通过Wrapper类使用javassist进行字节码增强，动态生成类
+                        // ProxyFactory获取Invoker
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         // 包装Invoker
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
@@ -223,8 +224,10 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
                  * @since 2.7.0
                  * ServiceData Store
                  */
+                 // 元数据存储，SPI机制获取元数据存储服务，默认是local，这里获取到的是local的InMemoryWritableMetadataService
                 WritableMetadataService metadataService = WritableMetadataService.getExtension(url.getParameter(METADATA_KEY, DEFAULT_METADATA_STORAGE_TYPE));
                 if (metadataService != null) {
+                    // 元数据存到map中
                     metadataService.publishServiceDefinition(url);
                 }
             }
@@ -233,8 +236,62 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
     }
 ```
 
+## 生成Invoker
 
-> ServiceConfig#exportLocal发布服务到本地
+&nbsp; &nbsp; Invoker是一个调用器，主要的功能是客户端请求服务时，服务端会查找发布服务时生成的Invoker方法，根据Invocation对象指定的方法和参数，执行其doInvoke方法，并将结果包装为Result对象返回给客户端，从而实现远程调用。
+
+&nbsp; &nbsp; Dubbo中生成Invoker的代码在ServiceConfig中，如下：
+
+dubbo使用proxyFactory的getInvoker生成Invoker实例。我们先来讨论一下proxyFactory，根据ExtensionLoader的实现，proxyFactory获取Adaptive类时，首先找@Adaptive注解的类，如果没有会由dubbo创建一个新的类ProxyFactory$Adaptive，其内部会根据url的proxy值获取factory，默认取proxyFactor接口上的注解@SPI("javassist")指定的值，getExtension()时会根据传入的参数获取对应的ProxyFactory实现类，还会查找ProxyFactory实现类中将proxyFactory作为唯一参数的构造函数的实现类作为Wrapper类进行包装。
+
+```java
+// 默认javassist
+private static final ProxyFactory PROXY_FACTORY = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
+
+Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
+```
+
+对ProxyFactory接口来说，最终生成的类是StubProxyFactoryWrapper，内部的proxyFactory为JavassistProxyFactory。proxyFactory变量的对象链如下：
+
+```
+-| StubProxyFactoryWrapper
+	-| JavassistProxyFactory
+```
+
+- **StubProxyFactoryWrapper的getInvoker方法会调用内部JavassistProxyFactory的getInvoker**
+
+&nbsp; &nbsp; 首先通过`Wrapper.getWrapper`将指定的ref类包装为Wrapper类，Wrapper类内部包含`invokeMethod(Object instance, String mn, Class<?>[] types, Object[] args)`可以调用指定实例的某个方法。最后将Wrapper包装为一个AbstractProxyInvoker类。`Wrapper类动态生成`，内部会直接调用实现类的方法，而不是使用反射调用，下面是invokeMethod的实现。
+
+&nbsp; &nbsp; 经过这一系列的过程，完成了Invoker对象的创建，下面是内部调用结构：
+
+```
+|-AbstractProxyInvoker:invoker()
+	|-Wrapper:invokeMethod()
+    		|-DemoService : 指定的方法
+```
+
+```java
+    @Override
+    public <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) {
+        // TODO Wrapper类不能正确处理带$的类名，会调用makeWrapper生成Wrapper
+        final Wrapper wrapper = Wrapper.getWrapper(proxy.getClass().getName().indexOf('$') < 0 ? proxy.getClass() : type);
+        return new AbstractProxyInvoker<T>(proxy, type, url) {
+            @Override
+            protected Object doInvoke(T proxy, String methodName,
+                                      Class<?>[] parameterTypes,
+                                      Object[] arguments) throws Throwable {
+                return wrapper.invokeMethod(proxy, methodName, parameterTypes, arguments);
+            }
+        };
+    }
+```
+
+## 发布Invoker
+
+### ServiceConfig#exportLocal发布服务到本地
+
+
+&nbsp; &nbsp; injvm协议服务发布到本地，ProxyFactory获取Invoker，通过SPI机制获取Protocol实现，调用Protocol实现的export发布服务
 
 ```java
     /**
@@ -246,7 +303,7 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
                 .setHost(LOCALHOST_VALUE)
                 .setPort(0)
                 .build();
-        // SPI机制获取Exporter
+        // ProxyFactory获取Invoker，通过SPI机制获取Protocol实现，调用Protocol实现的export发布服务
         Exporter<?> exporter = PROTOCOL.export(
                 PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
         exporters.add(exporter);
@@ -254,111 +311,58 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
     }
 ```
 
+在引用服务流程中，我们已经分析了获取Proxy对象的过程，每个协议获取Invoker的方式不同，对于injvm协议来说，protocol被包装为：
 
-> ProtocolFilterWrapper#buildInvokerChain，责任链处理Filter
+```
+|- ProtocolFilterWrapper
+	|- ProtocolListenerWrapper
+		|- InjvmProtocol 
+```
 
-&nbsp; &nbsp; 用来生成调用链，内部的buildInvokerChain方法会查找Filter的实现类，查找group为provider的，并根据order排序，将这些Filter连接成一个调用链 InvokerFilterChain，最终调用上一步生成的InvokerDelegete
+> InjvmProtocol#export
+
+&nbsp; &nbsp; 创建`InjvmExporter`实例，并且缓存`InjvmExporter`实例到`exporterMap`中，缓存内容是服务url和`InjvmExporter实例`的映射。
 
 ```java
-    private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
-        Invoker<T> last = invoker;
-        List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
-
-        if (!filters.isEmpty()) {
-            for (int i = filters.size() - 1; i >= 0; i--) {
-                final Filter filter = filters.get(i);
-                final Invoker<T> next = last;
-                last = new Invoker<T>() {
-
-                    @Override
-                    public Class<T> getInterface() {
-                        return invoker.getInterface();
-                    }
-
-                    @Override
-                    public URL getUrl() {
-                        return invoker.getUrl();
-                    }
-
-                    @Override
-                    public boolean isAvailable() {
-                        return invoker.isAvailable();
-                    }
-
-                    @Override
-                    public Result invoke(Invocation invocation) throws RpcException {
-                        Result asyncResult;
-                        try {
-                            asyncResult = filter.invoke(next, invocation);
-                        } catch (Exception e) {
-                            if (filter instanceof ListenableFilter) {
-                                ListenableFilter listenableFilter = ((ListenableFilter) filter);
-                                try {
-                                    Filter.Listener listener = listenableFilter.listener(invocation);
-                                    if (listener != null) {
-                                        listener.onError(e, invoker, invocation);
-                                    }
-                                } finally {
-                                    listenableFilter.removeListener(invocation);
-                                }
-                            } else if (filter instanceof Filter.Listener) {
-                                Filter.Listener listener = (Filter.Listener) filter;
-                                listener.onError(e, invoker, invocation);
-                            }
-                            throw e;
-                        } finally {
-
-                        }
-                        return asyncResult.whenCompleteWithContext((r, t) -> {
-                            if (filter instanceof ListenableFilter) {
-                                ListenableFilter listenableFilter = ((ListenableFilter) filter);
-                                Filter.Listener listener = listenableFilter.listener(invocation);
-                                try {
-                                    if (listener != null) {
-                                        if (t == null) {
-                                            listener.onResponse(r, invoker, invocation);
-                                        } else {
-                                            listener.onError(t, invoker, invocation);
-                                        }
-                                    }
-                                } finally {
-                                    listenableFilter.removeListener(invocation);
-                                }
-                            } else if (filter instanceof Filter.Listener) {
-                                Filter.Listener listener = (Filter.Listener) filter;
-                                if (t == null) {
-                                    listener.onResponse(r, invoker, invocation);
-                                } else {
-                                    listener.onError(t, invoker, invocation);
-                                }
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void destroy() {
-                        invoker.destroy();
-                    }
-
-                    @Override
-                    public String toString() {
-                        return invoker.toString();
-                    }
-                };
-            }
-        }
-
-        return last;
+    @Override
+    public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+        return new InjvmExporter<T>(invoker, invoker.getUrl().getServiceKey(), exporterMap);
     }
+```
+
+- InjvmExporter构造函数
+
+```java
+    InjvmExporter(Invoker<T> invoker, String key, Map<String, Exporter<?>> exporterMap) {
+        super(invoker);
+        this.key = key;
+        this.exporterMap = exporterMap;
+        exporterMap.put(key, this);
+    }
+```
+
+### 发布到远程
+
+&nbsp; &nbsp; 由于不同协议发布的方式不同，因此根据dubbo的理念，会根据url加载不同的protocol实现类来发布AbstractProxyInvoker的实例。与ProxyFactory类似，ExtensionLoader加载Protocol后的protocol实例为：
+
+```
+|- ProtocolFilterWrapper
+	|- ProtocolListenerWrapper 
+		|- RegistryProtocol 
 ```
 
 > RegistryProtocol#export发布注册服务
 
+&nbsp; &nbsp; 在发布流程中，我们已经知道了服务要发布为dubbo协议时，不同点在发布Invoker的不同。非injvm协议都使用了RegistryProtocol的export()来发布服务，RegistryProtocol的内部变量bounds中保存了<服务，协议>对应的Exporter，每次发布后会保存到这个map中。代码如下：
+
 ```java
+    private final ConcurrentMap<String, ExporterChangeableWrapper<?>> bounds = new ConcurrentHashMap<>();
+
     @Override
     public <T> Exporter<T> export(final Invoker<T> originInvoker) throws RpcException {
+        // 注册中心url
         URL registryUrl = getRegistryUrl(originInvoker);
-        // url to export locally
+        // provider url
         URL providerUrl = getProviderUrl(originInvoker);
 
         // Subscribe the override data
@@ -370,11 +374,12 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
 
         providerUrl = overrideUrlWithConfig(providerUrl, overrideSubscribeListener);
-        // 发布invoker
+        // 使用dubbo协议发布
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker, providerUrl);
 
-        // url to registry
+        // 获取注册中心
         final Registry registry = getRegistry(originInvoker);
+        // 获取注册provider url
         final URL registeredProviderUrl = getUrlToRegistry(providerUrl, registryUrl);
 
         // decide if we need to delay publish
@@ -387,7 +392,7 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
         // register stated url on provider model
         registerStatedUrl(registryUrl, registeredProviderUrl, register);
 
-        // Deprecated! Subscribe to override rules in 2.6.x or before.
+        // 向服务中心订阅服务，并添加监听类
         registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
 
         exporter.setRegisterUrl(registeredProviderUrl);
@@ -396,13 +401,66 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
         notifyExport(exporter);
         //Ensure that a new exporter instance is returned every time export
         return new DestroyableExporter<>(exporter);
-    }
+    }   
+```
 
+&nbsp; &nbsp; dubbo协议发布服务时，会根据发布时生成的Invoker，构建InvokerFilterChain，并添加监听事件，最后，打开协议指定的服务器，等待客户端连接后处理调用。
+doLocalExport(originInvoker);中首先根据服务名在bounds之后查找对应的Exporter，如果找到，说明已经发不过了；如果没有找到则使用DubboProtocol协议发布Invoker。在发布之前，会将发布之前生成的Invoker包装为InvokerDelegete对象，这是因为originInvoker的url是注册中心协议的urlregistry://xxxx/xxx?xx;而dubboProtocol发布时需要改为dubbo://xxx/xx?xxx
+
+```java
+private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originInvoker, URL providerUrl) {
+        String key = getCacheKey(originInvoker);
+
+        return (ExporterChangeableWrapper<T>) bounds.computeIfAbsent(key, s -> {
+            Invoker<?> invokerDelegate = new InvokerDelegate<>(originInvoker, providerUrl);
+            return new ExporterChangeableWrapper<>((Exporter<T>) protocol.export(invokerDelegate), originInvoker);
+        });
+    }
 ```
 
 > DubboProtocol#export发布dubbo服务
 
-在这之前先进行Qos启动
+&nbsp; &nbsp; 继续分析dubboProtocol的export，protocol变量与之前相同，会根据协议名称获取协议链
+
+```java
+|- ProtocolFilterWrapper
+	|- ProtocolListenerWrapper
+    	|- DubboProtocol
+```
+
+&nbsp; &nbsp; `ProtocolFilterWrapper#buildInvokerChain`构造Invoker过滤器链
+
+
+&nbsp; &nbsp; 用来生成调用链，内部的buildInvokerChain方法会查找Filter的实现类，查找group为provider的，并根据order排序，将这些Filter连接成一个调用链 InvokerFilterChain
+
+```
+EchoFilter -> ClassloaderFilter -> GenericFilter -> 
+ContextFilter -> TraceFilter -> TimeoutFilter ->
+MonitorFilter -> ExceptionFilter -> InvokerDelegete
+```
+
+```java
+    private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
+        Invoker<T> last = invoker;
+        // SPI机制获取所有过滤器Filter
+        List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
+
+        if (!filters.isEmpty()) {
+            for (int i = filters.size() - 1; i >= 0; i--) {
+                final Filter filter = filters.get(i);
+                final Invoker<T> next = last;
+                last = new Invoker<T>() {
+
+                    ...省略
+                };
+            }
+        }
+
+        return last;
+    }
+```
+
+- **DubboProtocol#export**
 
 ```java
     @Override
@@ -427,11 +485,72 @@ doExportUrlsFor1Protocol主要发布服务到本地和远程
 
             }
         }
-
+        // 打开Server，会创建Server
         openServer(url);
         // 指定的序列化
         optimizeSerialization(url);
 
         return exporter;
+    }
+```
+
+> 打开服务器，底层通信实现
+
+&nbsp; &nbsp; 创建Server，创建`ExchangeServer`，默认使用`netty`作为Server的实现服务器
+
+```java
+    private void openServer(URL url) {
+        // find server.
+        String key = url.getAddress();
+        //client can export a service which's only for server to invoke
+        boolean isServer = url.getParameter(IS_SERVER_KEY, true);
+        if (isServer) {
+            ProtocolServer server = serverMap.get(key);
+            // 从Server缓存中获取不到就创建一个Server放到map中
+            if (server == null) {
+                synchronized (this) {
+                    server = serverMap.get(key);
+                    if (server == null) {
+                        serverMap.put(key, createServer(url));
+                    }
+                }
+            } else {
+                // server supports reset, use together with override
+                server.reset(url);
+            }
+        }
+    }
+
+    private ProtocolServer createServer(URL url) {
+        url = URLBuilder.from(url)
+                // send readonly event when server closes, it's enabled by default
+                .addParameterIfAbsent(CHANNEL_READONLYEVENT_SENT_KEY, Boolean.TRUE.toString())
+                // enable heartbeat by default
+                .addParameterIfAbsent(HEARTBEAT_KEY, String.valueOf(DEFAULT_HEARTBEAT))
+                .addParameter(CODEC_KEY, DubboCodec.NAME)
+                .build();
+        // 默认netty
+        String str = url.getParameter(SERVER_KEY, DEFAULT_REMOTING_SERVER);
+
+        if (str != null && str.length() > 0 && !ExtensionLoader.getExtensionLoader(Transporter.class).hasExtension(str)) {
+            throw new RpcException("Unsupported server type: " + str + ", url: " + url);
+        }
+
+        ExchangeServer server;
+        try {
+            server = Exchangers.bind(url, requestHandler);
+        } catch (RemotingException e) {
+            throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
+        }
+
+        str = url.getParameter(CLIENT_KEY);
+        if (str != null && str.length() > 0) {
+            Set<String> supportedTypes = ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions();
+            if (!supportedTypes.contains(str)) {
+                throw new RpcException("Unsupported client type: " + str);
+            }
+        }
+
+        return new DubboProtocolServer(server);
     }
 ```

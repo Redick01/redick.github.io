@@ -2,7 +2,7 @@
 
 &nbsp; &nbsp; Dubbo通过监听spring是自定义标签完成了bean的加载，并且实现了spring监听接口，监听spring容器刷新完毕事件，当spring容器刷新完毕后进行dubbo的启动过程，首先就是要进行一个初始化，下面详细看一下初始化过程。
 
-## 初始化initialize();
+## DubboBootstrap初始化initialize();
 
 ```java
     private void initialize() {

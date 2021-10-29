@@ -60,6 +60,16 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport {
 }
 ```
 
+&nbsp; &nbsp; Dubbo生产者和消费者的核心类分别是`ServiceBean`和`ReferenceBean`，在spring解析`<dubbo:service`或`<dubbo:reference`标签时进行加载，这两个类的继承结构如下：
+
+- **ServiceBean**
+
+![avatar](_media/../../../../_media/image/source_code/dubbo/servicebean-diagram.png)
+
+- **ReferenceBean**
+
+![avatar](_media/../../../../_media/image/source_code/dubbo/ReferenceBean.png)
+
 ## Dubbo启动
 
 &nbsp; &nbsp; 在上面的dubbo bean加载章节中我们知道dubbo通过Spring自定义标签，在程序启动时创建了实例并进行了实例赋值，接下来我们看一下Dubbo是如何启动的
