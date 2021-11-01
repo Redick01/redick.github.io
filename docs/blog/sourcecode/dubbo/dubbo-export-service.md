@@ -494,7 +494,7 @@ MonitorFilter -> ExceptionFilter -> InvokerDelegete
     }
 ```
 
-> 打开服务器，底层通信实现
+> DubboProtocol打开服务器，底层通信实现
 
 &nbsp; &nbsp; 创建Server，创建`ExchangeServer`，默认使用`netty`作为Server的实现服务器
 
@@ -511,6 +511,7 @@ MonitorFilter -> ExceptionFilter -> InvokerDelegete
                 synchronized (this) {
                     server = serverMap.get(key);
                     if (server == null) {
+                        // 创建Server 并放到map中
                         serverMap.put(key, createServer(url));
                     }
                 }
@@ -538,6 +539,7 @@ MonitorFilter -> ExceptionFilter -> InvokerDelegete
 
         ExchangeServer server;
         try {
+            // Dubbo服务器创建
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);
