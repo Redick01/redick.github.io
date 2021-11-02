@@ -68,7 +68,7 @@
 
 ### 打开服务器流程
 
-底层通信分为两层，信息交换层和传输层，传输层使用netty等实现。
+&nbsp; &nbsp; 底层通信分为两层，信息交换层和传输层，传输层使用netty等实现。
 
 ```
 |- Exchanger 信息交换层  header
@@ -129,9 +129,16 @@ public class HeaderExchanger implements Exchanger {
 }
 ```
 
-4. `Transporters`的`bind`方法会`getTransporter()`获取`Transporter`，这里也是基于SPI机制，默认是`netty`
+4. `Transporters`的`bind`方法会`getTransporter()`获取`Transporter`的实现类，这里也是基于SPI机制，默认是`NettyTransporter`，使用的是netty3版本，也可以在配置中指定使用netty4，配置如下：
+
+```xml
+<dubbo:protocol name="dubbo" port="20881" transporter="netty4"/>
+```
+
+&nbsp; &nbsp; `Transporters`类`bind`方法
 
 ```java
+
     public static RemotingServer bind(URL url, ChannelHandler... handlers) throws RemotingException {
         if (url == null) {
             throw new IllegalArgumentException("url == null");
@@ -149,6 +156,158 @@ public class HeaderExchanger implements Exchanger {
     }
 
     public static Transporter getTransporter() {
+        // SPI机制获取Transporter，默认是 netty，可以配置是netty4
         return ExtensionLoader.getExtensionLoader(Transporter.class).getAdaptiveExtension();
     }
 ```
+
+5. 以`netty4`为例看一下`NettyTransporter`的`bind`，`bind`方法创建`NettyServer`对象。
+
+```java
+public class NettyTransporter implements Transporter {
+    public static final String NAME = "netty";
+
+    public NettyTransporter() {
+    }
+
+    public RemotingServer bind(URL url, ChannelHandler handler) throws RemotingException {
+        return new NettyServer(url, handler);
+    }
+
+    public Client connect(URL url, ChannelHandler handler) throws RemotingException {
+        return new NettyClient(url, handler);
+    }
+}
+```
+
+6. `NettyServer`构造函数中设置线程池名称，包装`ChannelHandler`链。最后`NettyServer`会被包装成`HeaderExchangeServer`
+
+```java
+    public NettyServer(URL url, ChannelHandler handler) throws RemotingException {
+        // you can customize name and type of client thread pool by THREAD_NAME_KEY and THREADPOOL_KEY in CommonConstants.
+        // the handler will be wrapped: MultiMessageHandler->HeartbeatHandler->handler
+        super(ExecutorUtil.setThreadName(url, SERVER_THREAD_POOL_NAME), ChannelHandlers.wrap(handler, url));
+    }
+```
+
+&nbsp; &nbsp; 包装`ChannelHandler`链，`Dispatcher`是线程池配置，默认是`AllDispatcher`，`AllDispatcher`内部返回`AllChannelHandler`
+
+```java
+    public static ChannelHandler wrap(ChannelHandler handler, URL url) {
+        return ChannelHandlers.getInstance().wrapInternal(handler, url);
+    }
+    
+    protected ChannelHandler wrapInternal(ChannelHandler handler, URL url) {
+        return new MultiMessageHandler(new HeartbeatHandler(ExtensionLoader.getExtensionLoader(Dispatcher.class)
+                .getAdaptiveExtension().dispatch(handler, url)));
+    }
+```
+
+&nbsp; &nbsp; 包装后的`ChannelHandler`处理链如下：
+
+```
+|-MultiMessageHandler
+	|-HeartbeatHandler
+		|-AllChannelHandler
+			|- DecodeHandler
+				|- HeaderExchangeHandler
+    				|- DubboProtocol中的requestHandler
+```
+
+![avatar](_media/../../../../_media/image/source_code/dubbo/ChannelHandlers.png)
+
+7. `NettyServer`的`doOpen()`初始化并启动netty服务器，`NettyServer`构造函数会通过其父类`AbstractServer`的构造函数调用`doOpen()`，代码如下：
+
+
+- **NettyServer构造函数**
+
+```java
+    public NettyServer(URL url, ChannelHandler handler) throws RemotingException {
+        // you can customize name and type of client thread pool by THREAD_NAME_KEY and THREADPOOL_KEY in CommonConstants.
+        // the handler will be wrapped: MultiMessageHandler->HeartbeatHandler->handler
+        super(ExecutorUtil.setThreadName(url, SERVER_THREAD_POOL_NAME), ChannelHandlers.wrap(handler, url));
+    }
+```
+
+- **AbstractServer构造函数**
+
+```java
+    public AbstractServer(URL url, ChannelHandler handler) throws RemotingException {
+        super(url, handler);
+        // 服务的ip:端口
+        localAddress = getUrl().toInetSocketAddress();
+
+        String bindIp = getUrl().getParameter(Constants.BIND_IP_KEY, getUrl().getHost());
+        int bindPort = getUrl().getParameter(Constants.BIND_PORT_KEY, getUrl().getPort());
+        if (url.getParameter(ANYHOST_KEY, false) || NetUtils.isInvalidLocalHost(bindIp)) {
+            bindIp = ANYHOST_VALUE;
+        }
+        // 绑定到的ip:端口， 这里是 0.0.0.0:端口
+        bindAddress = new InetSocketAddress(bindIp, bindPort);
+        this.accepts = url.getParameter(ACCEPTS_KEY, DEFAULT_ACCEPTS);
+        this.idleTimeout = url.getParameter(IDLE_TIMEOUT_KEY, DEFAULT_IDLE_TIMEOUT);
+        try {
+            // 调用NettyServer的doOpen方法启动netty服务器
+            doOpen();
+            if (logger.isInfoEnabled()) {
+                logger.info("Start " + getClass().getSimpleName() + " bind " + getBindAddress() + ", export " + getLocalAddress());
+            }
+        } catch (Throwable t) {
+            throw new RemotingException(url.toInetSocketAddress(), null, "Failed to bind " + getClass().getSimpleName()
+                    + " on " + getLocalAddress() + ", cause: " + t.getMessage(), t);
+        }
+        executor = executorRepository.createExecutorIfAbsent(url);
+    }
+```
+
+- **NettyServer#doOpen();启动netty服务器**
+
+```java
+    @Override
+    protected void doOpen() throws Throwable {
+        // 创建netty bootstrap
+        bootstrap = new ServerBootstrap();
+        // boss线程
+        bossGroup = NettyEventLoopFactory.eventLoopGroup(1, "NettyServerBoss");
+        // worker 线程
+        workerGroup = NettyEventLoopFactory.eventLoopGroup(
+                getUrl().getPositiveParameter(IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS),
+                "NettyServerWorker");
+        // 处理器
+        final NettyServerHandler nettyServerHandler = new NettyServerHandler(getUrl(), this);
+        channels = nettyServerHandler.getChannels();
+
+        bootstrap.group(bossGroup, workerGroup)
+                .channel(NettyEventLoopFactory.serverSocketChannelClass())
+                .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        // FIXME: should we use getTimeout()?
+                        int idleTimeout = UrlUtils.getIdleTimeout(getUrl());
+                        NettyCodecAdapter adapter = new NettyCodecAdapter(getCodec(), getUrl(), NettyServer.this);
+                        if (getUrl().getParameter(SSL_ENABLED_KEY, false)) {
+                            ch.pipeline().addLast("negotiation",
+                                    SslHandlerInitializer.sslServerHandler(getUrl(), nettyServerHandler));
+                        }
+                        ch.pipeline()
+                                .addLast("decoder", adapter.getDecoder())
+                                .addLast("encoder", adapter.getEncoder())
+                                .addLast("server-idle-handler", new IdleStateHandler(0, 0, idleTimeout, MILLISECONDS))
+                                .addLast("handler", nettyServerHandler);
+                    }
+                });
+        // 绑定服务器ip：端口
+        ChannelFuture channelFuture = bootstrap.bind(getBindAddress());
+        channelFuture.syncUninterruptibly();
+        channel = channelFuture.channel();
+
+    }
+```
+
+
+## 总结
+
+&nbsp; &nbsp; 本篇主要研究了一下Dubbo底层服务器创建，打开的一个过程，dubbo服务器底层分为信息交换和数据传输两层，数据交换层默认使用netty实现，在打开服务器过程中会构造`ChannelHandler`处理链，最后将服务器包装成`HeaderExchangeServer`。
