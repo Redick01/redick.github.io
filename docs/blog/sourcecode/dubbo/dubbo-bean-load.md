@@ -26,7 +26,7 @@
 </beans>
 ```
 
-&nbsp; &nbsp; 在配置文件中配置了注册中心`<dubbo:registry`，服务的生产者`<dubbo:service`等信息，使用的的标签是dubbo的自定义标签，要继续了解dubbo自定义标签要先了解一下开发一个自定义标签的流程，下面是开发流程：
+&nbsp; &nbsp; 在配置文件中配置了注册中心`<dubbo:registry`，服务的生产者`<dubbo:service`等信息，使用的的dubbo标签是dubbo实现spring自定义标签实现的标签，要继续了解dubbo自定义标签要先了解一下开发一个spring自定义标签的流程，下面是流程：
 
 - 编写一个Java Bean；
 - 编写XSD文件；
@@ -34,7 +34,7 @@
 - 编写注册标签解析器的NamespaceHandlerSupport，继承NamespaceHandlerSupport，重写init方法，注册自定义的标签解析器；
 - 编写spring.handlers和spring.schemas文件；
 
-&nbsp; &nbsp; 开发完自定义的标签后就可以在spring配置文件中使用了，通过`dubbo`的`spring.handlers`文件找到注册标签解析器的类`com.alibaba.dubbo.config.spring.schema.DubboNamespaceHandler`。通过下面代码可以看到，dubbo注册了10个自定义标签，除了`annotation`标签，其他的标签均使用`DubboBeanDefinitionParser`解析器进行解析，解析dubbo自定义标签后就是Spring的创建对象和属性赋值。
+&nbsp; &nbsp; 开发完自定义的标签后就可以在spring配置文件中使用了，通过`dubbo`的`spring.handlers`文件找到注册标签解析器的类`com.alibaba.dubbo.config.spring.schema.DubboNamespaceHandler`。通过下面代码可以看到，dubbo注册了10个自定义标签，除了`annotation`标签，其他的标签均使用`DubboBeanDefinitionParser`解析器进行解析，解析dubbo的spring自定义标签后就是在Spring容器启动过程中创建对象和属性赋值。
 
 ```java
 public class DubboNamespaceHandler extends NamespaceHandlerSupport {
@@ -72,12 +72,12 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport {
 
 ## Dubbo启动
 
-&nbsp; &nbsp; 在上面的dubbo bean加载章节中我们知道dubbo通过Spring自定义标签，在程序启动时创建了实例并进行了实例赋值，接下来我们看一下Dubbo是如何启动的
+&nbsp; &nbsp; 在上面的dubbo的bean加载章节中我们知道dubbo通过Spring自定义标签在程序启动过程中实现了对bean的加载，接下来我们看一下Dubbo是如何启动的。
 
 
 ### Dubbo客户端启动监听DubboBootstrapApplicationListener
 
-> 上一章节说到了通过spring自定义标签已经创建了comsumer的bean，consumer的bean创建成功了，我们来分析下dubbo客户端启动的过程，dubbo实现了Spring的监听接口`ApplicationListener`接口，实现监听接口是为了当Spring容器refresh完成后能够接到容器刷新完成的事件。当Spring容器刷新完后通过时间监听执行dubbo客户端启动，代码如下：
+> 上一章节说到了通过spring自定义标签已经创建了dubbo核心的bean，dubbo客户端启动的过程，dubbo用过实现了Spring的监听接口`ApplicationListener`接口，监听Spring容器refresh刷新完成的事件。当Spring容器刷新完毕后Dubbo监听执行dubbo客户端启动，代码如下：
 
 ```java
 
@@ -243,7 +243,7 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
 
 ## 总结
 
-&nbsp; &nbsp; Dubbo + Spring的Bean加载流程通过自定义标签进行Bean的加载处理，Dubbo基于Spring自定义标签规范实现了标签解析器`DubboBeanDefinitionParser`和`AnnotationBeanDefinitionParser`，通过标签解析完成bean的创建，赋值，初始化等生命周期的处理，然后dubbo实现了Spring的监听器`ApplicationListener`，监听spring容器刷新完毕的事件，在spring容器刷新完毕后进行dubbo客户端的启动，来进行服务的注册，发布，订阅以及远程调用的Invoker的创建发布等。
+&nbsp; &nbsp; Dubbo + Spring的Bean加载流程通过自定义标签进行Bean的加载处理，Dubbo基于Spring自定义标签规范实现了标签解析器`DubboBeanDefinitionParser`和`AnnotationBeanDefinitionParser`，通过标签解析完成bean的创建，赋值，初始化等生命周期的处理，然后dubbo实现了Spring的监听器`ApplicationListener`，监听spring容器刷新完毕的事件，在spring容器刷新完毕后进行dubbo客户端的启动，来进行服务的注册，发布，订阅等。
 
 
 
