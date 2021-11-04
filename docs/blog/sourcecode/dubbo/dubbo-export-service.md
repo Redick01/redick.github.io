@@ -242,7 +242,7 @@
 
 &nbsp; &nbsp; Dubbo中生成Invoker的代码在ServiceConfig中，如下：
 
-dubbo使用proxyFactory的getInvoker生成Invoker实例。我们先来讨论一下proxyFactory，根据ExtensionLoader的实现，proxyFactory获取Adaptive类时，首先找@Adaptive注解的类，如果没有会由dubbo创建一个新的类ProxyFactory$Adaptive，其内部会根据url的proxy值获取factory，默认取proxyFactor接口上的注解@SPI("javassist")指定的值，getExtension()时会根据传入的参数获取对应的ProxyFactory实现类，还会查找ProxyFactory实现类中将proxyFactory作为唯一参数的构造函数的实现类作为Wrapper类进行包装。
+&nbsp; &nbsp; dubbo使用proxyFactory的getInvoker生成Invoker实例。我们先来讨论一下proxyFactory，根据ExtensionLoader的实现，proxyFactory获取Adaptive类时，首先找@Adaptive注解的类，如果没有会由dubbo创建一个新的类ProxyFactory$Adaptive，其内部会根据url的proxy值获取factory，默认取proxyFactor接口上的注解@SPI("javassist")指定的值，getExtension()时会根据传入的参数获取对应的ProxyFactory实现类，还会查找ProxyFactory实现类中将proxyFactory作为唯一参数的构造函数的实现类作为Wrapper类进行包装。
 
 ```java
 // 默认javassist
@@ -311,7 +311,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
     }
 ```
 
-在引用服务流程中，我们已经分析了获取Proxy对象的过程，每个协议获取Invoker的方式不同，对于injvm协议来说，protocol被包装为：
+&nbsp; &nbsp; 在引用服务流程中，我们已经分析了获取Proxy对象的过程，每个协议获取Invoker的方式不同，对于injvm协议来说，protocol被包装为：
 
 ```
 |- ProtocolFilterWrapper
@@ -330,7 +330,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
     }
 ```
 
-- InjvmExporter构造函数
+&nbsp; &nbsp; InjvmExporter构造函数，将服务key和InjvmExporter映射关系存到exporterMap中。
 
 ```java
     InjvmExporter(Invoker<T> invoker, String key, Map<String, Exporter<?>> exporterMap) {

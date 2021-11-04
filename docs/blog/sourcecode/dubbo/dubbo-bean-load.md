@@ -213,7 +213,7 @@ abstract class OneTimeExecutionApplicationContextEventListener implements Applic
                 //3. Register the local ServiceInstance if required
                 registerServiceInstance();
             }
-            // 4. 订阅服务 
+            
             referServices();
             if (asyncExportingFutures.size() > 0) {
                 new Thread(() -> {
