@@ -351,7 +351,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
 		|- RegistryProtocol 
 ```
 
-> RegistryProtocol#export发布注册服务
+> RegistryProtocol#export发布注册服务和订阅服务
 
 &nbsp; &nbsp; 在发布流程中，我们已经知道了服务要发布为dubbo协议时，不同点在发布Invoker的不同。非injvm协议都使用了RegistryProtocol的export()来发布服务，RegistryProtocol的内部变量bounds中保存了<服务，协议>对应的Exporter，每次发布后会保存到这个map中。代码如下：
 
@@ -368,7 +368,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
         // Subscribe the override data
         // FIXME When the provider subscribes, it will affect the scene : a certain JVM exposes the service and call
         //  the same service. Because the subscribed is cached key with the name of the service, it causes the
-        //  subscription information to cover.
+        //  获取订阅服务URL
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(providerUrl);
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
