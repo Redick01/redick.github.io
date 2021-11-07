@@ -115,6 +115,7 @@
 * * * [Dubbo服务启动-初始化initialize()](blog/sourcecode/dubbo/dubbo-start-initialize.md)
 * * * [Dubbo服务启动-Dubbo Provider发布服务](blog/sourcecode/dubbo/dubbo-export-service.md)
 * * * [Dubbo服务启动-底层通信 ](blog/sourcecode/dubbo/dubbo-netserver.md)
+* * * [Dubbo服务启动-Dubbo Consumer引用服务](blog/sourcecode/dubbo/dubbo-refer-service.md)
 * * **Redisson锁实现源码分析**
 * * * [Redisson可重入锁源码分析](blog/sourcecode/redisson/redisson-lock-1.md)
 * * * [Redisson分布式锁开门狗](blog/sourcecode/redisson/redisson-lock-dog.md)
