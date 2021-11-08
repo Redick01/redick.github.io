@@ -7,7 +7,8 @@
 * * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
 * * [Java世界中的SPI](blog/java_base/spi.md)
 * * [使用TransmittableThreadLocal实现异步场景日志链路追踪](blog/java_base/java_thread/trace-log-mdc.md)
-* * [使用javaagent实现代码无入侵增强logback](blog/java_base/tools/java-agent-log-enhance.md)
+* * [使用JavaAgent实现代码无入侵增强logback](blog/java_base/tools/java-agent-log-enhance.md)
+* * [基于JavaAgent实现发布http接口](blog/java_base/tools/java-agent-impl-http-interface.md)
 * * **单元测试**
 * * * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
 
