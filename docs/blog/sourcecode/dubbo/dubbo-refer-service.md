@@ -41,28 +41,31 @@ public class DubboConsumer {
 }
 ```
 
-&nbsp; &nbsp; dubbo通过`<dubbo:reference`标签引用服务，之后在程序中通过Spring的Context依赖查找(getBean)的方式获取引用的服务的代理实例了。`<dubbo:reference`使用的ReferenceBean实现了FactoryBean接口，getBean时会调用getObject()方法，这是获取引用的入口。getBean方法会判断Reference对象是否是空的，如果是空的，调用init方法。代码如下：
+&nbsp; &nbsp; dubbo通过`<dubbo:reference`标签引用服务，之后在程序中通过Spring的Context依赖查找(getBean)的方式获取引用的服务的代理实例。`<dubbo:reference`加载的Bean是ReferenceBean，它实现了FactoryBean接口，getBean时会调用ReferenceBean的getObject()方法，这是获取引用的入口。getBean方法会判断Reference对象是否是空的，如果是空的，调用init方法。代码如下：
 
 ```java
     @Override
     public Object getObject() {
         return get();
     }
+```
 
+## ReferenceConfig#getObject()获取应用Bean
+
+&nbsp; &nbsp; `ReferenceBean`继承了`ReferenceConfig`，当调用ReferenceBean的getObject()方法会调用`ReferenceBean`的get()方法。
+
+```java
     public synchronized T get() {
         if (destroyed) {
             throw new IllegalStateException("The invoker of ReferenceConfig(" + url + ") has already destroyed!");
         }
+        // 代理引用如果是空的，调用init
         if (ref == null) {
             init();
         }
         return ref;
     }
-```
 
-## ReferenceBean#getObject()获取应用Bean
-
-```java
     public synchronized void init() {
         if (initialized) {
             return;
@@ -72,31 +75,40 @@ public class DubboConsumer {
             bootstrap = DubboBootstrap.getInstance();
             bootstrap.init();
         }
-
+        // 1. 检查配置ConsumerConfig，有的话检查配置，没有就新建一个ConsumerConfig
+        // 2. 反射创建调用的API
+        // 3. 初始化ServiceMetadata
+        // 4. 注册Consumer
+        // 5. 检查ReferenceConfig，RegistryConfig，ConsumerConfig
         checkAndUpdateSubConfigs();
 
         checkStubAndLocal(interfaceClass);
+        // 检查引用的接口是否mock
         ConfigValidationUtils.checkMock(interfaceClass, this);
-
+        // consumer的信息
         Map<String, String> map = new HashMap<String, String>();
         map.put(SIDE_KEY, CONSUMER_SIDE);
-
+        // 添加运行时参数到map，包括：dubbo，release，timestamp，pid
         ReferenceConfigBase.appendRuntimeParameters(map);
+        // 是不是泛化，不是的话进入条件
         if (!ProtocolUtils.isGeneric(generic)) {
             String revision = Version.getVersion(interfaceClass, version);
             if (revision != null && revision.length() > 0) {
                 map.put(REVISION_KEY, revision);
             }
-
+            // 获取方法，生成包装类，使用javassist，将生成的类放到WRAPPER_MAP中，key是org.apache.dubbo.samples.serialization.api.DemoService类对象，value是包装类的实例
             String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
             if (methods.length == 0) {
                 logger.warn("No method found in service interface " + interfaceClass.getName());
                 map.put(METHODS_KEY, ANY_VALUE);
             } else {
+                // method放到map，这里method是sayHello
                 map.put(METHODS_KEY, StringUtils.join(new HashSet<String>(Arrays.asList(methods)), COMMA_SEPARATOR));
             }
         }
+        // interface org.apache.dubbo.samples.serialization.api.DemoService
         map.put(INTERFACE_KEY, interfaceName);
+        // 追加其他参数到map中
         AbstractConfig.appendParameters(map, getMetrics());
         AbstractConfig.appendParameters(map, getApplication());
         AbstractConfig.appendParameters(map, getModule());
@@ -127,7 +139,7 @@ public class DubboConsumer {
                 }
             }
         }
-
+        
         String hostToRegistry = ConfigUtils.getSystemProperty(DUBBO_IP_TO_REGISTRY);
         if (StringUtils.isEmpty(hostToRegistry)) {
             hostToRegistry = NetUtils.getLocalHost();
@@ -135,20 +147,306 @@ public class DubboConsumer {
             throw new IllegalArgumentException("Specified invalid registry ip from property:" + DUBBO_IP_TO_REGISTRY + ", value:" + hostToRegistry);
         }
         map.put(REGISTER_IP_KEY, hostToRegistry);
-
+        // 所有数据在存到serviceMetadata的attachments中
         serviceMetadata.getAttachments().putAll(map);
-
+        // 创建Service代理
         ref = createProxy(map);
-
+        // 设置ServiceMetadata的Service代理引用
         serviceMetadata.setTarget(ref);
         serviceMetadata.addAttribute(PROXY_CLASS_REF, ref);
         ConsumerModel consumerModel = repository.lookupReferredService(serviceMetadata.getServiceKey());
         consumerModel.setProxyObject(ref);
         consumerModel.init(attributes);
-
+        // 标记初始化完毕
         initialized = true;
 
         // dispatch a ReferenceConfigInitializedEvent since 2.7.4
         dispatch(new ReferenceConfigInitializedEvent(this, invoker));
+    }
+```
+
+## ReferenceConfig#createProxy()创建服务代理
+
+```java
+    @SuppressWarnings({"unchecked", "rawtypes", "deprecation"})
+    private T createProxy(Map<String, String> map) {
+        // 是否是InJvm，协议是InJvm
+        if (shouldJvmRefer(map)) {
+            URL url = new URL(LOCAL_PROTOCOL, LOCALHOST_VALUE, 0, interfaceClass.getName()).addParameters(map);
+            invoker = REF_PROTOCOL.refer(interfaceClass, url);
+            if (logger.isInfoEnabled()) {
+                logger.info("Using injvm service " + interfaceClass.getName());
+            }
+        } else {
+            urls.clear();
+            if (url != null && url.length() > 0) { // user specified URL, could be peer-to-peer address, or register center's address.
+                String[] us = SEMICOLON_SPLIT_PATTERN.split(url);
+                if (us != null && us.length > 0) {
+                    for (String u : us) {
+                        URL url = URL.valueOf(u);
+                        if (StringUtils.isEmpty(url.getPath())) {
+                            url = url.setPath(interfaceName);
+                        }
+                        if (UrlUtils.isRegistry(url)) {
+                            urls.add(url.addParameterAndEncoded(REFER_KEY, StringUtils.toQueryString(map)));
+                        } else {
+                            urls.add(ClusterUtils.mergeUrl(url, map));
+                        }
+                    }
+                }
+            } else { // assemble URL from register center's configuration
+                // 如果protocols不是injvm检查注册中心
+                if (!LOCAL_PROTOCOL.equalsIgnoreCase(getProtocol())) {
+                    checkRegistry();
+                    // url列表，将zookeeper://改成registry://
+                    List<URL> us = ConfigValidationUtils.loadRegistries(this, false);
+                    if (CollectionUtils.isNotEmpty(us)) {
+                        for (URL u : us) {
+                            // 监控URL
+                            URL monitorUrl = ConfigValidationUtils.loadMonitor(this, u);
+                            // 如果有监控配置放到map中
+                            if (monitorUrl != null) {
+                                map.put(MONITOR_KEY, URL.encode(monitorUrl.toFullString()));
+                            }
+                            // 根据map中的信息生成url，这里生成的结果是
+                            /*
+                            registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=serialization-java-consumer&dubbo=2.0.2&pid=66793&qos.accept.foreign.ip=false&qos.enable=true&qos.port=33333&refer=application%3Dserialization-java-consumer%26check%3Dtrue%26dubbo%3D2.0.2%26init%3Dfalse%26interface%3Dorg.apache.dubbo.samples.serialization.api.DemoService%26methods%3DsayHello%26pid%3D66793%26qos.accept.foreign.ip%3Dfalse%26qos.enable%3Dtrue%26qos.port%3D33333%26register.ip%3D192.168.58.45%26release%3D2.7.7%26side%3Dconsumer%26sticky%3Dfalse%26timestamp%3D1636532992568&registry=zookeeper&release=2.7.7&timestamp=1636533091883
+                            */
+                            urls.add(u.addParameterAndEncoded(REFER_KEY, StringUtils.toQueryString(map)));
+                        }
+                    }
+                    if (urls.isEmpty()) {
+                        throw new IllegalStateException("No such any registry to reference " + interfaceName + " on the consumer " + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() + ", please config <dubbo:registry address=\"...\" /> to your spring config.");
+                    }
+                }
+            }
+            // 如果引用的URL就1个直接通过refer引用服务，这里和export相似，通过调用链实现的
+            // - ProtocolListenerWrapper
+            // - - ProtocolFilterWrapper
+            // - - - RegistryProtocol
+            if (urls.size() == 1) {
+                // 通过RegistryProtocol#refer引用服务
+                invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
+            } else {
+                // 如果是引用的服务多个，循环处理
+                List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
+                URL registryURL = null;
+                for (URL url : urls) {
+                    invokers.add(REF_PROTOCOL.refer(interfaceClass, url));
+                    if (UrlUtils.isRegistry(url)) {
+                        registryURL = url; // use last registry url
+                    }
+                }
+                if (registryURL != null) { // registry url is available
+                    // for multi-subscription scenario, use 'zone-aware' policy by default
+                    // 集群处理
+                    URL u = registryURL.addParameterIfAbsent(CLUSTER_KEY, ZoneAwareCluster.NAME);
+                    // The invoker wrap relation would be like: ZoneAwareClusterInvoker(StaticDirectory) -> FailoverClusterInvoker(RegistryDirectory, routing happens here) -> Invoker
+                    // 加入到集群中，这里包含集中集群处理模式，分别是：
+                    invoker = CLUSTER.join(new StaticDirectory(u, invokers));
+                } else { // not a registry url, must be direct invoke.
+                    invoker = CLUSTER.join(new StaticDirectory(invokers));
+                }
+            }
+        }
+        // invoer不可用处理
+        if (shouldCheck() && !invoker.isAvailable()) {
+            invoker.destroy();
+            throw new IllegalStateException("Failed to check the status of the service "
+                    + interfaceName
+                    + ". No provider available for the service "
+                    + (group == null ? "" : group + "/")
+                    + interfaceName +
+                    (version == null ? "" : ":" + version)
+                    + " from the url "
+                    + invoker.getUrl()
+                    + " to the consumer "
+                    + NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion());
+        }
+        if (logger.isInfoEnabled()) {
+            logger.info("Refer dubbo service " + interfaceClass.getName() + " from url " + invoker.getUrl());
+        }
+        /**
+         * @since 2.7.0
+         * ServiceData存储，SPI机制，支持内存和远程两种方式
+         */
+        String metadata = map.get(METADATA_KEY);
+        WritableMetadataService metadataService = WritableMetadataService.getExtension(metadata == null ? DEFAULT_METADATA_STORAGE_TYPE : metadata);
+        if (metadataService != null) {
+            URL consumerURL = new URL(CONSUMER_PROTOCOL, map.remove(REGISTER_IP_KEY), 0, map.get(INTERFACE_KEY), map);
+            metadataService.publishServiceDefinition(consumerURL);
+        }
+        // create service proxy
+        return (T) PROXY_FACTORY.getProxy(invoker, ProtocolUtils.isGeneric(generic));
+    }
+```
+
+&nbsp; &nbsp; 创建代理服务会创建Invoker，在引用服务过程中，会判断协议是否为injvm，会根据协议做不同的处理，不是injvm协议会根据构造的配置信息（map）生成url并将url协议有zookeeper://改成registry://，然后通过`Protocol`接口`refer`方法引用服务，与发布服务相似，引用服务的过程也会包装方法的调用链，如下：
+
+```
+- ProtocolListenerWrapper
+- - ProtocolFilterWrapper
+- - - RegistryProtocol
+```
+
+&nbsp; &nbsp; 在refer的过程中会对一个服务端的引用和一个服务多个服务端的服务进行区分处理，对于有多个服务端的服务会进行集群处理（cluster），会讲invoker列表加入到集群中，在调用过程中会根据集群策略来选择不同的策略进行调用，集群策略实现也实现了SPI机制，Dubbo提供的集群策略类型如下：
+
+- **FailoverCluster失败转移：** 当出现失败时，重试其他服务器，通常用于读操作，但重试会带来更长延迟，该策略是dubbo默认策略。
+- **FailfastCluster快速失败：** 只发起一次调用，失败立即报错，通常用于非幂等的请求。
+- **FailbackCluster失败自动恢复：** 对于Invoker调用失败，后台记录失败请求，任务定时重发，通常用于通知。
+- **BroadcastCluster广播调用：** 遍历调用所有Invoker，如果调用某个invoker异常了，直接捕获异常，不影响调用其他的invoker。
+- **AvailableCluster获取可用的调用：** 遍历所有invoker并判断invoker.isAvalible，只要有一个为true就直接调用返回，不管是否成功。
+- **FailsafeCluster失败安全：** 出现异常时直接忽略，通常用于写入审计日志。
+- **ForkingCluster并行调用：** 只要一个成功即返回，通常用于实时性要求较高的操作，但需要浪费更多的服务资源。
+- **MergeableCluster分组聚合：** 按组合并返回结果，比如某个服务接口有多种实现，可以用group区分，调用者调用多种实现并将得到的结果合并。
+
+
+## RegistryProtocol#refer引用服务
+
+```java
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+        // 注册中心url 将 registry:// 转成 zookeeper://
+        url = getRegistryUrl(url);
+        // 获取注册中心
+        Registry registry = registryFactory.getRegistry(url);
+        if (RegistryService.class.equals(type)) {
+            return proxyFactory.getInvoker((T) registry, type, url);
+        }
+
+        // 从url中解析出引用服务信息
+        Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(REFER_KEY));
+        // 获取分组
+        String group = qs.get(GROUP_KEY);
+        // 如果设置分组了，那么使用MergeableCluster策略
+        if (group != null && group.length() > 0) {
+            if ((COMMA_SPLIT_PATTERN.split(group)).length > 1 || "*".equals(group)) {
+                return doRefer(getMergeableCluster(), registry, type, url);
+            }
+        }
+        return doRefer(cluster, registry, type, url);
+    }
+```
+
+## RegistryProtocol#doRefer引用服务
+
+```java
+    private <T> Invoker<T> doRefer(Cluster cluster, Registry registry, Class<T> type, URL url) {
+        // 获取集群目录Directory，代表Invoker的集合
+        RegistryDirectory<T> directory = new RegistryDirectory<T>(type, url);
+        directory.setRegistry(registry);
+        directory.setProtocol(protocol);
+        // all attributes of REFER_KEY
+        Map<String, String> parameters = new HashMap<String, String>(directory.getConsumerUrl().getParameters());
+        URL subscribeUrl = new URL(CONSUMER_PROTOCOL, parameters.remove(REGISTER_IP_KEY), 0, type.getName(), parameters);
+        if (directory.isShouldRegister()) {
+            directory.setRegisteredConsumerUrl(subscribeUrl);
+            // 注册消费者url
+            registry.register(directory.getRegisteredConsumerUrl());
+        }
+        directory.buildRouterChain(subscribeUrl);
+        // 向ZK发起订阅服务，并设置监听
+        directory.subscribe(toSubscribeUrl(subscribeUrl));
+        // 加入集群
+        Invoker<T> invoker = cluster.join(directory);
+        List<RegistryProtocolListener> listeners = findRegistryProtocolListeners(url);
+        if (CollectionUtils.isEmpty(listeners)) {
+            return invoker;
+        }
+
+        RegistryInvokerWrapper<T> registryInvokerWrapper = new RegistryInvokerWrapper<>(directory, cluster, invoker, subscribeUrl);
+        for (RegistryProtocolListener listener : listeners) {
+            listener.onRefer(this, registryInvokerWrapper);
+        }
+        return registryInvokerWrapper;
+    }
+```
+
+## DubboProtocol#protocolBindingRefer引用服务
+
+```java
+    @Override
+    public <T> Invoker<T> protocolBindingRefer(Class<T> serviceType, URL url) throws RpcException {
+        optimizeSerialization(url);
+
+        // 创建RPC Invoker，通过getClients(url)创建网络客户端
+        DubboInvoker<T> invoker = new DubboInvoker<T>(serviceType, url, getClients(url), invokers);
+        // 将invoker添加到invokers中
+        invokers.add(invoker);
+
+        return invoker;
+    }
+
+    // 创建客户端数组
+    private ExchangeClient[] getClients(URL url) {
+        // whether to share connection
+        // 是否共享链接
+        boolean useShareConnect = false;
+
+        int connections = url.getParameter(CONNECTIONS_KEY, 0);
+        List<ReferenceCountExchangeClient> shareClients = null;
+        // if not configured, connection is shared, otherwise, one connection for one service
+        if (connections == 0) {
+            useShareConnect = true;
+
+            /*
+             * The xml configuration should have a higher priority than properties.
+             */
+            String shareConnectionsStr = url.getParameter(SHARE_CONNECTIONS_KEY, (String) null);
+            connections = Integer.parseInt(StringUtils.isBlank(shareConnectionsStr) ? ConfigUtils.getProperty(SHARE_CONNECTIONS_KEY,
+                    DEFAULT_SHARE_CONNECTIONS) : shareConnectionsStr);
+            // 共享链接客户端
+            shareClients = getSharedClient(url, connections);
+        }
+        // 创建ExchangeClient
+        ExchangeClient[] clients = new ExchangeClient[connections];
+        for (int i = 0; i < clients.length; i++) {
+            if (useShareConnect) {
+                // 从共享客户端获取
+                clients[i] = shareClients.get(i);
+
+            } else {
+                // 初始化客户端
+                clients[i] = initClient(url);
+            }
+        }
+
+        return clients;
+    }
+
+    // 初始化客户端
+    private ExchangeClient initClient(URL url) {
+
+        // client type setting.
+        String str = url.getParameter(CLIENT_KEY, url.getParameter(SERVER_KEY, DEFAULT_REMOTING_CLIENT));
+
+        url = url.addParameter(CODEC_KEY, DubboCodec.NAME);
+        // enable heartbeat by default
+        url = url.addParameterIfAbsent(HEARTBEAT_KEY, String.valueOf(DEFAULT_HEARTBEAT));
+
+        // BIO is not allowed since it has severe performance issue.
+        if (str != null && str.length() > 0 && !ExtensionLoader.getExtensionLoader(Transporter.class).hasExtension(str)) {
+            throw new RpcException("Unsupported client type: " + str + "," +
+                    " supported client type is " + StringUtils.join(ExtensionLoader.getExtensionLoader(Transporter.class).getSupportedExtensions(), " "));
+        }
+
+        ExchangeClient client;
+        try {
+            // connection should be lazy
+            if (url.getParameter(LAZY_CONNECT_KEY, false)) {
+                // 延迟加载客户端
+                client = new LazyConnectExchangeClient(url, requestHandler);
+
+            } else {
+                // 通过NettyTransporter connect创建客户端
+                client = Exchangers.connect(url, requestHandler);
+            }
+
+        } catch (RemotingException e) {
+            throw new RpcException("Fail to create remoting client for service(" + url + "): " + e.getMessage(), e);
+        }
+
+        return client;
     }
 ```
