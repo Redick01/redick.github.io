@@ -346,7 +346,7 @@ public class DubboConsumer {
             registry.register(directory.getRegisteredConsumerUrl());
         }
         directory.buildRouterChain(subscribeUrl);
-        // 向ZK发起订阅服务，并设置监听
+        // 向ZK发起订阅服务，并设置监听，这里比较复杂，最终会在ZookeeperRegistry#doSubscribe做服务订阅
         directory.subscribe(toSubscribeUrl(subscribeUrl));
         // 加入集群
         Invoker<T> invoker = cluster.join(directory);
@@ -361,6 +361,17 @@ public class DubboConsumer {
         }
         return registryInvokerWrapper;
     }
+```
+
+## RegistryDirectory#subscribe订阅服务
+
+&nbsp; &nbsp; `RegistryProtocol#doRefer`方法，directory.subscribe会按照下面的调用链进行处理，最后调用`ZookeeperRegistry#doSubscribe`方法向zk注册数据订阅接口，并设置监听。
+
+```
+- RegistryDirectory
+- - ListenerRegistryWrapper
+- - - FailbackRegistry
+- - - - ZookeeperRegistry
 ```
 
 ## DubboProtocol#protocolBindingRefer引用服务
@@ -392,6 +403,7 @@ public class DubboConsumer {
 
             /*
              * The xml configuration should have a higher priority than properties.
+             * xml配置优先级高于properties配置
              */
             String shareConnectionsStr = url.getParameter(SHARE_CONNECTIONS_KEY, (String) null);
             connections = Integer.parseInt(StringUtils.isBlank(shareConnectionsStr) ? ConfigUtils.getProperty(SHARE_CONNECTIONS_KEY,
@@ -439,7 +451,7 @@ public class DubboConsumer {
                 client = new LazyConnectExchangeClient(url, requestHandler);
 
             } else {
-                // 通过NettyTransporter connect创建客户端
+                // 通过NettyTransporter connect创建客户端 与provider建立连接
                 client = Exchangers.connect(url, requestHandler);
             }
 
