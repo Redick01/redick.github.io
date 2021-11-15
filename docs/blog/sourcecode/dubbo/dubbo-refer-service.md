@@ -374,7 +374,59 @@ public class DubboConsumer {
 - - - - ZookeeperRegistry
 ```
 
-## DubboProtocol#protocolBindingRefer引用服务
+```java
+    @Override
+    public void doSubscribe(final URL url, final NotifyListener listener) {
+        try {
+            if (ANY_VALUE.equals(url.getServiceInterface())) {
+                String root = toRootPath();
+                // 初始化监听
+                ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.computeIfAbsent(url, k -> new ConcurrentHashMap<>());
+                ChildListener zkListener = listeners.computeIfAbsent(listener, k -> (parentPath, currentChilds) -> {
+                    for (String child : currentChilds) {
+                        child = URL.decode(child);
+                        if (!anyServices.contains(child)) {
+                            anyServices.add(child);
+                            subscribe(url.setPath(child).addParameters(INTERFACE_KEY, child,
+                                    Constants.CHECK_KEY, String.valueOf(false)), k);
+                        }
+                    }
+                });
+                // 创建zk节点
+                zkClient.create(root, false);
+                List<String> services = zkClient.addChildListener(root, zkListener);
+                if (CollectionUtils.isNotEmpty(services)) {
+                    for (String service : services) {
+                        service = URL.decode(service);
+                        anyServices.add(service);
+                        subscribe(url.setPath(service).addParameters(INTERFACE_KEY, service,
+                                Constants.CHECK_KEY, String.valueOf(false)), listener);
+                    }
+                }
+            } else {
+                List<URL> urls = new ArrayList<>();
+                for (String path : toCategoriesPath(url)) {
+                    ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.computeIfAbsent(url, k -> new ConcurrentHashMap<>());
+                    ChildListener zkListener = listeners.computeIfAbsent(listener, k -> (parentPath, currentChilds) -> ZookeeperRegistry.this.notify(url, k, toUrlsWithEmpty(url, parentPath, currentChilds)));
+                    zkClient.create(path, false);
+                    List<String> children = zkClient.addChildListener(path, zkListener);
+                    if (children != null) {
+                        urls.addAll(toUrlsWithEmpty(url, path, children));
+                    }
+                }
+                // 
+                notify(url, listener, urls);
+            }
+        } catch (Throwable e) {
+            throw new RpcException("Failed to subscribe " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
+        }
+    }
+
+```
+
+## DubboProtocol#protocolBindingRefer创建Invoker
+
+&nbsp; &nbsp; refer服务创建Invoker时会调用该方法，该方法会通过`getClients`创建网络客户端，创建客户端是会判断客户端是否为共享链接，根据`connections`创建客户端`ExchangeClient`，然后通过`initClient`初始化客户端，初始化过程中会判断是否为延迟的客户端`LazyConnectExchangeClient`，不是延迟客户端，就会通过`connect`连接服务提供者，与服务提供者连接，具体建立连接流程不在这里说明，会在网络通信介绍。
 
 ```java
     @Override
@@ -462,3 +514,9 @@ public class DubboConsumer {
         return client;
     }
 ```
+
+## 总结
+
+&nbsp; &nbsp; Dubbo Consumer整个的启动，引用服务的流程大致就看完了，`ReferenceBean`实现了Spring的`FactoryBean`接口，在使用Spring上下文getBean时就会调用到`ReferenceBean`的getObject方法，这时就会通过创建代理（createProxy），然后通过`Protocol`的`refer`方法引用服务；
+
+&nbsp; &nbsp; 引用服务的流程大致可以理解为，通过`DubboProtocol`的`refer`方法创建`DubboInvoker`调用`getClients`方法创建`ExchangeClient`，然后通过`initClient`方法初始化网络客户端，初始化客户端过程中会通过`Exchangers`的`connect`与服务提供者建立连接，后续就是网络客户端与服务端建立连接这里会和服务提供者相似，通过`doOpen`初始化网络客户端，然后调用`doConnect`建立连接。

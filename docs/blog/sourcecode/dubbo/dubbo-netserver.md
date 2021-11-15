@@ -308,6 +308,101 @@ public class NettyTransporter implements Transporter {
 ```
 
 
+### 建立连接流程
+
+&nbsp; &nbsp; 建立连接是Dubbo消费者连接到Dubbo生产者的过程，建立连接会在用户向注册中心注册信息和订阅接口之后，建立连接也是在`Transporters`中完成的，通过`HeaderExchanger`的connect建立连接，该方法包装并返回`HeaderExchangeClient`，`Transporters`的`connect`方法会建立连接，并且通过装饰器模式装饰处理器`ChannelHandler`
+
+```java
+public class HeaderExchanger implements Exchanger {
+
+    public static final String NAME = "header";
+
+    @Override
+    public ExchangeClient connect(URL url, ExchangeHandler handler) throws RemotingException {
+        return new HeaderExchangeClient(Transporters.connect(url, new DecodeHandler(new HeaderExchangeHandler(handler))), true);
+    }
+
+    ...
+
+}
+```
+
+&nbsp; &nbsp; `Transporters.connect`建立连接，这里使用Netty作为例子分析
+
+```java
+public class NettyTransporter implements Transporter {
+
+    public static final String NAME = "netty3";
+
+    ...
+
+    @Override
+    public Client connect(URL url, ChannelHandler handler) throws RemotingException {
+        return new NettyClient(url, handler);
+    }
+
+}
+```
+
+&nbsp; &nbsp; 最后会通过`NettyClient`的`doConnect()`建立连接
+
+```java
+    @Override
+    protected void doConnect() throws Throwable {
+        long start = System.currentTimeMillis();
+        ChannelFuture future = bootstrap.connect(getConnectAddress());
+        try {
+            boolean ret = future.awaitUninterruptibly(getConnectTimeout(), MILLISECONDS);
+
+            if (ret && future.isSuccess()) {
+                Channel newChannel = future.channel();
+                try {
+                    // Close old channel
+                    // copy reference
+                    Channel oldChannel = NettyClient.this.channel;
+                    if (oldChannel != null) {
+                        try {
+                            if (logger.isInfoEnabled()) {
+                                logger.info("Close old netty channel " + oldChannel + " on create new netty channel " + newChannel);
+                            }
+                            oldChannel.close();
+                        } finally {
+                            NettyChannel.removeChannelIfDisconnected(oldChannel);
+                        }
+                    }
+                } finally {
+                    if (NettyClient.this.isClosed()) {
+                        try {
+                            if (logger.isInfoEnabled()) {
+                                logger.info("Close new netty channel " + newChannel + ", because the client closed.");
+                            }
+                            newChannel.close();
+                        } finally {
+                            NettyClient.this.channel = null;
+                            NettyChannel.removeChannelIfDisconnected(newChannel);
+                        }
+                    } else {
+                        NettyClient.this.channel = newChannel;
+                    }
+                }
+            } else if (future.cause() != null) {
+                throw new RemotingException(this, "client(url: " + getUrl() + ") failed to connect to server "
+                        + getRemoteAddress() + ", error message is:" + future.cause().getMessage(), future.cause());
+            } else {
+                throw new RemotingException(this, "client(url: " + getUrl() + ") failed to connect to server "
+                        + getRemoteAddress() + " client-side timeout "
+                        + getConnectTimeout() + "ms (elapsed: " + (System.currentTimeMillis() - start) + "ms) from netty client "
+                        + NetUtils.getLocalHost() + " using dubbo version " + Version.getVersion());
+            }
+        } finally {
+            // just add new valid channel to NettyChannel's cache
+            if (!isConnected()) {
+                //future.cancel(true);
+            }
+        }
+    }
+```
+
 ## 总结
 
-&nbsp; &nbsp; 本篇主要研究了一下Dubbo底层服务器创建，打开的一个过程，dubbo服务器底层分为信息交换和数据传输两层，数据交换层默认使用netty实现，在打开服务器过程中会构造`ChannelHandler`处理链，最后将服务器包装成`HeaderExchangeServer`。
+&nbsp; &nbsp; 本篇主要研究了一下Dubbo底层服务器创建，打开，建立连接的过程，dubbo服务器底层分为信息交换和数据传输两层，数据交换层能力来自于`Transporter`接口，该接口支持SPI机制，Dubbo提供了基于netty，netty4，Mina等实现，该接口提供服务的绑定和连接建立，分别是`bind`和`connect`方法，核心代码参考NettyServer#doOpen方法和NettyClient#doConnect方法。
