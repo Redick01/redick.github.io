@@ -289,16 +289,7 @@ public class DubboConsumer {
 - - - RegistryProtocol
 ```
 
-&nbsp; &nbsp; 在refer的过程中会对一个服务端的引用和一个服务多个服务端的服务进行区分处理，对于有多个服务端的服务会进行集群处理（cluster），会讲invoker列表加入到集群中，在调用过程中会根据集群策略来选择不同的策略进行调用，集群策略实现也实现了SPI机制，Dubbo提供的集群策略类型如下：
-
-- **FailoverCluster失败转移：** 当出现失败时，重试其他服务器，通常用于读操作，但重试会带来更长延迟，该策略是dubbo默认策略。
-- **FailfastCluster快速失败：** 只发起一次调用，失败立即报错，通常用于非幂等的请求。
-- **FailbackCluster失败自动恢复：** 对于Invoker调用失败，后台记录失败请求，任务定时重发，通常用于通知。
-- **BroadcastCluster广播调用：** 遍历调用所有Invoker，如果调用某个invoker异常了，直接捕获异常，不影响调用其他的invoker。
-- **AvailableCluster获取可用的调用：** 遍历所有invoker并判断invoker.isAvalible，只要有一个为true就直接调用返回，不管是否成功。
-- **FailsafeCluster失败安全：** 出现异常时直接忽略，通常用于写入审计日志。
-- **ForkingCluster并行调用：** 只要一个成功即返回，通常用于实时性要求较高的操作，但需要浪费更多的服务资源。
-- **MergeableCluster分组聚合：** 按组合并返回结果，比如某个服务接口有多种实现，可以用group区分，调用者调用多种实现并将得到的结果合并。
+&nbsp; &nbsp; 在refer的过程中会对一个服务端的引用和一个服务多个服务端的服务进行区分处理，对于有多个服务端的服务会进行集群处理（cluster），会讲invoker列表加入到集群中，在调用过程中会根据集群策略来选择不同的策略进行调用，集群策略实现也实现了SPI机制，
 
 
 ## RegistryProtocol#refer引用服务
