@@ -76,7 +76,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
 ## 执行invoker.invoke处理流程
 
-&nbsp; &nbsp; 下面会按照代码执行流程，简单介绍一下，一个请求的处理流程，所经过的类的顺序即代表了代码所执行的流程顺序。
+&nbsp; &nbsp; 下面会按照代码执行流程，简单介绍一下一个请求的处理流程，所经介绍类的顺序即代表了代码所执行的流程顺序。
 
 #### **MockClusterInvoker：** 首先会走到这个类中，因为没有mock，所以直接向下走。
 #### **AbstractCluster：** 这里会添加一个ClusterInterceptor拦截器，在调用前后做一些处理，这个不细说。
@@ -101,7 +101,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
                 // 调用后
                 interceptor.after(next, invocation);
             }
-            // 通过回调处理异步调用结果
             return asyncResult.whenCompleteWithContext((r, t) -> {
                 // onResponse callback
                 if (interceptor instanceof ClusterInterceptor.Listener) {
@@ -117,7 +116,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
 ```
 
-#### **ClusterInterceptor：** 拦截器，在拦截器的`intercept`方法中会执行`AbstractClusterInvoker#invoke`方法。
+#### **ClusterInterceptor：** 集群调用拦截器，在拦截器的`intercept`方法中会执行`AbstractClusterInvoker#invoke`方法。
 
 ```java
 @SPI
@@ -359,4 +358,6 @@ public interface ClusterInterceptor {
     }
 ```
 
+## 总结
 
+&nbsp; &nbsp; Dubbo通过代理对象以及Invoker实现了远程调用，Dubbo实现了`InvocationHandler`接口重写了`invoke`方法，在调用代理对象方法时会调用`invoke`，远程调用分为oneWay（单向）和异步/同步；单向发送不关心发送结果，发送请求后就直接返回，异步/同步发送需要处理结果，通过Future的get取响应结果；Dubbo提供了远程调用的容错处理，包括调用策略，路由，负载均衡等
