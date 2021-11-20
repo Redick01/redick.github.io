@@ -67,6 +67,240 @@
     }
 ```
 
-> 获取Invoker列表
+### 获取Invoker列表
 
-&nbsp; &nbsp; 获取Invoker列表
+#### AbstractDirectory#list 代码如下：
+
+```java
+    @Override
+    public List<Invoker<T>> list(Invocation invocation) throws RpcException {
+        if (destroyed) {
+            throw new RpcException("Directory already destroyed .url: " + getUrl());
+        }
+        // 调用RegistryDirectory#doList
+        return doList(invocation);
+    }
+```
+
+#### RegistryDirectory#doList 代码如下：
+
+```java    
+    @Override
+    public List<Invoker<T>> doList(Invocation invocation) {
+        // provider 没有或者 provider被设置城 disabled的处理
+        if (forbidden) {
+            // 1. No service provider 2. Service providers are disabled
+            throw new RpcException(RpcException.FORBIDDEN_EXCEPTION, "No provider available from registry " +
+                    getUrl().getAddress() + " for service " + getConsumerUrl().getServiceKey() + " on consumer " +
+                    NetUtils.getLocalHost() + " use dubbo version " + Version.getVersion() +
+                    ", please check status of providers(disabled, not registered or in blacklist).");
+        }
+        
+        if (multiGroup) {
+            return this.invokers == null ? Collections.emptyList() : this.invokers;
+        }
+
+        List<Invoker<T>> invokers = null;
+        try {
+            // Get invokers from cache, only runtime routers will be executed.
+            // 执行Router链 过滤Invoker列表
+            invokers = routerChain.route(getConsumerUrl(), invocation);
+        } catch (Throwable t) {
+            logger.error("Failed to execute router: " + getUrl() + ", cause: " + t.getMessage(), t);
+        }
+
+        return invokers == null ? Collections.emptyList() : invokers;
+    }
+```
+
+#### RouterChain#route 执行Router链过滤Invoker列表
+
+&nbsp; &nbsp; `RouterChain#route`方法迭代执行Router接口，Router接口根据路由规则过滤Invoker列表，代码如下：
+
+
+```java
+    public List<Invoker<T>> route(URL url, Invocation invocation) {
+        List<Invoker<T>> finalInvokers = invokers;
+        for (Router router : routers) {
+            finalInvokers = router.route(finalInvokers, url, invocation);
+        }
+        return finalInvokers;
+    }
+```
+
+### 初始化负载均衡
+
+&nbsp; &nbsp; `SPI`机制获取`LoadBalance`实现
+
+```java
+    protected LoadBalance initLoadBalance(List<Invoker<T>> invokers, Invocation invocation) {
+        if (CollectionUtils.isNotEmpty(invokers)) {
+            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
+                    .getMethodParameter(RpcUtils.getMethodName(invocation), LOADBALANCE_KEY, DEFAULT_LOADBALANCE));
+        } else {
+            return ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(DEFAULT_LOADBALANCE);
+        }
+    }
+```
+
+> Dubbo提供的`LoadBalance`实现如下：
+
+- **RandomLoadBalance：**加权随机，该算法是Dubbo提供的默认算法
+- **RoundRobinLoadBalance：**轮询算法
+- **ShortestResponseLoadBalance：**最短响应时间优先+加权随机算法
+- **LeastActiveLoadBalance：**最少活跃算法
+- **ConsistentHashLoadBalance：**一致性hash算法
+
+> 以RandomLoadBalance为例看一下代码
+
+```java
+public class RandomLoadBalance extends AbstractLoadBalance {
+
+    public static final String NAME = "random";
+
+    /**
+     * Select one invoker between a list using a random criteria
+     * @param invokers List of possible invokers
+     * @param url URL
+     * @param invocation Invocation
+     * @param <T>
+     * @return The selected invoker
+     */
+    @Override
+    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        // Invoker数量
+        int length = invokers.size();
+        // 每个Invoker的权重是否相同
+        boolean sameWeight = true;
+        // 每个invoker的权重
+        int[] weights = new int[length];
+        // 第一个invoker的权重
+        int firstWeight = getWeight(invokers.get(0), invocation);
+        weights[0] = firstWeight;
+        // 权重的和
+        int totalWeight = firstWeight;
+        for (int i = 1; i < length; i++) {
+            int weight = getWeight(invokers.get(i), invocation);
+            // save for later use
+            weights[i] = weight;
+            // 求和
+            totalWeight += weight;
+            if (sameWeight && weight != firstWeight) {
+                sameWeight = false;
+            }
+        }
+        if (totalWeight > 0 && !sameWeight) {
+            // 根据总的总权重和计算随机值
+            int offset = ThreadLocalRandom.current().nextInt(totalWeight);
+            // 随机值-invoker权重，当offset小于0时就获取返回那个invoker
+            for (int i = 0; i < length; i++) {
+                offset -= weights[i];
+                if (offset < 0) {
+                    return invokers.get(i);
+                }
+            }
+        }
+        // 如果所有的权重相同，就随即返回invoker
+        return invokers.get(ThreadLocalRandom.current().nextInt(length));
+    }
+
+}
+```
+
+> 在应用中配置
+
+- **服务端**
+
+```xml
+<dubbo:service interface="..." loadbalance="roundrobin" />
+```
+
+- **客户端**
+
+```xml
+<dubbo:reference interface="..." loadbalance="roundrobin" />
+```
+
+- **服务端方法级别**
+
+```xml
+<dubbo:service interface="...">
+    <dubbo:method name="..." loadbalance="roundrobin"/>
+</dubbo:service>
+```
+
+- **客户端方法级别**
+
+```xml
+<dubbo:reference interface="...">
+    <dubbo:method name="..." loadbalance="roundrobin"/>
+</dubbo:reference>
+```
+
+
+### FailoverClusterInvoker#doInvoke
+
+```java
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Result doInvoke(Invocation invocation, final List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
+        List<Invoker<T>> copyInvokers = invokers;
+        checkInvokers(copyInvokers, invocation);
+        String methodName = RpcUtils.getMethodName(invocation);
+        int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
+        if (len <= 0) {
+            len = 1;
+        }
+        // retry loop.
+        RpcException le = null; // last exception.
+        List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
+        Set<String> providers = new HashSet<String>(len);
+        for (int i = 0; i < len; i++) {
+            //Reselect before retry to avoid a change of candidate `invokers`.
+            //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
+            if (i > 0) {
+                checkWhetherDestroyed();
+                copyInvokers = list(invocation);
+                // check again
+                checkInvokers(copyInvokers, invocation);
+            }
+            // 负载均衡操作，最终会调用RandomLoadBalance#doSelect方法
+            Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
+            invoked.add(invoker);
+            RpcContext.getContext().setInvokers((List) invoked);
+            try {
+                // 远程调用
+                Result result = invoker.invoke(invocation);
+                if (le != null && logger.isWarnEnabled()) {
+                    logger.warn("Although retry the method " + methodName
+                            + " in the service " + getInterface().getName()
+                            + " was successful by the provider " + invoker.getUrl().getAddress()
+                            + ", but there have been failed providers " + providers
+                            + " (" + providers.size() + "/" + copyInvokers.size()
+                            + ") from the registry " + directory.getUrl().getAddress()
+                            + " on the consumer " + NetUtils.getLocalHost()
+                            + " using the dubbo version " + Version.getVersion() + ". Last error is: "
+                            + le.getMessage(), le);
+                }
+                return result;
+            } catch (RpcException e) {
+                if (e.isBiz()) { // biz exception.
+                    throw e;
+                }
+                le = e;
+            } catch (Throwable e) {
+                le = new RpcException(e.getMessage(), e);
+            } finally {
+                providers.add(invoker.getUrl().getAddress());
+            }
+        }
+        throw new RpcException(le.getCode(), "Failed to invoke the method "
+                + methodName + " in the service " + getInterface().getName()
+                + ". Tried " + len + " times of the providers " + providers
+                + " (" + providers.size() + "/" + copyInvokers.size()
+                + ") from the registry " + directory.getUrl().getAddress()
+                + " on the consumer " + NetUtils.getLocalHost() + " using the dubbo version "
+                + Version.getVersion() + ". Last error is: "
+                + le.getMessage(), le.getCause() != null ? le.getCause() : le);
+    }
+```
