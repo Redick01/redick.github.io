@@ -1,6 +1,6 @@
 # Dubbo服务启动-Dubbo Provider发布服务 <!-- {docsify-ignore-all} -->
 
-
+&nbsp; &nbsp; Dubbo `ServiceBean`加载完成后，会发布`dubbo`服务，发布服务的入口是`DubboBootstrap#exportServices()`方法，接下来我们看一下Provider发布服务的流程
 
 ## DubboBootstrap#exportServices();发布dubbo服务
 
@@ -28,7 +28,7 @@
     }
 ```
 
-> ServiceConfig#export发布服务
+### ServiceConfig#export发布服务
 
 &nbsp; &nbsp; ServiceConfig#export是发布接口的方法，方法流程是检查bootstrap初始化情况和原数据初始化然后执行`doExport();`发布
 
@@ -63,7 +63,7 @@
     }
 ```
 
-> ServiceConfig#doExport();
+### ServiceConfig#doExport();
 
 
 ```java
@@ -85,7 +85,7 @@
     }
 ```
 
-> ServiceConfig#doExportUrls();
+### ServiceConfig#doExportUrls();
 
 ```java
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -117,7 +117,7 @@
 ```
 
 
-> ServiceConfig#doExportUrlsFor1Protocol发布服务
+### ServiceConfig#doExportUrlsFor1Protocol发布服务
 
 &nbsp; &nbsp; doExportUrlsFor1Protocol主要发布服务到本地和远程
 
@@ -319,7 +319,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
 		|- InjvmProtocol 
 ```
 
-> InjvmProtocol#export
+- **InjvmProtocol#export**
 
 &nbsp; &nbsp; 创建`InjvmExporter`实例，并且缓存`InjvmExporter`实例到`exporterMap`中，缓存内容是服务url和`InjvmExporter实例`的映射。
 
@@ -351,7 +351,7 @@ Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, regis
 		|- RegistryProtocol 
 ```
 
-> RegistryProtocol#export发布注册服务和订阅服务
+- **RegistryProtocol#export发布注册服务和订阅服务**
 
 &nbsp; &nbsp; 在发布流程中，我们已经知道了服务要发布为dubbo协议时，不同点在发布Invoker的不同。非injvm协议都使用了RegistryProtocol的export()来发布服务，RegistryProtocol的内部变量bounds中保存了<服务，协议>对应的Exporter，每次发布后会保存到这个map中。代码如下：
 
@@ -418,7 +418,7 @@ private <T> ExporterChangeableWrapper<T> doLocalExport(final Invoker<T> originIn
     }
 ```
 
-> DubboProtocol#export发布dubbo服务
+- **DubboProtocol#export发布dubbo服务**
 
 &nbsp; &nbsp; 继续分析dubboProtocol的export，protocol变量与之前相同，会根据协议名称获取协议链
 
@@ -494,7 +494,7 @@ MonitorFilter -> ExceptionFilter -> InvokerDelegete
     }
 ```
 
-> DubboProtocol打开服务器，底层通信实现
+- **DubboProtocol打开服务器，底层通信实现**
 
 &nbsp; &nbsp; 创建Server，创建`ExchangeServer`，默认使用`netty`作为Server的实现服务器
 
@@ -556,3 +556,7 @@ MonitorFilter -> ExceptionFilter -> InvokerDelegete
         return new DubboProtocolServer(server);
     }
 ```
+
+## 总结
+
+&nbsp; &nbsp; Dubbo发布服务主要是通过`ServiceConfig`的`export`方法，发布过服务过程中会通过`SPI`技术生成代理创建Invoker，Dubbo默认使用`javassist技术`实现动态代理；Dubbo通过协议调用链通过`DubboProtocol#export发布dubbo服务`，发布的过程会创建服务器，并且绑定服务器。绑定服务器的接口为`Exchangers`，Dubbo提供了`netty`，`Mina`等实现，下一篇我们一起看一下Dubbo底层的网络通信详细了解一下这部分。

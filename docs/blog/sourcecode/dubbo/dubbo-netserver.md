@@ -3,7 +3,7 @@
 
 ## Dubbo协议打开服务器
 
-&nbsp; &nbsp; 书接上回[Dubbo Provider发布服务](../../sourcecode/dubbo/dubbo-export-service.md)Provider会通过`RegistryProtocol#export`注册服务，通过`DubboProtocol`发布服务吗，`DubboProtocol`发布服务时会打开服务器，`DubboProtocol`中有一个`serviceMap`，存储ip:port和`ExchangeServer`的映射关系，刚开始创建的时候会检查`serviceMap`，如果key对应的`ExchangeServer`不存在会调用`createServer`创建Server，代码如下：
+&nbsp; &nbsp; 书接上回[Dubbo Provider发布服务](https://blog.csdn.net/qq_31279701/article/details/121501351)Provider会通过`RegistryProtocol#export`注册服务，通过`DubboProtocol`发布服务吗，`DubboProtocol`发布服务时会打开服务器，`DubboProtocol`中有一个`serviceMap`，存储ip:port和`ExchangeServer`的映射关系，刚开始创建的时候会检查`serviceMap`，如果key对应的`ExchangeServer`不存在会调用`createServer`创建Server，代码如下：
 
 ```java
     private void openServer(URL url) {
@@ -327,7 +327,7 @@ public class HeaderExchanger implements Exchanger {
 }
 ```
 
-&nbsp; &nbsp; `Transporters.connect`建立连接，这里使用Netty作为例子分析
+1. `Transporters.connect`建立连接，这里使用Netty作为例子分析
 
 ```java
 public class NettyTransporter implements Transporter {
@@ -344,12 +344,13 @@ public class NettyTransporter implements Transporter {
 }
 ```
 
-&nbsp; &nbsp; 最后会通过`NettyClient`的`doConnect()`建立连接
+2. 最后会通过`NettyClient`的`doConnect()`建立连接
 
 ```java
     @Override
     protected void doConnect() throws Throwable {
         long start = System.currentTimeMillis();
+        // 建立连接
         ChannelFuture future = bootstrap.connect(getConnectAddress());
         try {
             boolean ret = future.awaitUninterruptibly(getConnectTimeout(), MILLISECONDS);
