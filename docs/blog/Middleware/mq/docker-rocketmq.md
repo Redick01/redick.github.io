@@ -17,7 +17,10 @@ flushDiskType = ASYNC_FLUSH
 # 如果Docker环境需要设置成宿主机IP
 brokerIP1 = 
 
-docker run -d -p 10911:10911 -p 10909:10909 -v  /tmp/data/rocketmq/broker/logs:/root/logs -v  /tmp/data/rocketmq/broker/store:/root/store -v  /tmp/etc/rocketmq/broker/broker.conf:/opt/rocketmq/conf/broker.conf --name rmqbroker --link rmqnamesrv:namesrv -e "NAMESRV_ADDR=namesrv:9876" -e "MAX_POSSIBLE_HEAP=200000000" rocketmqinc/rocketmq sh mqbroker -c /opt/rocketmq/conf/broker.conf
+docker run -d -p 10911:10911 -p 10909:10909 -v  /tmp/data/rocketmq/broker/logs:/root/logs -v  /tmp/data/rocketmq/broker/store:/root/store -v  /tmp/etc/rocketmq/broker/broker.conf:/opt/rocketmq/conf/broker.conf --name rmqbroker --link rmqnamesrv:namesrv -e "NAMESRV_ADDR=namesrv:9876" -e "JAVA_OPT_EXT=-server -Xms1024m -Xmx1024m" rocketmqinc/rocketmq sh mqbroker -c /opt/rocketmq/conf/broker.conf
+
+docker run -d  -p 10911:10911 -p 10909:10909   -v /www/mq/data/broker/logs:/root/logs -v /www/mq/rocketmq/data/broker/store:/root/store  -v /www/mq/conf/broker.conf:/opt/rocketmq/conf/broker.conf  --name rmqbroker --link rmqnamesrv:namesrv -e "NAMESRV_ADDR=namesrv:9876" -e "JAVA_OPTS=-Duser.home=/opt" -e "JAVA_OPT_EXT=-server -Xms1024m -Xmx1024m"  rocketmqinc/rocketmq sh mqbroker -c /opt/rocketmq/conf/broker.conf
+
 
 docker search rocketmq-console
 
