@@ -85,6 +85,7 @@
 * * [Istio入口流量路由](blog/structure/servicemesh/istio-gateway-rate.md)
 * * [Kubernetes上基于Istio和SpringBoot搭建服务网格](blog/structure/servicemesh/istio-springboot.md)
 * * [公司服务Service Mesh改造](blog/structure/servicemesh/servicemesh-gaizao.md)
+* * [可靠消息最终一致性分布式事务](blog/structure/distribute-system/mq-distribute-transaction.md)
 
 * **网络**
 * * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)

@@ -116,7 +116,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
 ```
 
-#### **ClusterInterceptor：** 集群调用拦截器，在拦截器的`intercept`方法中会执行`AbstractClusterInvoker#invoke`方法。
+#### **ClusterInterceptor：** 调用拦截器，在拦截器的`intercept`方法中会执行`AbstractClusterInvoker#invoke`方法。
 
 ```java
 @SPI
