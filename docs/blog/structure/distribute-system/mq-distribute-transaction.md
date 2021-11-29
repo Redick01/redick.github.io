@@ -781,8 +781,147 @@ public class StockTxMessageConsumer implements RocketMQListener<String> {
 
 ```
 
+#### 测试结果
+
+- **tx-order库**
+
+&nbsp; &nbsp; tx-order中，order表和tx_log表都没有数据
+
+```shell
+mysql> truncate tx_log;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> select * from tx_log;
+Empty set (0.00 sec)
+
+mysql> truncate `order`;
+Query OK, 0 rows affected (0.01 sec)
+```
+
+- **tx-stock库**
+
+&nbsp; &nbsp; tx-stock表中，stock表存在product_id为1的产品，产品总数为400，和tx_log表没有数据
+
+```shell
+mysql> select * from stock;
++----+------------+-------------+---------------------+
+| id | product_id | total_count | create_time         |
++----+------------+-------------+---------------------+
+|  1 |          1 |         400 | 2021-11-25 18:46:19 |
++----+------------+-------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> truncate tx_log;
+Query OK, 0 rows affected (0.01 sec)
+```
+
+- **发起下单**
+
+&nbsp; &nbsp; 发起下单，购买数量100
+
+![avatar](_media/../../../../_media/image/structure/distribute-transaction/post.png)
+
+&nbsp; &nbsp; tx-order中，order表和tx_log表保存订单数据和事务日志
+
+```shell
+mysql> select * from `order`;
++----+--------------------------------------+------------+-----------+---------------------+
+| id | order_no                             | product_id | pay_count | create_time         |
++----+--------------------------------------+------------+-----------+---------------------+
+|  1 | 7268e58e-5ee1-4fba-a998-e99d45d5ff47 |          1 |       100 | 2021-11-29 13:26:46 |
++----+--------------------------------------+------------+-----------+---------------------+
+1 row in set (0.01 sec)
+
+mysql> select * from tx_log;
++----+--------------------------------------+---------------------+
+| id | tx_no                                | create_time         |
++----+--------------------------------------+---------------------+
+|  1 | 49afa0ec-09a6-4bb1-8363-3c2d695aa1a5 | 2021-11-29 13:26:46 |
++----+--------------------------------------+---------------------+
+1 row in set (0.00 sec)
+```
+
+&nbsp; &nbsp; tx-stock表中，stock表存在product_id为1的产品库存数量减少100，tx-log表存入事务日志
+
+```shell
+mysql> select * from stock;
++----+------------+-------------+---------------------+
+| id | product_id | total_count | create_time         |
++----+------------+-------------+---------------------+
+|  1 |          1 |         300 | 2021-11-25 18:46:19 |
++----+------------+-------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> select * from tx_log;
++----+--------------------------------------+---------------------+
+| id | tx_no                                | create_time         |
++----+--------------------------------------+---------------------+
+|  1 | 49afa0ec-09a6-4bb1-8363-3c2d695aa1a5 | 2021-11-29 13:27:09 |
++----+--------------------------------------+---------------------+
+1 row in set (0.00 sec)
+```
+
+&nbsp; &nbsp; RocketMQ事务消息
+
+![avatar](_media/../../../../_media/image/structure/distribute-transaction/transaction-msg.png)
+
+
+- **下单超过库存的数量，回滚**
+
+&nbsp; &nbsp; 现在库存是300，我下单400就会下单失败，这时库存服务通知订单服务回滚，我这里直接删除了订单数据，也可以状态区分。
+
+![avatar](_media/../../../../_media/image/structure/distribute-transaction/post-2.png)
+
+&nbsp; &nbsp; tx-order中，order表数据不变和tx_log表保存事务日志
+
+```shell
+mysql> select * from `order`;
++----+--------------------------------------+------------+-----------+---------------------+
+| id | order_no                             | product_id | pay_count | create_time         |
++----+--------------------------------------+------------+-----------+---------------------+
+|  1 | 7268e58e-5ee1-4fba-a998-e99d45d5ff47 |          1 |       100 | 2021-11-29 13:26:46 |
++----+--------------------------------------+------------+-----------+---------------------+
+1 row in set (0.01 sec)
+
+mysql> select * from tx_log;
++----+--------------------------------------+---------------------+
+| id | tx_no                                | create_time         |
++----+--------------------------------------+---------------------+
+|  1 | 49afa0ec-09a6-4bb1-8363-3c2d695aa1a5 | 2021-11-29 13:26:46 |
+|  2 | 1f71279d-1efa-4ee0-8416-9f13c661b58a | 2021-11-29 13:39:34 |
++----+--------------------------------------+---------------------+
+2 rows in set (0.01 sec)
+```
+
+&nbsp; &nbsp; tx-stock表中，stock表数据数量不变，tx-log不保存事务日志
+
+```shell
+mysql> select * from stock;
++----+------------+-------------+---------------------+
+| id | product_id | total_count | create_time         |
++----+------------+-------------+---------------------+
+|  1 |          1 |         300 | 2021-11-25 18:46:19 |
++----+------------+-------------+---------------------+
+1 row in set (0.00 sec)
+
+mysql> select * from tx_log;
++----+--------------------------------------+---------------------+
+| id | tx_no                                | create_time         |
++----+--------------------------------------+---------------------+
+|  1 | 49afa0ec-09a6-4bb1-8363-3c2d695aa1a5 | 2021-11-29 13:27:09 |
++----+--------------------------------------+---------------------+
+1 row in set (0.00 sec)
+```
+
+&nbsp; &nbsp; RocketMQ有事务回滚消息
+
+![avatar](_media/../../../../_media/image/structure/distribute-transaction/rollback-msg.png)
+
+
 ## 总结
 
-源代码可在笔者github找到：https://github.com/Redick01/my-transaction
+&nbsp; &nbsp; 至此，基于RocketMQ实现的`可靠消息最终一致性分布式事务`的demo就演示完成了，该程序无论是在业务上还是技术上都上不具备生产使用，进攻演示`可靠消息最终一致性分布式事务`的处理流程。
+
+&nbsp; &nbsp; 源代码可在笔者github找到：https://github.com/Redick01/my-transaction
 
 - 参考：《深入理解分布式事务》
