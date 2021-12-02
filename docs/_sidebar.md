@@ -6,9 +6,6 @@
 * * [Guava Cache官方文档](blog/java_base/tools/guava-cache-official-doc.md)
 * * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
 * * [Java世界中的SPI](blog/java_base/spi.md)
-* * [使用TransmittableThreadLocal实现异步场景日志链路追踪](blog/java_base/java_thread/trace-log-mdc.md)
-* * [使用JavaAgent实现代码无入侵增强logback](blog/java_base/tools/java-agent-log-enhance.md)
-* * [基于JavaAgent实现发布http接口](blog/java_base/tools/java-agent-impl-http-interface.md)
 * * **单元测试**
 * * * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
 
@@ -32,20 +29,17 @@
 * **中间件**
 * * **Redis**
 * * * [Redis集群与高可用](blog/Middleware/redis/redis_1.md)
-* * * [基于Jedis的Redis分布式锁实现](blog/java_base/tools/redislock.md)
 * * * [Redisson分布式锁1-应用](blog/java_base/tools/redisson-lock.md)
 
 * * **Arthas**
 * * * [Arthas初探](blog/Middleware/arthas/startup.md)
 * * * [Arthas检测死锁](blog/Middleware/arthas/thread.md)
 * * * [Arthas Idea插件](blog/Middleware/arthas/arthas-idea-plugin.md)
-* * * [性能测试使用Arthas定位接口TPS极低问题](blog/Middleware/arthas/product-use.md)
 
 * * **分布式消息**
 * * * [消息队列基础](blog/Middleware/mq/mq_1.md)
 * * * [Java消息队列JMS](blog/Middleware/mq/JMS_1.md)
 * * * [ActiveMQ](blog/Middleware/mq/activemq_1.md)
-* * * [生产中使用ActiveMq消费慢问题排查过程及解决方式](blog/Middleware/mq/activemq-problem-1.md)
 * * * [ActiveMQ持久化方式](blog/Middleware/mq/activemq-chijiuhua.md)
 * * * **Kafka**
 * * * * [Kafka消息中间件](blog/Middleware/kafka/kafka_1.md)
@@ -84,7 +78,6 @@
 * * [Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)](blog/structure/servicemesh/servicemesh-two.md)
 * * [Istio入口流量路由](blog/structure/servicemesh/istio-gateway-rate.md)
 * * [Kubernetes上基于Istio和SpringBoot搭建服务网格](blog/structure/servicemesh/istio-springboot.md)
-* * [公司服务Service Mesh改造](blog/structure/servicemesh/servicemesh-gaizao.md)
 * * [可靠消息最终一致性分布式事务](blog/structure/distribute-system/mq-distribute-transaction.md)
 
 * **网络**
@@ -130,3 +123,13 @@
 * * * [RocketMQ源码解析-Producer发送消息源码分析](blog/sourcecode/rocketmq/rocketmq-5.md)
 * * * [RocketMQ源码解析-Consumer启动流程分析](blog/sourcecode/rocketmq/rocketmq-6.md)
 * * * [RocketMQ源码解析-消费者消费消息](blog/sourcecode/rocketmq/rocketmq-7.md)
+
+* **工作问题处理**
+* * [使用TransmittableThreadLocal实现异步场景日志链路追踪](blog/java_base/java_thread/trace-log-mdc.md)
+* * [使用JavaAgent实现代码无入侵增强logback](blog/java_base/tools/java-agent-log-enhance.md)
+* * [基于JavaAgent实现发布http接口](blog/java_base/tools/java-agent-impl-http-interface.md)
+* * [性能测试使用Arthas定位接口TPS极低问题](blog/Middleware/arthas/product-use.md)
+* * [基于Jedis的Redis分布式锁实现](blog/java_base/tools/redislock.md)
+* * [生产中使用ActiveMq消费慢问题排查过程及解决方式](blog/Middleware/mq/activemq-problem-1.md)
+* * [公司服务Service Mesh改造](blog/structure/servicemesh/servicemesh-gaizao.md)
+* * [记一次因WebService无响应导致线程阻塞 - 生产问题定位](blog/problems/webservice-not-response.md)
