@@ -32,6 +32,31 @@ docker run --restart=always -p 9200:9200 -p 9300:9300 -e "discovery.type=single-
 --name='elasticsearch' --cpuset-cpus="1" -m 2G -d elasticsearch:7.6.2
 ```
 
+#### 验证es安装成功
+
+&nbsp; &nbsp; 浏览器地址栏输入：http://127.0.0.1:9200/，浏览器页面显示如下内容：
+
+```json
+{
+  "name" : "6eebe74f081b",
+  "cluster_name" : "docker-cluster",
+  "cluster_uuid" : "jgCr_SQbQXiimyAyOEqk9g",
+  "version" : {
+    "number" : "7.6.2",
+    "build_flavor" : "default",
+    "build_type" : "docker",
+    "build_hash" : "ef48eb35cf30adf4db14086e8aabd07ef6fb113f",
+    "build_date" : "2020-03-26T06:34:37.794943Z",
+    "build_snapshot" : false,
+    "lucene_version" : "8.4.0",
+    "minimum_wire_compatibility_version" : "6.8.0",
+    "minimum_index_compatibility_version" : "6.0.0-beta1"
+  },
+  "tagline" : "You Know, for Search"
+}
+```
+
+
 ## 部署Skywalking OAP
 
 #### 拉取镜像
@@ -69,3 +94,37 @@ docker run -d --name skywalking-ui \
 -e SW_OAP_ADDRESS=oap:12800 \
 apache/skywalking-ui:8.3.0
 ```
+
+
+## 应用程序配合Skywalking Agent部署
+
+#### 官网下载skywalking-agent
+
+&nbsp; &nbsp; 下载地址：https://archive.apache.org/dist/skywalking/8.3.0/
+
+&nbsp; &nbsp; 这里有一点需要注意，一定要下载对应的skywalking-oap版本的skywalking-agent，否则就有可能会导致agent无法上报，笔者一开始觉得agent可以做到向下兼容，下载了8.8版本，导致上传监控数据失败了，报错原因是oap-server端返回的方法不存在`grpc-message: Method not found: skywalking.v3.JVMMetricReportService/collect`，日志如下：
+
+![avatar](../../../_media/image/中间件/skywalking/not-method.png)
+
+#### javaagent运行
+
+&nbsp; &nbsp; spring-transaction-2.2.6.RELEASE.jar是笔者写的一个测试程序，感兴趣的可以从笔者github下载：https://github.com/Redick01/my-transaction.git `spring-transaction`工程就是测试代码
+
+```shell
+java -jar -javaagent:/Users/penghuiliu/geek_learn/skywalking-agent/skywalking-agent.jar=agent.service_name=fw-gateway,collector.backend_service=127.0.0.1:11800 -jar spring-transaction-2.2.6.RELEASE.jar
+```
+
+&nbsp; &nbsp; 服务启动成功调用接口，skywalking UI显示结果如下：
+
+#### 仪表盘
+
+![avatar](../../../_media/image/中间件/skywalking/ui-1.png)
+
+#### 拓扑
+
+![avatar](../../../_media/image/中间件/skywalking/ui-2.png)
+
+#### 链路
+
+![avatar](../../../_media/image/中间件/skywalking/ui-3.png)
+

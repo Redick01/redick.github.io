@@ -53,7 +53,7 @@
 
 &nbsp; &nbsp; 通过线程日志，我们也能定位到阻塞的代码，果真，验证了猜想，webservice的调用没有响应，程序就阻塞在那了
 
-![avatar](../../_media/image/problems/jstack-invoice.jpg)
+![avatar](../../_media/image/problems/jstack-invoice.png)
 
 &nbsp; &nbsp; 接着查看WebService的调用代码发现，的确没有设置连接超时和响应超时，修改代码增加超时时间上线，解决问题，我们使用的JAX-WS进行的webservice调用，设置超时时间代码如下：
 
