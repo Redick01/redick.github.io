@@ -1,6 +1,7 @@
 * Java基础
   * [JVM](blog/java_base/jvm/jvm.md)
   * [Javaagent使用指南](blog/java_base/tools/java-agent.md)
+  * [GC算法演进与GC算法](blog/java_base/jvm/gc-progress.md)
   * [GC日志分析方法](blog/java_base/jvm/gc_test.md)
   * [Java多线程与并发](blog/java_base/java_thread/java_thread_1.md)
   * [Guava Cache官方文档](blog/java_base/tools/guava-cache-official-doc.md)

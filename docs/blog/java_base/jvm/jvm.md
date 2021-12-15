@@ -1,4 +1,4 @@
-# JAVA基础
+# JAVA基础 <!-- {docsify-ignore-all} -->
 
 ## java字节码
 
