@@ -59,6 +59,7 @@
   * [Spring IOC容器刷新BeanFactory](blog/spring/spring-refresh-beanfactory.md)
   * [Spring框架@PostConstruct注解详解](blog/spring/spring-postconstruct.md)
   * [SpringBoot自动装配](blog/spring/springboot-autoconfig.md)
+  * [Spring Bean的作用域](blog/spring/spring-bean-scope.md)
 
 * 设计模式
   * [单例模式](blog/design_pattern/singleton.md)
