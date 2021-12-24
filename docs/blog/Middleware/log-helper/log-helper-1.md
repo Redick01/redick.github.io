@@ -1,4 +1,4 @@
-# 基于Logback+logstash-encoder实现分布式日志链路追踪组件 - 组件集成 <!-- {docsify-ignore-all} -->
+# 基于Logback+logstash-encoder实现分布式日志链路追踪组件 - AOP核心能力 <!-- {docsify-ignore-all} -->
 
 
 ## 前言
@@ -7,4 +7,68 @@
 
 ## 技术选型
 
-&nbsp; &nbsp; 首先说一下技术选型吧，肯定会有人说为啥不用`log4j2`（当时并不是因为漏洞），这是因为公司用的线上日志查询系统是`ELK`，就是`elasticsearch`+`Logstash`+`Kibana`，所以为了方便日志解析要求打印的日志要格式化成json；并且性能的损耗也是可以容忍的，所以选择使用`logback`，并且通过集成开源的`logstash-logback-encoder`实现了日志格式化成json。
+&nbsp; &nbsp; 首先说一下技术选型吧，肯定会有人说为啥不用`log4j2`（当时并不是因为漏洞），这是因为公司用的线上日志查询系统是`ELK`，就是`elasticsearch`+`Logstash`+`Kibana`，所以运维为了方便日志解析要求打印的日志要格式化成json；并且性能的损耗也是可以容忍的，所以选择使用`logback`，并且通过集成开源的`logstash-logback-encoder`实现了日志格式化成json。
+
+&nbsp; &nbsp; 基于这个需求，我们这边对日志工具的技术选型有如下几方面：
+
+- logback
+- logstash-logback-encoder
+- Spring-AOP
+
+## AOP切面接口定义
+
+&nbsp; &nbsp; 首先定义AOP的切面接口，接口中包含从切面中获取数据的方法，代码如下：
+
+```java
+/**
+ * 获取切面信息接口
+ * @author penghuiliu
+ * @date 2018/10/16.
+ */
+public interface AroundLogProxyChain {
+    /**
+     * 获取参数
+     * @return 参数
+     */
+    Object[] getArgs();
+
+    /**
+     * 获取切点所在的目标对象
+     * @return
+     */
+    Object getTarget();
+
+    /**
+     * 获取方法
+     * @return Method
+     */
+    Method getMethod();
+
+    /**
+     * 获取目标Class
+     * @return
+     */
+    Class<?> getClazz();
+
+    /**
+     * 获取切点
+     * @return
+     * @throws Throwable
+     */
+    Object getProceed() throws Throwable;
+
+    /**
+     * 获取切点方法签名对象
+     * @return
+     */
+    Signature getSignature();
+
+    /**
+     * 执行方法
+     * @param arguments 参数
+     * @return 执行结果
+     * @throws Throwable Throwable
+     */
+    Object doProxyChain(Object[] arguments) throws Throwable;
+}
+```
