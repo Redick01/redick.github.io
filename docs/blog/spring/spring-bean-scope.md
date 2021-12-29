@@ -5,6 +5,8 @@
 
 &nbsp; &nbsp; Bean的Scope默认就是单例的
 
+#### 测试单例Scope
+
 
 ## 原型
 

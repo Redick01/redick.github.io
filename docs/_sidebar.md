@@ -75,6 +75,7 @@
 
 * **设计模式**
 * * [单例模式](blog/design_pattern/singleton.md)
+* * [责任链模式](blog/design_pattern/chain-responsbilitity.md)
 
 * **架构**
 * * [微服务架构下的容错性设计](blog/structure/microservice/micro-service-design-1.md)

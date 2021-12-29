@@ -1,4 +1,4 @@
-# 设计模式之责任链模式
+# 责任链模式 <!-- {docsify-ignore-all} -->
 
 
 ## ChainHandler
