@@ -1,4 +1,4 @@
-# Java SPI机制详解
+# Java SPI机制详解 <!-- {docsify-ignore-all} -->
 
 ## SPI介绍
 
@@ -6,9 +6,12 @@
 
 ## Java SPI的实现规范
 
-![avatar](_media/../../../../_media/image/structure/javaspi.jpg) 
+![avatar](../../../_media/image/structure/javaspi.jpg) 
+
+
 &nbsp; &nbsp; 也就是说在我们代码中的实现里, 无需去写入一个 Factory 工厂, 用 MAP 去包装一些子类, 最终返回的类型是父接口. 只需要定义好资源文件, 让父接口与它的子类在文件中写明, 即可通过设置好的方式拿到所有定义的子类对象:
-```
+
+```java
 ServiceLoader<Interface> loaders = ServiceLoader.load(Interface.class)
 for(Interface interface : loaders){
 	System.out.println(interface.toString());
@@ -19,7 +22,7 @@ for(Interface interface : loaders){
 - **按照Java SPI规范实现SPI**
 
 编写SPI接口和实现类
-```
+```java
 public interface Fruit {
 
     /**
@@ -54,7 +57,7 @@ com.test.spi.Orange
 
 编写SPI测试类
 
-```
+```java
 public class FruitTest {
 
     @Test
@@ -69,13 +72,13 @@ public class FruitTest {
 
 项目结构如下：
 
-![avatar](_media/../../../../_media/image/java/spi/project-1.jpg) 
+![avatar](../../../_media/image/java/spi/project-1.jpg) 
 
 ## Java SPI源码分析
 
 - **ServiceLoader类SPI配置文件路径**
 
-```
+```java
 public final class ServiceLoader<S>
     implements Iterable<S> {
     private static final String PREFIX = "META-INF/services/";
@@ -84,7 +87,7 @@ public final class ServiceLoader<S>
 
 - **ServiceLoader类SPI核心实现**
 
-``` 
+``` java
     public static <S> ServiceLoader<S> load(Class<S> service) {
         // 获取当前线程的ClassLoader
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -117,7 +120,7 @@ public final class ServiceLoader<S>
 
 `LazyIterator`实现了`Iterator`，所以是在遍历迭代器时候通过反射创建的对象
 
-```
+```java
     private class LazyIterator
         implements Iterator<S> {
         // 接口全路径
