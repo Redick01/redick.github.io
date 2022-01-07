@@ -88,20 +88,93 @@ public class ExtensionLoader<T> {
 
 ```java
     public static<T> ExtensionLoader<T> getExtensionLoader(final Class<T> tClass) {
+        // 参数非空校验
         if (null == tClass) {
             throw new NullPointerException("tClass is null !");
         }
+        // 参数应该是接口
         if (!tClass.isInterface()) {
             throw new IllegalArgumentException("tClass :" + tClass + " is not interface !");
         }
+        // 参数要包含@SPI注解
         if (!tClass.isAnnotationPresent(SPI.class)) {
             throw new IllegalArgumentException("tClass " + tClass + "without @" + SPI.class + " Annotation !");
         }
+        // 从缓存中获取扩展加载器，如果存在直接返回，如果不存在就创建一个扩展加载器并放到缓存中
         ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) MAP.get(tClass);
         if (null != extensionLoader) {
             return extensionLoader;
         }
         MAP.putIfAbsent(tClass, new ExtensionLoader<>(tClass));
         return (ExtensionLoader<T>) MAP.get(tClass);
+    }
+```
+
+#### 扩展加载器构造方法
+
+```java
+    public ExtensionLoader(final Class<T> tClass) {
+        this.tClass = tClass;
+    }
+```
+
+#### 获取SPI扩展对象
+
+&nbsp; &nbsp; 获取SPI扩展对象是懒加载过程，第一次去获取的时候是没有的，会触发从问家中加载资源，通过反射创建对象，并缓存起来。
+
+```java
+    public T getJoin(String cacheDefaultName) {
+        // 扩展名 文件中的key
+        if (StringUtils.isBlank(cacheDefaultName)) {
+            throw new IllegalArgumentException("join name is null");
+        }
+        // 扩展对象存储缓存
+        Holder<Object> objectHolder = cachedInstances.get(cacheDefaultName);
+        // 如果扩展对象的存储是空的，创建一个扩展对象存储并缓存
+        if (null == objectHolder) {
+            cachedInstances.putIfAbsent(cacheDefaultName, new Holder<>());
+            objectHolder = cachedInstances.get(cacheDefaultName);
+        }
+        // 从扩展对象的存储中获取扩展对象
+        Object value = objectHolder.getT();
+        // 如果对象是空的，就触发创建扩展，否则直接返回扩展对象
+        if (null == value) {
+            synchronized (cacheDefaultName) {
+                value = objectHolder.getT();
+                if (null == value) {
+                    // 创建扩展对象
+                    value = createExtension(cacheDefaultName);
+                    objectHolder.setT(value);
+                }
+            }
+        }
+        return (T) value;
+    }
+```
+
+#### 创建扩展对象
+
+&nbsp; &nbsp; 反射方式创建扩展对象的实例
+
+```java
+    private Object createExtension(String cacheDefaultName) {
+        // 根据扩展名字获取扩展的Class
+        Class<?> aClass = getExtensionClasses().get(cacheDefaultName);
+        if (null == aClass) {
+            throw new IllegalArgumentException("extension class is null");
+        }
+        Object o = joinInstances.get(aClass);
+        if (null == o) {
+            try {
+                // 创建扩展对象并放到缓存中
+                joinInstances.putIfAbsent(aClass, aClass.newInstance());
+                o = joinInstances.get(aClass);
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return o;
     }
 ```
