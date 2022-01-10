@@ -158,7 +158,7 @@ public class ExtensionLoader<T> {
 
 ```java
     private Object createExtension(String cacheDefaultName) {
-        // 根据扩展名字获取扩展的Class
+        // 根据扩展名字获取扩展的Class，从Holder中获取 key-value缓存，然后根据名字从Map中获取扩展实现Class
         Class<?> aClass = getExtensionClasses().get(cacheDefaultName);
         if (null == aClass) {
             throw new IllegalArgumentException("extension class is null");
@@ -178,3 +178,211 @@ public class ExtensionLoader<T> {
         return o;
     }
 ```
+
+#### 从Holder中获取获取扩展实现的Class集合
+
+```java
+    public Map<String, Class<?>> getExtensionClasses() {
+        // 扩区SPI扩展实现的缓存，对应的就是扩展文件中的 key - value
+        Map<String, Class<?>> classes = cachedClasses.getT();
+        if (null == classes) {
+            synchronized (cachedClasses) {
+                classes = cachedClasses.getT();
+                if (null == classes) {
+                    // 加载扩展
+                    classes = loadExtensionClass();
+                    // 缓存扩展实现集合
+                    cachedClasses.setT(classes);
+                }
+            }
+        }
+        return classes;
+    }
+```
+
+#### 加载扩展实现Class
+
+&nbsp; &nbsp; 加载扩展实现Class，就是从文件中获取扩展实现的Class，然后缓存起来
+
+```java
+    public Map<String, Class<?>> loadExtensionClass() {
+        // 扩展接口tClass，必须包含SPI注解
+        SPI annotation = tClass.getAnnotation(SPI.class);
+        if (null != annotation) {
+            String v = annotation.value();
+            if (StringUtils.isNotBlank(v)) {
+                // 如果有默认的扩展实现名，用默认的
+                cacheDefaultName = v;
+            }
+        }
+        Map<String, Class<?>> classes = new HashMap<>(16);
+        // 从文件加载
+        loadDirectory(classes);
+        return classes;
+    }
+
+    private void loadDirectory(final Map<String, Class<?>> classes) {
+        // 文件名
+        String fileName = DEFAULT_DIRECTORY + tClass.getName();
+        try {
+            ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
+            // 读取配置文件
+            Enumeration<URL> urls = classLoader != null ? classLoader.getResources(fileName)
+                    : ClassLoader.getSystemResources(fileName);
+            if (urls != null) {
+                // 获取所有的配置文件
+                while (urls.hasMoreElements()) {
+                    URL url = urls.nextElement();
+                    // 加载资源
+                    loadResources(classes, url);
+                }
+            }
+        } catch (IOException e) {
+            log.error("load directory error {}", fileName, e);
+        }
+    }
+
+    private void loadResources(Map<String, Class<?>> classes, URL url) {
+        // 读取文件到Properties，遍历Properties，得到配置文件key（名字）和value（扩展实现的Class）
+        try (InputStream inputStream = url.openStream()) {
+            Properties properties = new Properties();
+            properties.load(inputStream);
+            properties.forEach((k, v) -> {
+                // 扩展实现的名字
+                String name = (String) k;
+                // 扩展实现的Class的全路径
+                String classPath = (String) v;
+                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
+                    try {
+                        // 加载扩展实现Class，就是想其缓存起来，缓存到集合中
+                        loadClass(classes, name, classPath);
+                    } catch (ClassNotFoundException e) {
+                        log.error("load class not found", e);
+                    }
+                }
+            });
+        } catch (IOException e) {
+            log.error("load resouces error", e);
+        }
+    }
+
+    private void loadClass(Map<String, Class<?>> classes, String name, String classPath) throws ClassNotFoundException {
+        // 反射创建扩展实现的Class
+        Class<?> subClass = Class.forName(classPath);
+        // 扩展实现的Class要是扩展接口的实现类
+        if (!tClass.isAssignableFrom(subClass)) {
+            throw new IllegalArgumentException("load extension class error " + subClass + " not sub type of " + tClass);
+        }
+        // 扩展实现要有Join注解
+        Join annotation = subClass.getAnnotation(Join.class);
+        if (null == annotation) {
+            throw new IllegalArgumentException("load extension class error " + subClass + " without @Join" +
+                    "Annotation");
+        }
+        // 缓存扩展实现Class
+        Class<?> oldClass = classes.get(name);
+        if (oldClass == null) {
+            classes.put(name, subClass);
+        } else if (oldClass != subClass) {
+            log.error("load extension class error, Duplicate class oldClass is " + oldClass + "subClass is" + subClass);
+        }
+    }
+```
+
+#### 存储Holder
+
+```java
+    public static class Holder<T> {
+
+        private volatile T t;
+
+        public T getT() {
+            return t;
+        }
+
+        public void setT(T t) {
+            this.t = t;
+        }
+    }
+```
+
+#### 测试SPI
+
+- **定义SPI接口**
+
+```java
+@SPI
+public interface TestSPI {
+
+    void test();
+}
+```
+
+- **扩展实现1和2**
+
+```java
+@Join
+public class TestSPI1Impl implements TestSPI {
+
+    @Override
+    public void test() {
+        System.out.println("test1");
+    }
+}
+
+@Join
+public class TestSPI2Impl implements TestSPI {
+
+    @Override
+    public void test() {
+        System.out.println("test2");
+    }
+}
+```
+
+- **在resources文件夹下创建META-INF/log-helper文件夹，并创建扩展文件**
+
+文件名称（接口全路径名）：com.redick.spi.test.TestSPI
+
+文件内容
+
+```properties
+testSPI1=com.redick.spi.test.TestSPI1Impl
+testSPI2=com.redick.spi.test.TestSPI2Impl
+```
+
+- **动态使用测试**
+
+```java
+public class SpiExtensionFactoryTest {
+
+    @Test
+    public void getExtensionTest() {
+        TestSPI testSPI = ExtensionLoader.getExtensionLoader(TestSPI.class).getJoin("testSPI1");
+        testSPI.test();
+    }
+}
+
+测试结果：
+
+test1
+```
+
+```java
+public class SpiExtensionFactoryTest {
+
+    @Test
+    public void getExtensionTest() {
+        TestSPI testSPI = ExtensionLoader.getExtensionLoader(TestSPI.class).getJoin("testSPI2");
+        testSPI.test();
+    }
+}
+
+测试结果：
+
+test2
+```
+
+## 总结
+
+&nbsp; &nbsp; 实现一个自定义的SPI机制其核心的逻辑就是扩展的加载，本篇是参考Dubbo等开源项目简单实现了一个SPI机制的核心代码，核心逻辑就是从SPI扩展的配置文件中加载扩展实现的流程，通常情况下，SPI的应用场景出现在高度可扩展组件，并且在使用过程中有需求能够灵活切换不同的实现的时候。比如程序使用限流组件，使用“令牌桶算法”和“漏桶算法”分别实现了限流逻辑，在业务使用限流算法的过程中，就可以通过SPI机制在程序启动过程中将两种算法实现的组件加载好，然后通过参数指定具体使用的限流算法。此外，SPI机制能够对扩展开放，常用于开源软件，用户可以实现自己的扩展。

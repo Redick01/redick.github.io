@@ -65,6 +65,7 @@
 * 设计模式
   * [单例模式](blog/design_pattern/singleton.md)
   * [责任链模式](blog/design_pattern/chain-responsbilitity.md)
+  * [自定义SPI实现](blog/java_base/myself-spi.md)
 
 * 架构
   * [java 0期毕业总结](blog/structure/study-summary.md)
