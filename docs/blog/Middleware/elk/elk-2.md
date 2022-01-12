@@ -1,0 +1,1 @@
+# Filebeat+Logstash收集多个日志发送到ES的不同索引
