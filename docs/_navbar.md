@@ -35,6 +35,7 @@
   * [基于Docker安装Skywalking + Elasticsearch](blog/Middleware/skywalking/skywalking-install-single.md)
   * [日志工具集成](blog/Middleware/log-helper/log-help-doc.md)
   * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
+  * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
