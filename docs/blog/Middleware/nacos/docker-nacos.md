@@ -9,7 +9,7 @@ docker pull nacos/nacos-server
 - **启动服务**
 
 ```
-docker run --env MODE=standalone --name nacos -d -p 8848:8848 nacos/nacos-server
+docker run --env MODE=standalone --name nacos -d -p 8848:8848 nacos/nacos-server:2.0.3
 
 # 进入控制台
 docker exec -it nacos bash

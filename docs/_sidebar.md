@@ -55,6 +55,9 @@
 * * * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
 * * * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
 
+** **分布式配置中心**
+* * * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
+
 * **数据库**
 * * **Mysql**
 * * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
