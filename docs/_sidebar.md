@@ -7,6 +7,7 @@
 * * [Guava Cache官方文档](blog/java_base/tools/guava-cache-official-doc.md)
 * * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
 * * [Java世界中的SPI](blog/java_base/spi.md)
+* * [Java实现简单的线程池监控](blog/Middleware/dynamic-threadpool/threadpool-monitor.md)
 * * **单元测试**
 * * * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
 

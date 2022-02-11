@@ -8,6 +8,7 @@
   * [Google Guava Cache在项目中应用](blog/java_base/tools/guava-cache.md)
   * [Java世界中的SPI](blog/java_base/spi.md)
   * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
+  * [Java实现简单的线程池监控](blog/java_base/unit-test/embedded-redisserver.md)
   
 * 数据结构与算法
   * [复杂度分析](blog/algorithm/time-space-fuzadu.md)
