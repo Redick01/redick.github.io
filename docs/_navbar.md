@@ -38,6 +38,7 @@
   * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
   * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
   * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
+  * [简单实现分布式配置中心常用的长轮询](blog/Middleware/distributed-configcenter/long-pulling.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)

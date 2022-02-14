@@ -58,6 +58,7 @@
 
 ** **分布式配置中心**
 * * * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
+* * * [简单实现分布式配置中心常用的长轮询](blog/Middleware/distributed-configcenter/long-pulling.md)
 
 * **数据库**
 * * **Mysql**
