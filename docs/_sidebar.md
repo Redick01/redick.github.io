@@ -61,6 +61,9 @@
 * * * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
 * * * [简单实现分布式配置中心常用的长轮询](blog/Middleware/distributed-configcenter/long-pulling.md)
 
+** **动态线程池**
+* * * [动态线程池dynamic-tp快速接入](blog/Middleware/dynamic-threadpool/dynamic-tp-quickstart.md)
+
 * **数据库**
 * * **Mysql**
 * * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
