@@ -1,113 +1,58 @@
-# 日志工具集成  <!-- {docsify-ignore-all} -->
+# 基于Spring AOP + logstash-logback-encoder日志链路追踪工具LogHelper  <!-- {docsify-ignore-all} -->
+
+## 背景
+
+###### 公司在使用ELK（ElasticSearch、Logstash、Filebeat）收集，解析日志的时候遇到一些问题，比如：
+
+> 1.日志内容格式不统一，ELK系统解析日志麻烦
+> 2.如何实现没有链路踪能力
+> 3.对于微服务RPC中间件如何实现链路追踪能力缺失
+> 4.无法统一做到接口传递参数脱敏
+> 5.分布式消息队列链路追踪能力缺失
+> 6.异步线程，线程池链路追踪能力缺失
+> 7.无法配合APM工具（Skywalking）生成的traceId作为日志链路追踪的traceId
+
+###### 基于此公司要求开发一个工具用于公司服务日志标准化，解决分布式链路追踪和ELK系统适配等问题；
+
+> 对于日志json格式化，Logstash给出了解决方案，那就是集成`logstash-logback-encoder`，在`logback.xml`中指定该`encoder`
+> Logback的MDC能够实现链路追踪
+> 对于SpringMVC，Dubbo，SpringCloud等RPC调用均有方案实现链路追踪
+> 阿里的TransmittableThreadLocal可以实现异步线程的链路追踪
+> apm-toolkit-trace可以实现Skywalking traceId 作为日志traceId
 
 ## 1 支持内容
 
-3.0.0-RELEASE版本
+##### 1.0-RELEASE版本
 
-- 日志json格式打印
-- 统一切面，提供切面注解打印切面入口输入参数和输出参数以及执行时间
-- 支持以MDC的方式打印traceId以及切面业务描述
-- 支持java bean，集合类型，HttpServletRequest等参数类型的日志打印
-- 异步线程日志链路追踪，支持java线程池和spring线程池的异步日志链路追踪
-- 支持Alibaba Dubbo和Apache Dubbo分布式日志链路追踪
-- 支持Spring Cloud OpenFeign分布式日志链路追踪
-- 提供HttpClient，OkHttp，RestTemplate日志链路追踪解决方案
-- 提供Apache RocketMQ，Aliyun RocketMQ日志链路追踪解决方案
-- 支持Spring Web日志链路追踪处理
-- 支持以SkyWalking traceId作为日志traceId
-- 提供Spring命名空间和SpringBoot两种接入方式
-- 提供简单的字段脱敏解决方案
-
+> 日志json格式打印
+> 统一切面，提供切面注解打印切面入口输入参数和输出参数以及执行时间
+> 支持以MDC的方式打印traceId以及切面业务描述
+> 支持java bean，集合类型，HttpServletRequest等参数类型的日志打印
+> 异步线程日志链路追踪，支持java线程池和spring线程池的异步日志链路追踪
+> 支持Alibaba Dubbo和Apache Dubbo分布式日志链路追踪
+> 支持Spring Cloud OpenFeign分布式日志链路追踪
+> 提供HttpClient，OkHttp，RestTemplate日志链路追踪
+> 提供Apache RocketMQ，Aliyun RocketMQ日志链路追踪解决方案
+> 支持以SkyWalking traceId作为日志traceId
+> 提供Spring命名空间和SpringBoot两种接入方式
+> 提供简单的字段脱敏解决方案
+> 提供参数解析接口，支持自定义接口参数的解析，只需要按SPI规范实现即可
 
 ## 2 快速开始
 
-### 2.1 logback.xml配置
+## 2.1 SpringBoot接入
 
-由于该日志工具集成了logstash，用于将日志格式化成json，所以在logback配置文件中指定日志格式配置是先决条件，配置如下：
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration debug="false">
-    <!--定义日志文件的存储地址 勿在 LogBack 的配置中使用相对路径-->
-    <property name="LOG_HOME" value="logs/" />
-    <property name="FILE_NAME" value="MISS.RBPS_Service" />
-    <!-- 控制台输出 -->
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
-        <!--json格式化输出日志-->
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>request_type</includeMdcKeyName>
-        </encoder>
-    </appender>
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/${FILE_NAME}.log</file>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!--日志文件输出的文件名-->
-            <!-- 文件扩展名设置为.zip/.gz后在文件滚动时会自动对旧日志进行压缩 -->
-            <FileNamePattern>${LOG_HOME}/${FILE_NAME}.log.%d{yyyyMMdd}.%i.zip</FileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <totalSizeCap>40GB</totalSizeCap>
-            <!--日志文件保留天数-->
-            <MaxHistory>30</MaxHistory>
-        </rollingPolicy>
-        <!--json格式化输出日志-->
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>request_type</includeMdcKeyName>
-        </encoder>
-        <prudent>false</prudent>
-    </appender>
-
-    <appender name="FILE_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_HOME}/debug/${FILE_NAME}_debug.log</file>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <!--日志文件输出的文件名-->
-            <!-- 文件扩展名设置为.zip/.gz后在文件滚动时会自动对旧日志进行压缩 -->
-            <FileNamePattern>${LOG_HOME}/debug/${FILE_NAME}_debug.log.%d{yyyyMMdd}.%i.zip</FileNamePattern>
-            <maxFileSize>1GB</maxFileSize>
-            <totalSizeCap>40GB</totalSizeCap>
-            <!--日志文件保留天数-->
-            <MaxHistory>30</MaxHistory>
-        </rollingPolicy>
-        <!--json格式化输出日志-->
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <includeMdcKeyName>traceId</includeMdcKeyName>
-            <includeMdcKeyName>request_type</includeMdcKeyName>
-        </encoder>
-        <prudent>false</prudent>
-    </appender>
-    <!-- 日志输出级别 -->
-    <logger name="io.netty" level="WARN" />
-    <root>
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="FILE"/>
-        <appender-ref ref="FILE_DEBUG"/>
-    </root>
-</configuration>
-```
-
-### 2.2 SpringBoot程序接入
-
-- **pom依赖**
+##### **pom依赖**
 
 ```xml
 <dependency>
     <groupId>com.redick</groupId>
-    <artifactId>log-helper-spring-boot-starter</artifactId>
-    <version>3.0.0-RELEASE</version>
+    <artifactId>log-helper-spring-boot-starter-common</artifactId>
+    <version>1.0-RELEASE</version>
 </dependency>
 ```
 
-- **应用程序启动开启日志自动装配**
+##### **应用程序启动开启日志自动装配**
 
 在程序启动类上添加`@LogHelperEnable`注解即可完成自动装配
 
@@ -122,101 +67,19 @@ public class Server {
 }
 ```
 
-- **使用方式**
+## 2.2 Spring NameSpace接入
 
-使用`@LogMarker`注解标注切面，示例如下：
-
-```java
-@RestController
-@Slf4j
-public class OrderController {
-
-    @Autowired
-    private OrderService orderService;
-
-    @PostMapping("/sc-tcc/submitOrder")
-    @LogMarker(businessDescription = "提交订单", interfaceName = "/sc-tcc/submitOrder")
-    public String submitOrder(@RequestBody SubmitOrderDTO dto) {
-        String orderNo = UUID.randomUUID().toString();
-        try {
-            orderService.saveOrder(new StockDTO(orderNo, dto.getProductId(), dto.getPayCount(), UUID.randomUUID().toString()));
-            return "SUCCESS";
-        } catch (Exception e) {
-            log.error(LogUtil.exceptionMarker(), "异常", e);
-            return "ERROR";
-        }
-    }
-}
-```
-
-日志内容：
-
-```json
-{
-    "@timestamp":"2021-12-20T17:45:05.101+08:00",
-    "@version":"1",
-    "message":"开始处理",
-    "logger_name":"org.transaction.tcc.order.controller.OrderController",
-    "thread_name":"http-nio-9109-exec-2",
-    "level":"INFO",
-    "level_value":20000,
-    "request_type":"提交订单",
-    "x_global_session_id":"82e56e5a-ea27-4cf5-bf49-e5ae9965f65c",
-    "log_pos":"开始处理",
-    "data":{
-        "productId":1,
-        "payCount":100
-    }
-}
-.....
-{
-    "@timestamp":"2021-12-20T17:45:06.522+08:00",
-    "@version":"1",
-    "message":"处理完毕",
-    "logger_name":"org.transaction.tcc.order.controller.OrderController",
-    "thread_name":"http-nio-9109-exec-2",
-    "level":"INFO",
-    "level_value":20000,
-    "request_type":"提交订单",
-    "x_global_session_id":"82e56e5a-ea27-4cf5-bf49-e5ae9965f65c",
-    "log_pos":"处理完毕",
-    "data":{
-        "serialPersistentFields":[
-
-        ],
-        "CASE_INSENSITIVE_ORDER":{
-
-        },
-        "serialVersionUID":-6849794470754667710,
-        "value":"SUCCESS",
-        "hash":0
-    },
-    "duration":1410,
-    "result":"成功"
-}
-```
-
-
-### 2.3 Spring Namespce接入
-
-- **pom**
+##### **pom**
 
 ```xml
 <dependency>
     <groupId>com.redick</groupId>
-    <artifactId>log-helper-core</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>com.redick</groupId>
     <artifactId>log-helper-spring</artifactId>
-    <version>2.0.7-RELEASE</version>
+    <version>1.0-RELEASE</version>
 </dependency>
 ```
 
-
-
-- **Spring AOP配置**
+##### **Spring AOP配置**
 
 配置aop：用于打印通用的日志，如，接口调用时间、请求参数、返回参数、全局会话ID、request_type，使用该日志插件不需要自己打请求参数和返回值，插件会自动打印.
 
@@ -243,6 +106,186 @@ http://www.redick.com/schema/logmarker http://www.redick.com/schema/logmarker/lo
 </beans>
 ```
 
+
+## 2.3 Logback配置
+
+由于该日志工具集成了`logback-logstash-encoder`，用于将日志格式化成`json`，所以在`logback`配置文件中指定日志格式配置是先决条件，配置如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false" scan="true" scanPeriod="30 minutes">
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+    <!-- 引入外部配置文件的地址 -->
+    <property resource="logback.properties"/>
+
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${STDOUT_LEVEL}</level>
+        </filter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <version>${LOG_VERSION}</version>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>request_type</includeMdcKeyName>
+            <includeMdcKeyName>interface_name</includeMdcKeyName>
+        </encoder>
+    </appender>
+    <!-- INFO级别的日志 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${FILE_NAME}.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${FILE_LEVEL}</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <!-- 文件扩展名设置为.zip/.gz后在文件滚动时会自动对旧日志进行压缩 -->
+            <FileNamePattern>${LOG_HOME}/${FILE_NAME}.log.%d{yyyyMMdd}.%i.zip</FileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过512MB，若超过512MBM，日志文件会以索引0开始，命名日志文件，例如log-error-2013-12-21.0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${FILE_MAX_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <MaxHistory>${FILE_HISTORY}</MaxHistory>
+            <totalSizeCap>${FILE_TOTAL_SIZE}</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <version>${LOG_VERSION}</version>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>request_type</includeMdcKeyName>
+            <includeMdcKeyName>interface_name</includeMdcKeyName>
+        </encoder>
+        <prudent>false</prudent>
+    </appender>
+
+    <!-- DEBUG级别的日志 -->
+    <appender name="FILE_DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/debug/${FILE_NAME}_debug.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${FILE_DEBUG_LEVEL}</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <!-- 文件扩展名设置为.zip/.gz后在文件滚动时会自动对旧日志进行压缩 -->
+            <FileNamePattern>${LOG_HOME}/debug/${FILE_NAME}_debug.log.%d{yyyyMMdd}.%i.zip</FileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过512MB，若超过512MBM，日志文件会以索引0开始，命名日志文件，例如log-error-2013-12-21.0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${FILE_DEBUG_MAX_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <MaxHistory>${FILE_DEBUG_HISTORY}</MaxHistory>
+            <totalSizeCap>${FILE_DEBUG_TOTAL_SIZE}</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <version>${LOG_VERSION}</version>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>request_type</includeMdcKeyName>
+            <includeMdcKeyName>interface_name</includeMdcKeyName>
+        </encoder>
+        <prudent>false</prudent>
+    </appender>
+
+    <!-- ERROR级别的日志 -->
+    <appender name="FILE_ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/error/${FILE_NAME}_error.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>${FILE_ERROR_LEVEL}</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <!-- 文件扩展名设置为.zip/.gz后在文件滚动时会自动对旧日志进行压缩 -->
+            <FileNamePattern>${LOG_HOME}/error/${FILE_NAME}_error.log.%d{yyyyMMdd}.%i.zip</FileNamePattern>
+            <!-- 除按日志记录之外，还配置了日志文件不能超过512MB，若超过512MBM，日志文件会以索引0开始，命名日志文件，例如log-error-2013-12-21.0.log -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${FILE_ERROR_MAX_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志文件保留天数-->
+            <MaxHistory>${FILE_ERROR_HISTORY}</MaxHistory>
+            <totalSizeCap>${FILE_ERROR_TOTAL_SIZE}</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <version>${LOG_VERSION}</version>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>request_type</includeMdcKeyName>
+            <includeMdcKeyName>interface_name</includeMdcKeyName>
+        </encoder>
+        <prudent>false</prudent>
+    </appender>
+
+    <!-- 日志输出级别 -->
+
+    <root>
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="FILE_DEBUG"/>
+        <appender-ref ref="FILE_ERROR"/>
+    </root>
+
+</configuration>
+
+```
+
+```properties
+#日志文件存储根路径
+LOG_VERSION=0.0.1
+LOG_HOME=logs
+#日志文件名称前缀
+FILE_NAME=spring-namespace-example
+# 控制台日志打印级别
+STDOUT_LEVEL=DEBUG
+#INFO级别日志文件配置
+#单个文件最大的大小
+FILE_MAX_SIZE=512MB
+#日志保留天数
+FILE_HISTORY=10
+#日志总大小
+FILE_TOTAL_SIZE=40GB
+# info级别日志打印开关，配置为INFO即打印，配置OFF即关闭
+FILE_LEVEL=INFO
+#DEBUG级别日志文件配置
+FILE_DEBUG_MAX_SIZE=512MB
+FILE_DEBUG_HISTORY=10
+FILE_DEBUG_TOTAL_SIZE=40GB
+# debug级别日志打印开关，配置为debug即打印debug级别的日志，配置OFF即关闭
+FILE_DEBUG_LEVEL=DEBUG
+#ERROR级别日志文件配置
+FILE_ERROR_MAX_SIZE=512MB
+FILE_ERROR_HISTORY=10
+FILE_ERROR_TOTAL_SIZE=10GB
+# error级别日志打印开关，配置为error即打印error级别的日志，配置OFF即关闭
+FILE_ERROR_LEVEL=OFF
+```
+
+
+## 2.4 业务代码中使用
+
+使用`@LogMarker`注解标注切面，示例如下：
+
+```java
+@RestController
+public class TestController {
+
+   private final String url = "http://localhost:8783/producer/say";
+
+    @PostMapping("/httpclient")
+    @LogMarker(businessDescription = "/httpclient-test", interfaceName = "com.redick.example.support.controller.ConsumerController#httpclient()")
+    public @ResponseBody
+    Response httpclient(@RequestBody Request request) {
+        return JSONObject.parseObject(HttpClientUtil.doPost(url, JSONObject.toJSONString(request)), Response.class);
+    }
+}
+```
+
+日志内容：
+
+```json
+{"@timestamp":"2022-03-31T22:36:17.430+08:00","@version":"0.0.1","message":"开始处理","logger_name":"com.redick.example.support.controller.ConsumerController","thread_name":"http-nio-1743-exec-1","level":"INFO","level_value":20000,"traceId":"5dd5b5bc-c3f1-4090-9131-3e148edc5c6f","interface_name":"com.redick.example.support.controller.ConsumerController#httpclient()","request_type":"/httpclient-test","log_pos":"开始处理","data":[{"content":"test"}]}
+.....
+{"@timestamp":"2022-03-31T22:36:18.746+08:00","@version":"0.0.1","message":"处理完毕","logger_name":"com.redick.example.support.controller.ConsumerController","thread_name":"http-nio-1743-exec-1","level":"INFO","level_value":20000,"traceId":"5dd5b5bc-c3f1-4090-9131-3e148edc5c6f","interface_name":"com.redick.example.support.controller.ConsumerController#httpclient()","request_type":"/httpclient-test","log_pos":"处理完毕","data":{"message":"success","data":"test","code":0},"duration":1298,"result":"成功"}
+```
+
+
+
+
 - **使用方式**
 
 同SpringBoot接入方式
@@ -259,155 +302,152 @@ http://www.redick.com/schema/logmarker http://www.redick.com/schema/logmarker/lo
 &nbsp; &nbsp; 
 &nbsp; &nbsp; 
 
-## 3 异步线程链路追踪支持
+## 3 其他支持
 
-### 3.1 SpringBoot接入
+### 3.1 异步线程池链路追踪支持
 
-**SpringBoot通过自动装配已经支持，无需多余配置。**
+#### 3.1.1 SpringBoot通过自动装配已经支持，无需多余配置
 
+#### 3.1.2 Spring Namespace接入
 
-### 3.2 Spring Namespace接入
-
-**非SpringBoot程序配置支持异步线程链路追踪，需要在程序启动时加载一个MDCAdapter，建议使用@PostConstruct的方式，代码如下：**
-
+&nbsp; &nbsp; Spring Namespace方式需要加载我们自己实现的`MDCAdapter`，程序启动加载进去就可以，这里我使用Spring事件监听，也可以使用`@PostContruct`等方式。
+ 
 ```java
-@PostConstruct
-public void init() throws Exception {
-    TtlMDCAdapter.getInstance();
+@Component
+public class ApplicationStartedListener implements ApplicationListener<ContextRefreshedEvent> {
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        if (event instanceof ContextRefreshedEvent) {
+            TtlMDCAdapter.getInstance();
+        }
+    }
 }
 ```
 
-### 3.3 使用线程支持异步线程链路追踪
-
-**使用线程池的程序想要支持链路追踪，不仅需要增强`MDCAdapter`还需要对线程池进行一定的修饰，使用的是`TransmittableThreadLocal`的API进行的线程池修饰；日志工具包提供了线程池修饰的实现，如下：**
-
-1. 对JUC线程池ThreadPoolExecutor的修饰类是：TtlThreadPoolExecutor
-2. 对Spring的ThreadPoolTaskExecutor的修饰类是：TtlThreadPoolTaskExecutor
-
-使用实例如下：
+#### 3.1.3 示例
 
 ```java
-    public static void main(String[] args) {
-        TtlThreadPoolTaskExecutor paymentThreadPool = new TtlThreadPoolTaskExecutor();
-        paymentThreadPool.setCorePoolSize(5);
-        paymentThreadPool.setMaxPoolSize(10);
-        paymentThreadPool.setKeepAliveSeconds(60);
-        paymentThreadPool.setQueueCapacity(1000);
-        paymentThreadPool.setThreadFactory(new ThreadFactoryBuilder().setNameFormat("trans-dispose-%d").build());
-        paymentThreadPool.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
-        paymentThreadPool.initialize();
-        paymentThreadPool.execute(() -> {
-            System.out.println("异步线程执行");
+@RestController
+@Slf4j
+public class TestController {
+
+    @Resource(name = "ttlThreadPoolTaskExecutor")
+    private TtlThreadPoolTaskExecutor ttlThreadPoolTaskExecutor;
+
+    @Resource(name = "ttlThreadPoolExecutor")
+    private TtlThreadPoolExecutor ttlThreadPoolExecutor;
+
+    @LogMarker(businessDescription = "say方法", interfaceName = "com.redick.loghelper.controller.TestController#say()")
+    @GetMapping("/test")
+    public String say(String content) {
+
+        ttlThreadPoolExecutor.execute(() -> {
+            log.info(LogUtil.marker("ttlThreadPoolExecutor"), content);
         });
+
+        ttlThreadPoolTaskExecutor.execute(() -> {
+            log.info(LogUtil.marker("ttlThreadPoolTaskExecutor"), content);
+        });
+
+        return "say" + content;
     }
+}
 ```
 
 &nbsp; &nbsp; 
 &nbsp; &nbsp; 
 &nbsp; &nbsp; 
 
-## 4 SpringCloud OpenFeign支持
 
-### 4.1 SpringBoot接入
+### 3.2 Apache Dubbo支持
+
+#### 3.2.1 SpringBoot接入
+
+```xml
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring-boot-starter-apachedubbo</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
+```
+
+#### 3.2.2 Spring NameSpace接入
+
+```xml
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring-boot-starter-apachedubbo</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
+```
+
+####
+
+```xml
+<dependency>
+    <groupId>com.redick</groupId>
+    <artifactId>log-helper-spring-boot-starter-openfeign</artifactId>
+    <version>1.0-RELEASE</version>
+</dependency>
+```
 
 **SpringBoot通过自动装配已经支持，无需多余配置。**
 
-### 4.2 Spring Namespace接入
 
-**RPC调用使用OpenFeign需要进行以下配置：**
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
 
-- **Producer端配置，使用java配置或XML配置均可**
+### 3.3 Alibaba Dubbo支持
 
- java配置
-
-```java
-@Configuration
-@ConditionalOnClass(RequestTemplate.class)
-public class FeignFilterConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean(name = "feignRequestFilter")
-    public FeignRequestFilter feignRequestFilter() {
-        return new FeignRequestFilter();
-    }
-}
-```
-
- 或XML配置
+#### 3.3.1 SpringBoot接入
 
 ```xml
-<bean class="com.ruubypay.log.filter.feign.FeignRequestFilter"/>
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring-boot-starter-alibabadubbo</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
 ```
 
-- **Consumer端配置**
-
-```java
-@Configuration
-@ConditionalOnClass({DispatcherServlet.class, WebMvcConfigurer.class})
-public class WebInterceptorConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean(name = "webConfiguration")
-    public WebConfiguration webConfiguration() {
-        return new WebConfiguration();
-    }
-}
-```
-
-或XML配置
+#### 3.3.2 Spring NameSpace接入
 
 ```xml
-<bean class="com.ruubypay.log.filter.web.WebConfiguration"/>
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring-boot-starter-alibabadubbo</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
 ```
 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
+### 3.4 SpringCloud支持
 
-## 5 Apache Dubbo支持和Alibaba Dubbo支持
-
-### 5.1 Apache Dubbo支持
-
-无论SpringBoot还是传统Spring Namespace只要需要引入依赖即可：
+#### 3.4.1 SpringBoot接入
 
 ```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-apachedubbo</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
+        <dependency>
+            <groupId>com.redick</groupId>
+            <artifactId>log-helper-spring-boot-starter-openfeign</artifactId>
+            <version>1.0-RELEASE</version>
+        </dependency>
 ```
 
-### 5.2 Alibaba Dubbo支持
+### 3.5 MQ消息队列
 
-类似`5.1 Apache Dubbo支持`
-
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-alibabadubbo</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-```
-
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-
-## 6 MQ消息队列解决方案
-
-无论SpringBoot还是传统Spring Namespace只要需要引入依赖即可：
-
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-mq</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-```
+ `log-helper-core`提供了对分布式消息队列MQ的`traceId`传递解决方案。
 
  对MQ消息队列的支持需要对应用程序的业务代码入侵，方案是对业务的Bean进行装饰，日志工具包提供了一个MqWrapperBean用于包装业务Bean，具体使用代码如下：
-
 
 - **Producer端**
 
@@ -455,144 +495,24 @@ public class WebInterceptorConfiguration {
 &nbsp; &nbsp; 
 &nbsp; &nbsp; 
 
-## 7 HttpClient支持
+### 3.6 HttpClient，OkHttp，RestTemplate支持
 
-工具包支持HttpClient4和HttpClient5，HttpClient支持traceId需要代码入侵，具体实现方案是对HttpClient添加拦截器，拦截器的作用是将traceId放到Http Header中。
+`log-helper-core`提供了多种对`HttpClient`工具`traceId`传递的解决方案。
 
-无论SpringBoot还是传统Spring Namespace只要需要引入依赖即可：
+HttpClient，OkHttp，RestTemplate支持traceId需要代码入侵，具体实现方案是对HttpClient添加拦截器，拦截器的作用是消费者将traceId放到Http Header中，生产者从Http Header中获取traceId。
 
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-httpclient</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-```
+使用方式参数[示例](https://github.com/Redick01/log-helper/tree/master/log-helper-example/log-helper-example-support-httpclient)
 
 
 
-### 7.1 HttpClient4示例代码：
-
-```java
-public class HttpClientExample {
-
-    public static void main(String[] args) {
-        String url = "http://127.0.0.1:8081/order/getPayCount?orderNo=1";
-        CloseableHttpClient client = HttpClientBuilder.create()
-                .addInterceptorFirst(new SessionIdHttpClientInterceptor())
-                .build();
-        HttpGet get = new HttpGet(url);
-        try {
-            CloseableHttpResponse response = client.execute(get);
-            HttpEntity entity  = response.getEntity();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-### 7.2 HttpClient5示例代码：
-
-```java
-public class HttpClient5Example {
-
-    public static void main(String[] args) {
-        String url = "http://127.0.0.1:8081/order/getPayCount?orderNo=1";
-        CloseableHttpClient client = HttpClientBuilder.create()
-                .addRequestInterceptorFirst(new SessionIdHttpClient5Interceptor())
-                .build();
-        HttpGet get = new HttpGet(url);
-        try {
-            CloseableHttpResponse response = client.execute(get);
-            HttpEntity entity  = response.getEntity();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-
-## 8 OkHttp支持
-
- 工具包提供OkHttp客户端支持，实现方法与HttpClient类似，均以拦截器形式实现
-
- 无论SpringBoot还是传统Spring Namespace只要需要引入依赖即可：
-
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-httpclient</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-```
- 
-### 8.1 OkHttp示例代码：
-
-```java
-public class OkHttpExample {
-
-    public static void main(String[] args) throws IOException {
-        String url = "http://127.0.0.1:8081/order/getPayCount?orderNo=1";
-        OkHttpClient okHttpClient = new OkHttpClient();
-        okHttpClient.interceptors().add(new SessionIdOkhttpInterceptor());
-        Request request = new Request.Builder().url(url).build();
-        Call call = okHttpClient.newCall(request);
-        Response response = call.execute();
-    }
-}
-```
-
-### 8.2 OkHttp3示例代码：
-
-```java
-public class OkHttp3Example {
-
-    public static void main(String[] args) throws IOException {
-        String url = "http://127.0.0.1:8081/order/getPayCount?orderNo=1";
-        OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
-                .addInterceptor(new SessionIdOkhttp3Interceptor())
-                .build();
-        Request request = new Request.Builder().url(url).build();
-        Call call = okHttpClient.newCall(request);
-        Response response = call.execute();
-    }
-}
-```
-
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp;
-
-## 9 Spring Web RestTemplate支持
-
- 无论SpringBoot还是传统Spring Namespace只要需要引入依赖即可：
-
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-httpclient</artifactId>
-    <version>3.0.0-RELEASE</version>
-</dependency>
-```
-
- 工具包提供了，RestTemplate支持，实现方案也是以拦截器的方式，只需要在使用RestTemplate时添加如下代码即可；
- 
-```java
-restTemplate.setInterceptors(Collections.singletonList(new SessionIdRestTemplateInterceptor()));
-```
-
-## 10 接口参数脱敏支持
+### 3.7 接口参数脱敏支持
 
 - **接口请求参数脱敏：**
 
 由于接口传入参数可能会传入用户信息或者是密钥等敏感信息，所以打印日志时应该针对这部分敏感信息进行脱敏，此插件提供了一个`@Sensitive`注解，该注解作用于传入参数实体的具体属性上；该注解有两个参数`paramSensitiveType（参数脱敏类型）`表明该字段是针对身份证或银行卡或其它的类型进行脱敏，插件提供的SensitiveType类是脱敏类型定义类，isSensitive（是否需要脱敏），默认为false不脱敏，要脱敏时应设置为true，如果字段不需要脱敏不使用该注解即可。使用方法如下：
 
 a.@Sensitive注解使用方法：
+
 ```java
 @Sensitive(paramSensitiveType = SensitiveType.MAC, isSensitive = true)
 private String mac;
@@ -646,6 +566,10 @@ b.调用HTTP接口：在调用HTTP接口时因为请求参数是调用方自己�
 
 在接口参数java bean的字段上添加@FieldIgnore注解即可。
 
-## 11 日志打印自定义操作及建议规范
+## 4 日志打印自定义操作及建议规范
 
-参考：[日志打印自定义操作及建议规范](/use-detail.md)
+参考：[日志打印自定义操作及建议规范]([/use-detail.md](https://github.com/Redick01/log-helper/blob/master/use-detail.md))
+
+## 5 详细使用示例
+
+参考[示例](https://github.com/Redick01/log-helper/tree/master/log-helper-example)
