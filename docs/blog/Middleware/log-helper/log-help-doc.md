@@ -410,18 +410,6 @@ public class TestController {
         </dependency>
 ```
 
-####
-
-```xml
-<dependency>
-    <groupId>com.redick</groupId>
-    <artifactId>log-helper-spring-boot-starter-openfeign</artifactId>
-    <version>1.0-RELEASE</version>
-</dependency>
-```
-
-**SpringBoot通过自动装配已经支持，无需多余配置。**
-
 
 &nbsp; &nbsp; 
 &nbsp; &nbsp; 
