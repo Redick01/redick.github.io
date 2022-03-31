@@ -5,19 +5,29 @@
 ###### 公司在使用ELK（ElasticSearch、Logstash、Filebeat）收集，解析日志的时候遇到一些问题，比如：
 
 > 1.日志内容格式不统一，ELK系统解析日志麻烦
+
 > 2.如何实现没有链路踪能力
+
 > 3.对于微服务RPC中间件如何实现链路追踪能力缺失
+
 > 4.无法统一做到接口传递参数脱敏
+
 > 5.分布式消息队列链路追踪能力缺失
+
 > 6.异步线程，线程池链路追踪能力缺失
+
 > 7.无法配合APM工具（Skywalking）生成的traceId作为日志链路追踪的traceId
 
 ###### 基于此公司要求开发一个工具用于公司服务日志标准化，解决分布式链路追踪和ELK系统适配等问题；
 
 > 对于日志json格式化，Logstash给出了解决方案，那就是集成`logstash-logback-encoder`，在`logback.xml`中指定该`encoder`
+
 > Logback的MDC能够实现链路追踪
+
 > 对于SpringMVC，Dubbo，SpringCloud等RPC调用均有方案实现链路追踪
+
 > 阿里的TransmittableThreadLocal可以实现异步线程的链路追踪
+
 > apm-toolkit-trace可以实现Skywalking traceId 作为日志traceId
 
 ## 1 支持内容
@@ -25,18 +35,34 @@
 ##### 1.0-RELEASE版本
 
 > 日志json格式打印
+
 > 统一切面，提供切面注解打印切面入口输入参数和输出参数以及执行时间
+
 > 支持以MDC的方式打印traceId以及切面业务描述
+
 > 支持java bean，集合类型，HttpServletRequest等参数类型的日志打印
+
 > 异步线程日志链路追踪，支持java线程池和spring线程池的异步日志链路追踪
+
 > 支持Alibaba Dubbo和Apache Dubbo分布式日志链路追踪
+
 > 支持Spring Cloud OpenFeign分布式日志链路追踪
+
 > 提供HttpClient，OkHttp，RestTemplate日志链路追踪
+
 > 提供Apache RocketMQ，Aliyun RocketMQ日志链路追踪解决方案
+
 > 支持以SkyWalking traceId作为日志traceId
+
 > 提供Spring命名空间和SpringBoot两种接入方式
+
 > 提供简单的字段脱敏解决方案
+
 > 提供参数解析接口，支持自定义接口参数的解析，只需要按SPI规范实现即可
+
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
 
 ## 2 快速开始
 
@@ -110,6 +136,8 @@ http://www.redick.com/schema/logmarker http://www.redick.com/schema/logmarker/lo
 ## 2.3 Logback配置
 
 由于该日志工具集成了`logback-logstash-encoder`，用于将日志格式化成`json`，所以在`logback`配置文件中指定日志格式配置是先决条件，配置如下：
+
++ logback.xml配置
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -224,6 +252,8 @@ http://www.redick.com/schema/logmarker http://www.redick.com/schema/logmarker/lo
 
 ```
 
++ logback.properties配置
+
 ```properties
 #日志文件存储根路径
 LOG_VERSION=0.0.1
@@ -279,22 +309,15 @@ public class TestController {
 
 ```json
 {"@timestamp":"2022-03-31T22:36:17.430+08:00","@version":"0.0.1","message":"开始处理","logger_name":"com.redick.example.support.controller.ConsumerController","thread_name":"http-nio-1743-exec-1","level":"INFO","level_value":20000,"traceId":"5dd5b5bc-c3f1-4090-9131-3e148edc5c6f","interface_name":"com.redick.example.support.controller.ConsumerController#httpclient()","request_type":"/httpclient-test","log_pos":"开始处理","data":[{"content":"test"}]}
-.....
+
 {"@timestamp":"2022-03-31T22:36:18.746+08:00","@version":"0.0.1","message":"处理完毕","logger_name":"com.redick.example.support.controller.ConsumerController","thread_name":"http-nio-1743-exec-1","level":"INFO","level_value":20000,"traceId":"5dd5b5bc-c3f1-4090-9131-3e148edc5c6f","interface_name":"com.redick.example.support.controller.ConsumerController#httpclient()","request_type":"/httpclient-test","log_pos":"处理完毕","data":{"message":"success","data":"test","code":0},"duration":1298,"result":"成功"}
 ```
 
 
 
 
-- **使用方式**
 
-同SpringBoot接入方式
-
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-
-### 2.4 总结
+### 2.5 快速接入总结
 
 基础的接入方式就这么多，下面了解下一些特殊场景支持的接入方式
 
@@ -491,9 +514,6 @@ public class TestController {
 
  工具包提供了阿里云RocketMq的消费这支持`AliyunMqConsumer`
  
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
-&nbsp; &nbsp; 
 
 ### 3.6 HttpClient，OkHttp，RestTemplate支持
 
@@ -566,9 +586,17 @@ b.调用HTTP接口：在调用HTTP接口时因为请求参数是调用方自己�
 
 在接口参数java bean的字段上添加@FieldIgnore注解即可。
 
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
+
 ## 4 日志打印自定义操作及建议规范
 
 参考：[日志打印自定义操作及建议规范]([/use-detail.md](https://github.com/Redick01/log-helper/blob/master/use-detail.md))
+
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
+&nbsp; &nbsp; 
 
 ## 5 详细使用示例
 
