@@ -51,6 +51,7 @@
 * * * [阿里云RocketMQ订阅关系一致性](blog/Middleware/mq/rocketmq-product-err.md)
 * * * **Log-Helper**
 * * * * [日志工具集成](blog/Middleware/log-helper/log-help-doc.md)
+* * * * [LogHelper在ELK系统上的效果](blog/Middleware/log-helper/kibana-loghelper.md)
   
 * * **分布式链路追踪**
 * * * [基于Docker安装Skywalking + Elasticsearch](blog/Middleware/skywalking/skywalking-install-single.md)
