@@ -105,6 +105,7 @@
 * * [Istio入口流量路由](blog/structure/servicemesh/istio-gateway-rate.md)
 * * [Kubernetes上基于Istio和SpringBoot搭建服务网格](blog/structure/servicemesh/istio-springboot.md)
 * * [可靠消息最终一致性分布式事务](blog/structure/distribute-system/mq-distribute-transaction.md)
+* * [基于Zookeeper的服务分片](blog/structure/microservice/distribute-sharding-zk.md)
 
 * **网络**
 * * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
