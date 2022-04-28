@@ -5,4 +5,4 @@
 
 > 个人微信
 
-![avatar](_media/my-qrcode.png)
+![avatar](https://github.com/Redick01/redick.github.io/blob/master/docs/_media/my-qrcode.png)
