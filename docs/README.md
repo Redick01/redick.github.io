@@ -5,4 +5,4 @@
 
 > 个人微信
 
-![](_media/my-qrcode.png)
+![](/_media/my-qrcode.png)
