@@ -139,3 +139,4 @@
   * [生产中使用ActiveMq消费慢问题排查过程及解决方式](blog/Middleware/mq/activemq-problem-1.md)
   * [公司服务Service Mesh改造](blog/structure/servicemesh/servicemesh-gaizao.md)
   * [记一次因WebService无响应导致线程阻塞 - 生产问题定位](blog/problems/webservice-not-response.md)
+  * [公司传统微服务架构切换Service Mesh架构部署方案总结](blog/problems/mic-to-mesh.md)
