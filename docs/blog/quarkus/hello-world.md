@@ -46,8 +46,10 @@ $ sdk list java
 
 可以看到SDKMAN列出了所支持的所有Java发行版，找`GraalVM`发行版执行以下命令安装：
 
+注：构建原生可执行文件要求的`GraalVM`版本是`22.1.0`及以上
+
 ```powershell
-$ sdk install java 20.1.0.r11-grl
+$ sdk install java 22.1.0.r17-grl
 ```
 
 至此，`GraalVM`安装完毕！我们可以运行如下命令来判断`GraalVM`是否已安装：

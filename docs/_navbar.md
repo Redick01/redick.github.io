@@ -22,12 +22,6 @@
   * [位运算](blog/algorithm/bit-calc.md)
   * [布隆过滤器和LRU算法](blog/algorithm/lru-bloom.md)
 
-* Netty
-  * [Netty基础](blog/Netty/netty_base.md)
-  * [Netty简单使用](blog/Netty/netty_use_1.md)
-  * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md.md)
-  * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
-
 * 中间件
   * [Redis集群与高可用](blog/Middleware/redis/redis_1.md)
   * [Arthas初探](blog/Middleware/arthas/startup.md)
@@ -40,6 +34,10 @@
   * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
   * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
   * [简单实现分布式配置中心常用的长轮询](blog/Middleware/distributed-configcenter/long-pulling.md)
+  * [Netty基础](blog/Netty/netty_base.md)
+  * [Netty简单使用](blog/Netty/netty_use_1.md)
+  * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md.md)
+  * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
@@ -79,8 +77,6 @@
   * [微服务架构下的容错性设计](blog/structure/microservice/micro-service-design-1.md)
   * [分布式锁的几种实现方式](blog/structure/distributed-lock.md)
   * [可靠消息最终一致性分布式事务](blog/structure/distribute-system/mq-distribute-transaction.md)
-
-* 云原生
   * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
   * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
   * [Service Mesh - Kubernetes & Istio 开发环境搭建(Mac OS)](blog/structure/servicemesh/servicemesh-two.md)
@@ -88,6 +84,8 @@
   * [Kubernetes上基于Istio和SpringBoot搭建服务网格](blog/structure/servicemesh/istio-springboot.md)
   * [什么是Quarkus](blog/quarkus/what-is.md)
   * [Quarkus-实现第一个Hello World](blog/quarkus/hello-world.md)
+  * [Quarkus-构建一个原生可执行文件](blog/quarkus/construct-proto-exec-file.md)
+
 
 * 网络
   * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
