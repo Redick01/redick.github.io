@@ -85,6 +85,7 @@
   * [什么是Quarkus](blog/quarkus/what-is.md)
   * [Quarkus-实现第一个Hello World](blog/quarkus/hello-world.md)
   * [Quarkus-构建一个原生可执行文件](blog/quarkus/construct-proto-exec-file.md)
+  * [Quarkus-发布JSON Restful服务](blog/quarkus/publish-json-restful.md)
 
 
 * 网络
