@@ -113,6 +113,8 @@
 * * * [Quarkus-实现第一个Hello World](blog/quarkus/hello-world.md)
 * * * [Quarkus-构建一个原生可执行文件](blog/quarkus/construct-proto-exec-file.md)
 * * * [Quarkus-发布JSON Restful服务](blog/quarkus/publish-json-restful.md)
+* * * [Quarkus - MySQL Hibernate ORM + 多数据源](blog/quarkus/quarkus-hibernate.md)
+* * * [Quarkus - 容错](blog/quarkus/quarkus-rongcuo.md)
 
 * **网络**
 * * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
