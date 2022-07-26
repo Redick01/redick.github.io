@@ -69,6 +69,9 @@
 * * **动态线程池**
 * * * [动态线程池dynamic-tp快速接入](blog/Middleware/dynamic-threadpool/dynamic-tp-quickstart.md)
 
+* * **ShardingSphere**
+* * * [Sharding-Proxy部署](blog/Middleware/shardingsphere/shardingsphere-1.md)
+
 * **数据库**
 * * **Mysql**
 * * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
