@@ -104,6 +104,7 @@
 * * [java 0期毕业总结](blog/structure/study-summary.md)
 * * [可靠消息最终一致性分布式事务](blog/structure/distribute-system/mq-distribute-transaction.md)
 * * [基于Zookeeper的服务分片](blog/structure/microservice/distribute-sharding-zk.md)
+* * [使用Checkstyle规范项目](blog/standard/checkstyle.md)
 
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
