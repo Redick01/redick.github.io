@@ -153,7 +153,9 @@
 * * * [Dubbo服务启动-Dubbo Consumer引用服务](blog/sourcecode/dubbo/dubbo-refer-service.md)
 * * * [Dubbo远程调用 - invoke](blog/sourcecode/dubbo/dubbo-invoke.md)
 * * * [Dubbo集群容错](blog/sourcecode/dubbo/dubbo-cluster.md)
-* * * [Dubbo线程模型](blog/sourcecode/dubbo/dubbo-thread-model.md)
+* * * [Dubbo协议下的服务端线程模型](blog/sourcecode/dubbo/dubbo-thread-model.md)
+* * * [Dubbo协议下的Consumer端线程模型](blog/sourcecode/dubbo/dubbo-consumer-tp-model.md)
+
 * * **Redisson锁实现源码分析**
 * * * [Redisson可重入锁源码分析](blog/sourcecode/redisson/redisson-lock-1.md)
 * * * [Redisson分布式锁开门狗](blog/sourcecode/redisson/redisson-lock-dog.md)
