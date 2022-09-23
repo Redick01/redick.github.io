@@ -1,4 +1,4 @@
-# Linux路由
+# Linux路由 <!-- {docsify-ignore-all} -->
 
 
 注：Ubuntu版本为18.04.6
