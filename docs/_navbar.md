@@ -32,6 +32,7 @@
   * [日志工具集成](blog/Middleware/log-helper/log-help-doc.md)
   * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
   * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
+  * [ELK最终架构](blog/Middleware/elk/elk-3.md)
   * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
   * [简单实现分布式配置中心常用的长轮询](blog/Middleware/distributed-configcenter/long-pulling.md)
   * [Netty基础](blog/Netty/netty_base.md)

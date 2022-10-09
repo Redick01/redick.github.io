@@ -61,6 +61,7 @@
 * * * [基于Docker安装Skywalking + Elasticsearch](blog/Middleware/skywalking/skywalking-install-single.md)
 * * * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
 * * * [Filebeat+Logstash收集多个日志发送到ES的不同索引](blog/Middleware/elk/elk-2.md)
+* * * [ELK最终架构](blog/Middleware/elk/elk-3.md)
 
 * * **分布式配置中心**
 * * * [Docker安装nacos](blog/Middleware/nacos/docker-nacos.md)
