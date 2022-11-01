@@ -123,6 +123,7 @@
 * * * [Quarkus - 容错](blog/quarkus/quarkus-rongcuo.md)
 * * **Grpc**
 * * * [SpringBoot + Grpc简单实现](blog/grpc/grpc-springboot.md)
+* * * [JAVA - 通过gRPC拦截器实现分布式日志链路追踪](blog/grpc/grpc-interceptor.md)
 
 * **网络**
 * * [TCP/IP四层模型讲解](blog/network/tcp-ip-model.md)
