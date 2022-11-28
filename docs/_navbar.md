@@ -73,6 +73,9 @@
   * [责任链模式](blog/design_pattern/chain-responsbilitity.md)
   * [自定义SPI实现](blog/java_base/myself-spi.md)
   * [观察者模式和发布-订阅模式](blog/design_pattern/observer-pub-sub.md)
+  * [DDD概览](blog/design_pattern/ddd-1.md)
+  * [DDD推荐的架构模式](blog/design_pattern/ddd-2.md)
+  * [DDD充血模型编码实践](blog/design_pattern/ddd-3.md)
 
 * 架构
   * [java 0期毕业总结](blog/structure/study-summary.md)
