@@ -174,3 +174,4 @@
 * * [记一次因WebService无响应导致线程阻塞 - 生产问题定位](blog/problems/webservice-not-response.md)
 * * [公司传统微服务架构切换Service Mesh架构部署方案总结](blog/problems/mic-to-mesh.md)
 * * [AsyncContext异步处理Http请求及在业务系统中应用](blog/spring/servlet3.0-async.md)
+* * [解析pfx文件文件报java.security.InvalidKeyException: Illegal key size](blog/problems/Illegal-key-size.md)
