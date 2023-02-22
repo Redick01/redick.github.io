@@ -72,6 +72,19 @@
 })
 ```
 
+### application.properties配置
+
+```properties
+# 解决启动报错：class path resource [processes/] cannot be resolved to URL because it does not exist
+spring.activiti.check-process-definitions=false
+# 检测身份信息表是否存在
+spring.activiti.db-identity-used=false
+# 流程定义上传路径
+definition.path=/Users/penghuiliu/ruoyi/uploadPath
+# 临时上传文件，临时文件夹
+temporary.path=/Users/penghuiliu/ruoyi
+```
+
 ### 流程设计器接口定义
 
 &nbsp; &nbsp; 这里就是Activiti的流程设计器的接口了，这些都是可以从Activiti Modeler那里获取到，这里简单的列一下所有的接口
@@ -121,16 +134,4 @@
 
 &nbsp; &nbsp; 上面只是简单的介绍了下Activiti Modeler的简单集成，其中的一些细节并为体现，因为代码量比较多，就不写出来了，后面参考我github上的代码。
 
-&nbsp; &nbsp; 做了以上的集成后实际上就可以通过使用流程设计器了，但是也是打开，编辑，保存已经存在的流程模型，无法完成新建流程模型，如果想完成流程模型创建，编辑，挂起，激活，转换等等操作的话，就需要我们自己去开发业务，开发接口，然后去实现相关的功能了。
-
-
-
-
-
-### 解决跨域问题
-
-### 解决文件上传,临时文件夹被程序自动删除问题
-
-### 解决前端上传文件没有进度条问题
-
-### 待办、已办开发
+&nbsp; &nbsp; 做了以上的集成后实际上就可以通过使用流程设计器了，但是也是打开，编辑，保存已经存在的流程模型，无法完成新建流程模型，如果想完成流程模型创建，编辑，挂起，激活，转换等等操作的话，就需要我们自己去开发业务，开发接口，然后去实现相关的功能。

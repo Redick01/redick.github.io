@@ -30,6 +30,9 @@
 * * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md)
 * * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
 * **中间件**
+* * **工作流Activiti6.0**
+* * * [Spring Boot集成Activiti 6.0流程设计器（一）](blog/activiti/ruuby-activiti.md)
+* * * [Spring Boot集成Activiti 6.0流程设计器（二）-问题解决](blog/activiti/ruuby-activiti-problem.md)
 * * **APM**
 * * * [Prometheus基于文件的服务发现](blog/Middleware/apm/prometheus-file-discovery.md)
 * * **Redis**

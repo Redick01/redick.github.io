@@ -40,6 +40,8 @@
   * [Netty简单使用](blog/Netty/netty_use_1.md)
   * [Linux IO模式及 select、poll、epoll详解](blog/Netty/select-poll-epoll.md.md)
   * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
+  * [Spring Boot集成Activiti 6.0流程设计器（一）](blog/activiti/ruuby-activiti.md)
+  * [Spring Boot集成Activiti 6.0流程设计器（二）-问题解决](blog/activiti/ruuby-activiti-problem.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
