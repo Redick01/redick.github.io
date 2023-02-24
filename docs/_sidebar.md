@@ -33,6 +33,7 @@
 * * **工作流Activiti6.0**
 * * * [Spring Boot集成Activiti 6.0流程设计器（一）](blog/activiti/ruuby-activiti.md)
 * * * [Spring Boot集成Activiti 6.0流程设计器（二）-问题解决](blog/activiti/ruuby-activiti-problem.md)
+* * * [第一个Activiti程序-Hello World](blog/activiti/hello-world.md)
 * * **APM**
 * * * [Prometheus基于文件的服务发现](blog/Middleware/apm/prometheus-file-discovery.md)
 * * **Redis**

@@ -42,6 +42,7 @@
   * [Netty粘包、拆包问题及解决方案](blog/Netty/encode-decode.md)
   * [Spring Boot集成Activiti 6.0流程设计器（一）](blog/activiti/ruuby-activiti.md)
   * [Spring Boot集成Activiti 6.0流程设计器（二）-问题解决](blog/activiti/ruuby-activiti-problem.md)
+  * [第一个Activiti程序-Hello World](blog/activiti/hello-world.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
