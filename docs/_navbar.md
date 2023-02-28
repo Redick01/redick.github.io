@@ -43,6 +43,7 @@
   * [Spring Boot集成Activiti 6.0流程设计器（一）](blog/activiti/ruuby-activiti.md)
   * [Spring Boot集成Activiti 6.0流程设计器（二）-问题解决](blog/activiti/ruuby-activiti-problem.md)
   * [第一个Activiti程序-Hello World](blog/activiti/hello-world.md)
+  * [JDK升级兼容性分析工具EMT4J](blog/Middleware/emt4j/emt4j.md)
 
 * 分布式消息
   * [消息队列基础](blog/Middleware/mq/mq_1.md)
