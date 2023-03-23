@@ -50,4 +50,13 @@ mysql> show global VARIABLES like '%innodb_old_blocks_pct%';
 
 #### innodb_old_blocks_time
 
-&nbsp; &nbsp; 该参数决定了缓存数据块由old sublist转移到young sublist的快慢，
+&nbsp; &nbsp; 该参数决定了缓存数据块由old sublist转移到young sublist的快慢，当一个数据块被插入到midpoint时还少要在old sublist停留超过innodb_old_blocks_time后，才有可能被转移到sub list。这么做的目的能够避免污染buffer pool。
+
+&nbsp; &nbsp; 另外这个值是可以动态设置的，如果要进行大表的扫描操作，可以很方便的调整。
+
+#### 调整缓存池数量，减少内部对缓存池数据结构的争用
+
+&nbsp; &nbsp; MySQL内部不同线程对InnoDB缓存池的访问在某些阶段是互斥的，这种内部竞争也会产生性能问题，尤其是在高并发和bufffer pool较大的情况下，所以为了解决此问题，InnoDB的缓存系统引入了innodb_buffer_pool_instances配置参数，对于缓存池较大可以适当增大此参数的值，降低并发导致的内部缓存访问冲突，改善性能。InnoDB缓存系统会将参数innodb_buffer_pool_size指定大小的缓存平均分为innodb_buffer_pool_instances个buffer pool。
+
+#### 控制innodb buffer刷新，延长数据缓存时间，减少磁盘IO
+
