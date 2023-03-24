@@ -60,3 +60,24 @@ mysql> show global VARIABLES like '%innodb_old_blocks_pct%';
 
 #### 控制innodb buffer刷新，延长数据缓存时间，减少磁盘IO
 
+&nbsp; &nbsp; 在InnoDB找不到干净的可用的缓存页或者检查点被触发等情况下，InnoDB的后台线程就会开始把“脏的缓存页”回写到磁盘中，这个过程就叫缓存刷新。我们通常希望数据在缓存页中能够存在更长的时间，从而减少磁盘IO次数，InnoDB buffer pool的刷新快慢主要取决于两个参数：
+
+- innodb_max_dirty_pages_pct
+  控制缓存池中脏页的最大比例，默认是75%，如果脏页的数量达到或超过该值，InnoDB的后台线程将开始缓存刷新。
+
+- innodb_io_capacity
+  它代表磁盘系统的IO能力，其值在一定程度上代表磁盘美妙可完成IO的次数，默认值是200，对于转速较低的磁盘可降低此值，对于速度较快的磁盘可以适当调大此值。
+
+#### InnoDB doublewrite
+
+&nbsp; &nbsp; InnoDB采用双写机制进行脏页刷新。
+
+
+#### 调整用户服务线程排序缓存区
+
+&nbsp; &nbsp; 如果通过show global status看到sort_merge_message的值很大，可以考虑通过调整参数sort_buffer_size的值来增大排序缓存区，以改善带有order by子句或group子句的sql性能.
+
+
+&nbsp; &nbsp; 对于无法通过索引进行连接操作的查询，可以尝试通过调大join_buffer_size的值来改善性能。
+
+&nbsp; &nbsp; 需要注意的是，sort buffer和join buffer都是面向客户服务线程分配的，如果设置过大的话会导致内存浪费，甚至导致内存交换，尤其是join buffer，如果还是多表关联的复杂查询，还可能会分配多个join buffer，因此最好的策略是设置较小的全局join_buffer_size，而对需要做复杂链接操作的session单独设置较大的join_buffer_size。
