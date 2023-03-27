@@ -1,4 +1,4 @@
-# 优化MySQL5 Server之InnoDB引擎 <!-- {docsify-ignore-all} -->
+# MySQL5 InnoDB引擎 Server优化  <!-- {docsify-ignore-all} -->
 
 
 ## 内存优化

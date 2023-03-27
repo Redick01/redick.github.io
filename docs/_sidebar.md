@@ -77,6 +77,8 @@
 * * * [MySQL InnoDB的事务隔离级别](blog/database/mysql/transaction-isolation-level.md)
 * * * [MySQL-SQL优化](blog/database/mysql/mysql-good.md)
 * * * [MySQL InnoDB下的锁问题](blog/database/mysql/innodb-lock.md)
+* * * [MySQL5 InnoDB引擎 Server优化](blog/database/mysql/mysql-good3.md)
+* * * [MySQL MVCC多版本并发控制](blog/database/mysql/mysql-mvcc.md)
 * **Spring**
 * * [Spring WebFlux与Spring MVC压测对比](blog/spring/springwebflux.md)
 * * [Spring WebFlux集成](blog/spring/springwebflux-1.md)
