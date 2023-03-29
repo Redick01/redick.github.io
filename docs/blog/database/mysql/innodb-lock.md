@@ -161,7 +161,7 @@ InnoDB行锁模式兼容性列表：
 
 注：session1和session2是两个连接到MySQL的客户端，使用的数据库是从mysql官网下载的，下载地址：http://downloads.mysql.com/docs/sakila-db.zip 
 
-> 下面是使用 lock in share mode加共享锁的例子：
+### 下面是使用 lock in share mode加共享锁的例子：
 
 
 
@@ -195,7 +195,7 @@ mysql> select * from actor where actor_id=178;
 1 row in set (0.00 sec)
 ```
 
-&nbsp; &nbsp; session1对actor_id=178的记录加share mode的共享锁，session2也对actor_id=178，此时session1和session2能够加共享锁，如下：
+&nbsp; &nbsp; session1对actor_id=178的记录加share mode的共享锁，session2也对actor_id=178加share mode的共享锁，此时session1和session2能够加共享锁，如下：
 
 ```sql
 session1
@@ -217,7 +217,7 @@ mysql> select * from actor where actor_id=178 lock in share mode;
 1 row in set (0.00 sec)
 ```
 
-&nbsp; &nbsp; 紧接着session1对178记录进行uodate，此时session1会等待锁，与此同时session2也对178记录更新，此时session2发生死锁，退出；
+&nbsp; &nbsp; 紧接着session1对178记录进行update，此时session1会等待锁，与此同时session2也对178记录更新，此时session2发生死锁，退出；
 
 ```sql
 session1
@@ -249,7 +249,7 @@ mysql> select * from actor where actor_id=178;
 1 row in set (0.00 sec)
 ```
 
-> 下面是使用for update加排他锁的例子：
+### 下面是使用for update加排他锁的例子：
 
 &nbsp; &nbsp; session1对actor_id=178的行记录使用for update加排他锁，此时session2再次对178加排他锁是不会获取到锁的，会等待。
 
@@ -293,7 +293,7 @@ mysql> select * from actor where actor_id=178 for update;
 
 ## InnoDB行锁的实现方式
 
-&nbsp; &nbsp; InnoDB行锁是通过给索引伤的索引项加锁来实现的，如果没有索引，InnoDB将通过隐藏的聚集索引Row_id来对记录加锁，InnoDB行锁氛围3种情形。
+&nbsp; &nbsp; InnoDB行锁是通过给索引上的索引项加锁来实现的，如果没有索引，InnoDB将通过隐藏的聚集索引Row_id来对记录加锁，InnoDB行锁分为3种情形。
 
 - Record Lock：对索引项加锁。
 - Gap lock：对索引项之间的“间隙”、第一条记录前的“间隙”或最后一条记录后的“间隙”加锁。
@@ -301,7 +301,7 @@ mysql> select * from actor where actor_id=178 for update;
 
 &nbsp; &nbsp; InnoDB这种行锁实现特点意味着：如果不通过索引条件检索数据，那么InnoDB将对表中的所有记录加锁，实际效果跟锁表一样！在实际应用中，要特别注意InnoDB行锁这一特性，否则可能导致大量的锁冲突，从而影响并发性能。
 
-> 在不通过索引条件查询时，InnoDB会锁定表中的所有记录。如下，payment表的amount字段没有索引。
+### 在不通过索引条件查询时，InnoDB会锁定表中的所有记录。如下，payment表的amount字段没有索引。
 
 &nbsp; &nbsp; session1加锁查询amount=8.99的数据，然后session2在加锁查询amount=3.99的数据，此时session2就会等待锁，session1 commit后session2获取到锁查询到数据。看起来session1只给amount=8.99的行加了锁，但是却出现了锁等待，原因就是在没有索引的情况下InnoDB对所有的记录加锁。
 
@@ -358,7 +358,7 @@ mysql> select payment_id, customer_id, staff_id, amount from payment where payme
 1 row in set (0.00 sec)
 ```
 
-> 由于MySQL的行锁是对索引加的锁，所以虽然访问了不同的记录，但是如果使用相同的索引键会出现冲突的。
+### 由于MySQL的行锁是对索引加的锁，所以虽然访问了不同的记录，但是如果使用相同的索引键会出现冲突的。
 
 &nbsp; &nbsp; 比如payment表staff_id有索引，amount没有索引，session1加锁查询staff_id=1 and amount=8.99的记录，session2加锁查询staff_id=1 and amount=3.99的记录，session2就会等待获取锁，虽然访问的是不同的行，因为锁是加在索引上，所以会产生锁冲突。session1 commit后session2获取锁成功。
 
@@ -386,7 +386,7 @@ mysql> select payment_id, customer_id, staff_id, amount from payment where staff
 ...等待
 ```
 
-> 当表有多个索引的时候，不同事务可以使用不同的索引锁定不同的行，不论是使用主键索引、唯一索引或普通索引，InnoDB都会使用行锁来对数据加锁。
+### 当表有多个索引的时候，不同事务可以使用不同的索引锁定不同的行，不论是使用主键索引、唯一索引或普通索引，InnoDB都会使用行锁来对数据加锁。
 
 &nbsp; &nbsp; payment表的customer_id和staff_id是索引，session1加锁查询customer_id=3，session2加锁查询staff_id=1的行，customer_id=3的数据中包含staff_id=1的数据，session2会等待锁，因为session1锁了所有customer_id=3的行，包含staff_id=1的，所以session2或等待获取锁。
 
@@ -437,7 +437,7 @@ mysql> select payment_id, customer_id, staff_id, amount from payment where staff
 ...等待
 ```
 
-> 即便在条件中使用了索引字段，但是否使用索引来检索数据是有MySQL通过判断不同执行计划的代价来决定的，如果MySQL认为全表扫描效率更高，比如对一些很小的表就不会使用索引，这种情况InnoDB会对所有的行加锁 ，因此在分析锁冲突时别忘了分析sql执行计划。
+#### 注： 即便在条件中使用了索引字段，但是否使用索引来检索数据是有MySQL通过判断不同执行计划的代价来决定的，如果MySQL认为全表扫描效率更高，比如对一些很小的表就不会使用索引，这种情况InnoDB会对所有的行加锁 ，因此在分析锁冲突时别忘了分析sql执行计划。
 
 
 ## Next-Key锁
@@ -484,7 +484,7 @@ mysql> insert into payment (payment_id, customer_id, staff_id, amount) value (16
 ...等待
 ```
 
-## 是什么时候用表锁
+## 什么时候用表锁
 
 - 事务需要更新大部分或全部数据，表比较大，如果使用行锁，不仅这个事务执行效率低，而且可能造成其他事务长时间锁等待和锁冲突，这种情况下可以考虑使用表锁来提高事务的执行效率。
 - 事务涉及到多个表，比较复杂，很可能引起死锁，造成大量事务回滚。这种情况也可以考虑一次性锁定事务涉及的表，从而避免死锁，减少数据库因事务回滚带来的开销。
