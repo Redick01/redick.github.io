@@ -43,6 +43,8 @@
 * * * [Arthas初探](blog/Middleware/arthas/startup.md)
 * * * [Arthas检测死锁](blog/Middleware/arthas/thread.md)
 * * * [Arthas Idea插件](blog/Middleware/arthas/arthas-idea-plugin.md)
+* * **Zookeeper**
+* * * [三节点zookeeper服务安装](blog/Middleware/zookeeper/install.md)
 * * **分布式消息**
 * * * [消息队列基础](blog/Middleware/mq/mq_1.md)
 * * * [Java消息队列JMS](blog/Middleware/mq/JMS_1.md)
