@@ -55,6 +55,7 @@
 * * * * [SpringBoot集成Kafka](blog/Middleware/kafka/kafka_2.md)
 * * * [各种消息队列中间件的安装与简单测试](blog/Middleware/mq/other_mq_test.md)
 * * * [阿里云RocketMQ订阅关系一致性](blog/Middleware/mq/rocketmq-product-err.md)
+* * * [单主从模式RocketMQ 5.1部署](blog/MIddleware/../Middleware/rocketmq/rocket-ms.md)
 * * * **Log-Helper**
 * * * * [日志工具集成](blog/Middleware/log-helper/log-help-doc.md)
 * * * * [LogHelper在ELK系统上的效果](blog/Middleware/log-helper/kibana-loghelper.md)
