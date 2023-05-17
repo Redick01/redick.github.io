@@ -9,6 +9,7 @@
 * * [Java世界中的SPI](blog/java_base/spi.md)
 * * [Java实现简单的线程池监控](blog/Middleware/dynamic-threadpool/threadpool-monitor.md)
 * * [异常导致ScheduledThreadPoolExecutor不执行原因分析](blog/java_base/java_thread/scheduled-not-exec.md)
+* * [线程池执行过程分析](blog/java_base/java_thread/thread-pool-exec.md)
 * * **测试**
 * * * [单元测试之-embedded-redisserver](blog/java_base/unit-test/embedded-redisserver.md)
 * * * [JMH - Java微基准测试工具套件](blog/java_base/tools/benchmark.md)
