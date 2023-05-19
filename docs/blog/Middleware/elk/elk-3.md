@@ -3,4 +3,4 @@
 
 ## 公司架构
 
-![avatar](../../../_media/image/中间件/elk/elk-struc.jpeg)
+![avatar](../../../_media/image/中间件/elk/elk-struc.png)
