@@ -111,8 +111,10 @@
 * * [Chat-GPT设计的秒杀系统(理论)）](blog/structure/microservice/miao-sha-1.md)
  &nbsp;
 * **Spring Cloud Alibaba开发脚手架搭建**
-* * [Spring Cloud Alibaba开发脚手架搭建前言](blog/structure/spring-cloud-alibaba/sca-1.md)
- &nbsp;
+* * [前言](blog/structure/spring-cloud-alibaba/sca-1.md)
+  * [依赖版本管理及项目结构](blog/structure/spring-cloud-alibaba/sca-2.md)
+  * [Spring Cloud Gateway-基础搭建](blog/structure/spring-cloud-alibaba/sca-3.md)
+  * [Spring Cloud Gateway-日志格式化及链路追踪插件集成](blog/structure/spring-cloud-alibaba/sca-4.md)&nbsp;
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
