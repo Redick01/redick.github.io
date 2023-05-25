@@ -20,7 +20,7 @@
 
 - 全局过滤器：`GlobalFilter`，这是一个接口，实现了该接口并实现`filter`方法，所有的请求都会经过该过滤器。
 
-- 局部过滤器：`AbstractGatewayFilterFactory`，它是一个抽象类，集成该抽象类，并重写`apply`方法后需要在网关的配置文件中配置过滤器，如果不配置是不会流经该过滤器的，配置项是`spring.cloud.gateway.routes.filters[].name`中配置，具体配置示例如下：
+- 局部过滤器：`AbstractGatewayFilterFactory`，它是一个抽象类，继承该抽象类，并重写`apply`方法后需要在网关的配置文件中配置过滤器，如果不配置是不会流经该过滤器的，配置项是`spring.cloud.gateway.routes.filters[].name`中配置，具体配置示例如下：
 
   ```yaml
   spring:

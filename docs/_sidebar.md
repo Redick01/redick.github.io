@@ -114,7 +114,9 @@
 * * [前言](blog/structure/spring-cloud-alibaba/sca-1.md)
   * [依赖版本管理及项目结构](blog/structure/spring-cloud-alibaba/sca-2.md)
   * [Spring Cloud Gateway-基础搭建](blog/structure/spring-cloud-alibaba/sca-3.md)
-  * [Spring Cloud Gateway-日志格式化及链路追踪插件集成](blog/structure/spring-cloud-alibaba/sca-4.md)&nbsp;
+  * [Spring Cloud Gateway-日志格式化及链路追踪插件集成](blog/structure/spring-cloud-alibaba/sca-4.md)
+  * [Spring Cloud Gateway-系统保护Sentinel集成](blog/structure/spring-cloud-alibaba/sca-5.md)
+  * [Spring Cloud Gateway-自定义全局异常处理和过滤器](blog/structure/spring-cloud-alibaba/sca-6.md)
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
