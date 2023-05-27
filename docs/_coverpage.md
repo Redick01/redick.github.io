@@ -1,6 +1,6 @@
 ![logo](_media/icon.svg)
 
-# 刘p辉的 Document Website
+# Redick's Document Website
 ## 个人文档网站
 
 
@@ -13,5 +13,5 @@
 
 <!-- 背景图片 -->
 
-![](_media/30002000.jpeg)
+![](_media/1.png)
 

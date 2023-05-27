@@ -175,7 +175,7 @@ spring:
 @AllArgsConstructor
 public class OrderApplication {
   
-  	private final LoadBalancerClient loadBalancerClient;
+    private final LoadBalancerClient loadBalancerClient;
 
     private final RestTemplate restTemplate;
 
