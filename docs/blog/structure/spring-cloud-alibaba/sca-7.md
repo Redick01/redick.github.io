@@ -186,7 +186,7 @@ public class OrderApplication {
   	@GetMapping("/echo")
     public String echo(){
         ServiceInstance serviceInstance = loadBalancerClient.choose("account-svc");
-        String url = String.format("http://%s:%s/echo/%s", serviceInstance.getHost(), serviceInstance.getPort(), appName);
+        String url = String.format("http://%s:%s/echo/%s", serviceInstance.getHost(), serviceInstance.getPort(), "order-svc");
         return restTemplate.getForObject(url, String.class);
     }
         
