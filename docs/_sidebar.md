@@ -16,6 +16,7 @@
   * [Spring Cloud Gateway-自定义全局异常处理和过滤器](blog/structure/spring-cloud-alibaba/sca-6.md)
   * [Spring Cloud Alibaba-服务注册发现与配置中心Nacos](blog/structure/spring-cloud-alibaba/sca-7.md)
   * [Spring Cloud Alibaba-OpenFeign与RestTemplate](blog/structure/spring-cloud-alibaba/sca-8.md)
+  * [Spring Cloud Alibaba-Swagger3集成](blog/structure/spring-cloud-alibaba/sca-9.md)
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
