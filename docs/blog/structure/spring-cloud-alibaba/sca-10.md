@@ -30,7 +30,7 @@
 
 
 
-## 动态数据源
+## 动态(多)数据源
 
 
 
@@ -89,5 +89,94 @@ public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements
 
 }
 ```
+
+   切换slave1数据源
+
+```java
+@Service
+@DS("slave1")
+public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements StockService {
+
+}
+```
+
+切换slave2数据源
+
+```java
+@Service
+@DS("slave2")
+public class StockServiceImpl extends ServiceImpl<StockMapper, Stock> implements StockService {
+
+}
+```
+
+## 读写分离
+
+#### application.yml配置
+
+```yaml
+spring:
+  application:
+    name: account-svc
+  profiles:
+    active: dev
+  datasource:
+    dynamic:
+      #设置默认的数据源或者数据源组,默认值即为master
+      primary: master
+      #严格匹配数据源,默认false. true未匹配到指定数据源时抛异常,false使用默认数据源
+      strict: false 
+      datasource:
+        master:
+          url: jdbc:mysql://127.0.0.1:3316/ruuby-stock?useUnicode=true&characterEncoding=UTF8&statementInterceptors=com.redick.support.mysql.Mysql5StatementInterceptor
+          username: root
+          password: admin123
+          driver-class-name: com.mysql.jdbc.Driver
+          type: com.alibaba.druid.pool.DruidDataSource
+          initialSize: 5
+          minIdle: 5
+          maxActive: 20
+        slave:
+          url: jdbc:mysql://127.0.0.1:3326/ruuby-stock?useUnicode=true&characterEncoding=UTF8&statementInterceptors=com.redick.support.mysql.Mysql5StatementInterceptor
+          username: root
+          password: admin123
+          driver-class-name: com.mysql.jdbc.Driver
+          type: com.alibaba.druid.pool.DruidDataSource
+          initialSize: 5
+          minIdle: 5
+          maxActive: 20
+```
+
+#### 读写分离插件配置
+
+```java
+@Configuration
+@MapperScan("io.redick.cloud.account.mapper")
+public class MybatisPlusConfiguration {
+
+    @Bean
+    public MasterSlaveAutoRoutingPlugin masterSlaveAutoRoutingPlugin() {
+        return new MasterSlaveAutoRoutingPlugin();
+    }
+}
+```
+
+## 分页插件
+
+```java
+@Configuration
+@MapperScan("io.redick.cloud.account.mapper")
+public class MybatisPlusConfiguration {
+  
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
+        return interceptor;
+    }
+}
+```
+
+
 
 详细使用方式参考[Mybatis-Plus官方文档](https://www.baomidou.com/pages/a61e1b/#dynamic-datasource)
