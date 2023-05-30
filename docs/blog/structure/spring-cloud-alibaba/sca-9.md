@@ -1,9 +1,5 @@
 # Spring Cloud Alibaba-Swagger3集成 <!-- {docsify-ignore-all} -->
 
-
-
-​    
-
 ## Spring Cloud Gateway集成
 
 
@@ -11,7 +7,6 @@
 #### pom依赖
 
 ```xml
-				<!-- Swagger -->
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
