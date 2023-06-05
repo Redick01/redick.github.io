@@ -19,6 +19,7 @@
   * [Spring Cloud Alibaba-Swagger3集成](blog/structure/spring-cloud-alibaba/sca-9.md)
   * [Spring Cloud Alibaba-数据库操作](blog/structure/spring-cloud-alibaba/sca-10.md)
   * [Spring Cloud Alibaba-分布式事务Seata（安装Seata Server）](blog/structure/spring-cloud-alibaba/sca-11.md)
+  * [Spring Cloud Alibaba-分布式事务Seata（Demo测试）](blog/structure/spring-cloud-alibaba/sca-12.md)
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)

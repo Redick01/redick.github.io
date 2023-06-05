@@ -41,7 +41,7 @@
 ​    -p nacos密码
 
 ```shell
-➜  nacos nacos-config.sh -h localhost -p 8848 -g SEATA_GROUP -t 5a3c7d6c-f497-4d68-a71a-2e5e3340b3ca -u username -w password
+➜  nacos sh nacos-config.sh -h localhost -p 8848 -g SEATA_GROUP -t acbe9e62-36d7-4feb-b137-d04b6c6c164e -u username -w password
 ```
 
 > 注：在同步配置时如果有配置项值是空的会报nacos-config.sh: line 88: [: too many arguments，这个不影响正常配置同步，这是因为是空的所以报错了，如果这个值实际上是有的提前修改好config.txt或在配置同步后自己从nacos手动添加上这个配置也可以
