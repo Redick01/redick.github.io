@@ -1,4 +1,4 @@
-# Spring Cloud Alibaba-分布式事务Seata（Demo测试） <!-- {docsify-ignore-all} -->
+# Spring Cloud Alibaba-Seata+Mybatis-Plus实现 <!-- {docsify-ignore-all} -->
 
 
 
