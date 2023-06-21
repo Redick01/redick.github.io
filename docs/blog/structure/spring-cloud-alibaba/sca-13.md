@@ -162,6 +162,97 @@ public class GrayRequestContextHolder {
 }
 ```
 
+### 后端服务自定义Spring MVC请求拦截器
+
+​    自定义Spring MVC拦截器的目的是下游服务收到请求，通过拦截器检查HttpHeader中是否有灰度标记，如果有灰度标记那么就将灰度标记保存到Holder中，之后如果有后续的RPC调用同样的将灰度标记传递下去
+
+```java
+@SuppressWarnings("all")
+public class GrayHandlerInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String gray = request.getHeader("gray");
+        // 如果HttpHeader中灰度标记为true，则将灰度标记放到holder中，如果需要就传递下去
+        if (gray!= null && gray.equals("true")) {
+            GrayRequestContextHolder.setGrayTag(true);
+        }
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        GrayRequestContextHolder.remove();
+    }
+}
+```
+
+​    配置拦截器：
+
+```java
+@Configuration
+@ConditionalOnClass(value = WebMvcConfigurer.class)
+public class GrayWebMvcAutoConfiguration {
+
+    /**
+     * Spring MVC 请求拦截器
+     * @return WebMvcConfigurer
+     */
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addInterceptors(InterceptorRegistry registry) {
+                registry.addInterceptor(new GrayHandlerInterceptor());
+            }
+        };
+    }
+}
+```
+
+
+
+### OpenFeign改造
+
+​    RPC框架OpenFeign改造，实现OpenFeign拦截器，支持从Holder中取出灰度标记，并且放到调用下游服务的请求头中，将灰度标记传递下去。
+
+```java
+public class FeignRequestInterceptor implements RequestInterceptor {
+
+    @Override
+    public void apply(RequestTemplate template) {
+        // 如果灰度标记为true，将灰度标记通过HttpHeader传递下去
+        if (GrayRequestContextHolder.getGrayTag()) {
+            template.header(GrayConstant.HEADER_GRAY_TAG, Collections.singleton(GrayConstant.HEADER_GRAY_TAG_VALUE));
+        }
+    }
+}
+```
+
+​    配置OpenFeign拦截器
+
+```java
+@Configuration
+@ConditionalOnClass(value = RequestInterceptor.class)
+public class GrayFeignInterceptorAutoConfiguration {
+
+
+    /**
+     * Feign拦截器
+     * @return FeignRequestInterceptor
+     */
+    @Bean
+    public FeignRequestInterceptor feignRequestInterceptor() {
+        return new FeignRequestInterceptor();
+    }
+}
+```
+
 
 
 ### 自定义Loadbalancer
@@ -283,6 +374,18 @@ public class LoadBalancerGrayAutoConfiguration {
 }
 ```
 
+
+
+
+
+## 测试
+
+
+
+​    三个微服务ruuby-gateway，order-svc，account-svc，调用的关系式通过ruuby-gateway调用order-svc，order-svc内部通过OpenFeign调用
+
+
+
 #### 微服务注册元信息修改
 
 微服务注册增加灰度服务标记配置，微服务注册到服务注册中心（Nacos）时通过附加元数据的方式来标记该服务是一个灰度发布的微服务
@@ -323,10 +426,6 @@ public class GateWayApplication {
 ```
 
 
-
-## 测试
-
-三个微服务ruuby-gateway，order-svc，account-svc，调用的关系式通过ruuby-gateway调用order-svc，order-svc内部通过OpenFeign调用
 
 account-svc，现在order-svc，account-svc服务都是灰度版本，测试自定义LoadBalancer效果，下面是服务元数据中的灰度标记
 
