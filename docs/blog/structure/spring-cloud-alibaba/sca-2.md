@@ -10,14 +10,31 @@
 
 ```xml
   <properties>
-     	 	<!-- Spring Cloud Alibaba-->
+     	 	<maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+        <!-- Project revision -->
+        <revision>1.0.0</revision>
         <spring-cloud-alibaba.version>2021.0.4.0</spring-cloud-alibaba.version>
         <!-- Spring Cloud -->
         <spring.cloud.version>2021.0.5</spring.cloud.version>
         <!-- Spring Boot -->
         <spring-boot.version>2.7.7</spring-boot.version>
-    		<lomnok.version>1.18.24</lomnok.version>
-    		<log-helper.version>1.0.5-RELEASE</log-helper.version>
+        <swagger.fox.version>3.0.0</swagger.fox.version>
+        <fastjson.version>2.0.22</fastjson.version>
+        <log-helper.version>1.0.5-RELEASE</log-helper.version>
+        <jjwt.version>0.9.1</jjwt.version>
+        <mysql-connector.version>5.1.18</mysql-connector.version>
+        <mybatis.plus.version>3.5.2</mybatis.plus.version>
+        <dynamic.datasource.version>3.5.1</dynamic.datasource.version>
+        <druid.version>1.2.15</druid.version>
+        <xxl-job.version>2.4.0</xxl-job.version>
+        <lomnok.version>1.18.24</lomnok.version>
+        <checkstyle-site.version>3.7.1</checkstyle-site.version>
+        <checkstyle.version>3.1.0</checkstyle.version>
+        <flatten.version>1.1.0</flatten.version>
+        <owasp.version>8.1.0</owasp.version>
+        <elastic-job.version>3.0.3</elastic-job.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 	<dependencyManagement>
         <dependencies>
@@ -95,6 +112,10 @@
 └── ruuby-modules
 		# 动态数据源，读写分离组件
     ├── ruuby-module-datasource
+    # 分布式任务Elastic Job模块
+    ├── ruuby-module-elasticjob
+    # 全链路灰度发布组件
+    ├── ruuby-module-graysacle
     # Mybatis-Plus代码生成模块
     ├── ruuby-module-mybatisplus-generator
     # Spring Redis封装模块

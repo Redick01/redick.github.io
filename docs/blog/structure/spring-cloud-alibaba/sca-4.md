@@ -102,7 +102,7 @@ public class TracerFilter extends AbstractInterceptor implements GlobalFilter, O
 
 
 
-### 转发接口相应耗时计算过滤器-RtFilter
+### 转发接口响应耗时计算过滤器-RtFilter
 
 ​    该接口的目的就是计算出网关处理完一个请求的耗时，具体代码如下：
 
