@@ -466,3 +466,4 @@ Nacos Config 目前提供了三种配置能力从 Nacos 拉取相关的配置
 ## 参考
 
 参考Spring Cloud Alibaba官方[文档](https://spring-cloud-alibaba-group.github.io/github-pages/hoxton/zh-cn/index.html#_服务注册发现_nacos_discovery)
+
