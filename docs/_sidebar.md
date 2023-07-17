@@ -69,6 +69,7 @@
 * * * * [日志工具集成](blog/Middleware/log-helper/log-help-doc.md)
 * * * * [LogHelper在ELK系统上的效果](blog/Middleware/log-helper/kibana-loghelper.md)
 * * * * [通过MySQL驱动拦截器实现执行sql耗时计算](blog/Middleware/log-helper/mysql-support.md)
+      * [日志级别链路追踪及规范](blog/structure/tools/log-trace.md)
 * * **分布式链路追踪**
 * * * [基于Docker安装Skywalking + Elasticsearch](blog/Middleware/skywalking/skywalking-install-single.md)
 * * * [Docker搭建ELK](blog/Middleware/elk/elk-1.md)
