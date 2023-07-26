@@ -1,4 +1,4 @@
-## Sentinel入门源码解析<!-- {docsify-ignore-all} -->
+## Sentinel源码解析<!-- {docsify-ignore-all} -->
 
 基于（2019-12）的 release 版本 1.7.0
 
