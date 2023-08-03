@@ -120,6 +120,7 @@
 * * [动态规划](blog/algorithm/dp.md)
 * * [位运算](blog/algorithm/bit-calc.md)
 * * [布隆过滤器和LRU算法](blog/algorithm/lru-bloom.md)
+  * [时间轮HashedWheelTimer](blog/algorithm/hashed-wheel-timer.md)
 * **操作系统**
 * - [CURL发送POST请求](blog/os/curl-post.md)
 * **Netty**
