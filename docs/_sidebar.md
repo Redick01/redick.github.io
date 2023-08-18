@@ -7,6 +7,7 @@
 * * [Spring框架@PostConstruct注解详解](blog/spring/spring-postconstruct.md)
 * * [SpringBoot自动装配](blog/spring/springboot-autoconfig.md)
 * * [Spring Bean的作用域](blog/spring/spring-bean-scope.md)
+  * [Spring Aop无法拦截接口（interface）上的方法](blog/spring/spring-aop-not-interface.md)
 * **Spring Cloud Alibaba开发脚手架搭建**
 * * [前言](blog/structure/spring-cloud-alibaba/sca-1.md)
   * [依赖版本管理及项目结构](blog/structure/spring-cloud-alibaba/sca-2.md)
