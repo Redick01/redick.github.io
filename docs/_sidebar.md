@@ -86,6 +86,9 @@
 * * * [动态线程池dynamic-tp快速接入](blog/Middleware/dynamic-threadpool/dynamic-tp-quickstart.md)
 * * **ShardingSphere**
 * * * [Sharding-Proxy部署](blog/Middleware/shardingsphere/shardingsphere-1.md)
+  * **Nginx**
+  * - [单机版Nginx安装及配置-某地铁APP](blog/Middleware/nginx/install-standalone.md)
+    - [Nginx配置ssl证书](blog/Middleware/nginx/support-ssl.md)
 * **数据库**
 * * **Mysql**
 * * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
