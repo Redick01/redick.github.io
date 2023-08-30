@@ -89,6 +89,7 @@
   * **Nginx**
   * - [单机版Nginx安装及配置-某地铁APP](blog/Middleware/nginx/install-standalone.md)
     - [Nginx配置ssl证书](blog/Middleware/nginx/support-ssl.md)
+    - [一主一从配置Keepalive + Nginx](blog/Middleware/nginx/keepalived-config.md)
 * **数据库**
 * * **Mysql**
 * * * [MySQL集群与高可用](blog/database/mysql/mysql_1.md)
