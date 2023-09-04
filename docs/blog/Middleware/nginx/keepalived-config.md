@@ -1,4 +1,4 @@
-## 一主一从配置Keepalive + Nginx <!-- {docsify-ignore-all} -->
+## Nginx一主一从配置Keepalive <!-- {docsify-ignore-all} -->
 
 
 
@@ -6,16 +6,16 @@
 
 ### 机器规划
 
-| 主机   | vip            | 内网ip          |      |
-| ------ | -------------- | --------------- | ---- |
-| Nginx1 | 192.168.246.48 | 192.168.246.95  |      |
-| Nginx2 | 192.168.246.48 | 192.168.246.131 |      |
+| 主机   | vip            | 内网ip         |
+| ------ | -------------- | -------------- |
+| Nginx1 | 192.168.xxx.xx | 192.168.xxx.ab |
+| Nginx2 | 192.168.xxx.xx | 192.168.xxx.cd |
 
 
 
 ### 监控Nginx进程
 
-1. Nginx监控脚本
+1. Nginx监控脚本，监控nginx，如果nginx停了，那么杀掉keepalive进程
 
 ```bash
 #!/bin/bash
@@ -38,7 +38,7 @@ yum -y install keepalived
 
 2. 修改Keepalive配置
 
-输入命令 vi /etc/keepalived/keepalived.conf，修改 keepalived 配置文件，需要修改几处内容，分别是设置vip（本例中为192.168.246.48）、修改云主机的优先级（建议主节点设置为100，备节点设置为50）、屏蔽 vrrp_strict、定时任务检查nginx进程脚本
+​    输入命令 vi /etc/keepalived/keepalived.conf，修改 keepalived 配置文件，需要修改几处内容，分别是设置vip（本例中为192.168.246.48）、修改云主机的优先级（主节点优先级高，建议主节点设置为100，备节点设置为50）、屏蔽 vrrp_strict、添加定时任务检查nginx进程脚本。
 
 - 主节点配置
 
@@ -82,8 +82,10 @@ vrrp_instance VI_1 {
         auth_pass 1111
     }
     virtual_ipaddress {
-     192.168.246.48
+     # 虚拟IP
+     192.168.xxx.xx
     }
+    # 检查脚本
     track_script {
         check_nginx
     }
@@ -215,7 +217,7 @@ virtual_server 10.10.10.3 1358 {
 
 - 从节点配置
 
-```shel
+```shell
 ! Configuration File for keepalived
 
 global_defs {
@@ -238,8 +240,11 @@ global_defs {
    router_id Nginx_02
 }
 vrrp_script check_nginx {
+        # nginx进程检查脚本
         script "/etc/keepalived/check_nginx.sh"
+        # 2s执行一次
         interval 2
+        # 触发一次优先级降低5
         weight -5
 }
 vrrp_instance VI_1 {
@@ -253,8 +258,10 @@ vrrp_instance VI_1 {
         auth_pass 1111
     }
     virtual_ipaddress {
-     192.168.246.48
+     # 虚拟IP
+     192.168.xxx.xx
     }
+    # 检查脚本
     track_script {
         check_nginx
     }
@@ -384,9 +391,7 @@ virtual_server 10.10.10.3 1358 {
 }
 ```
 
-
-
-3. 主从启动 keepalived 服务，输入命令 systemctl start keepalived，注意要先启动Nginx
+3. 主从启动 keepalived 服务，输入命令 systemctl start keepalived，注意要先启动Nginx。
 
 ### 验证高可用性
 
@@ -410,13 +415,13 @@ virtual_server 10.10.10.3 1358 {
 
 9. 启动备节点 http 服务：systemctl start httpd
 
-10. 通过备节点访问HA VIP（curl 192.168.246.48），可以看到目前HAVIP是落在主节点上的
+10. 通过备节点访问HA VIP（curl 192.168.xxx.xx），可以看到目前HAVIP是落在主节点上的
 
 ![image-20230830132535501](/Users/penghuiliu/geek_learn/redick.github.io/docs/_media/image/中间件/nginx/master.png)
 
 11. 在主节点上停止Nginx进程
 
-12. 继续通过备节点访问HA VIP（curl 192.168.246.48），HA VIP 已经漂移到备节点上，证明高可用配置成功
+12. 继续通过备节点访问HA VIP（curl 192.168.xxx.xx），HA VIP 已经漂移到备节点上，证明高可用配置成功
 
 ![image-20230830132943944](/Users/penghuiliu/geek_learn/redick.github.io/docs/_media/image/中间件/nginx/salve.png)
 

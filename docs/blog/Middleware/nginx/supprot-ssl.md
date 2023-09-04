@@ -2,24 +2,30 @@
 
 
 
-开始配置:
+### 配置支持ssl步骤
 
-1.进入到nginx目录,查看有没有http_ssl_module模块
+1. 进入到nginx目录，查看有没有http_ssl_module模块
 
+```shell
 ./nginx -V
-2.如果没有,找到源码,输入以下命令进行安装(如果有,跳转到第6步)
+```
 
+2. 如果没有，找到源码，输入以下命令进行安装(如果有，跳转到第6步)
+
+```shell
 #prefix后面的路径是你安装nginx的路径
 ./configure --prefix=/usr/local/nginx --with-http_ssl_module
-3.configure执行完成后,输入make,注意:千万不要make install,这样会覆盖原有的配置
+```
 
-4.make完成后,停止nginx服务,进入objs目录,将nginx启动程序,拷贝到安装目录下,替换原有的启动程序
+3. configure执行完成后,输入make,注意:千万不要make install,这样会覆盖原有的配置
 
-5.启动nginx,输入./nginx -V,查看是否安装成功
+4. make完成后,停止nginx服务,进入objs目录,将nginx启动程序,拷贝到安装目录下,替换原有的启动程序
 
-6.新建一个目录cert,把申请下来的证书上传上去
+5. 启动nginx,输入./nginx -V,查看是否安装成功
 
-7.打开配置文件nginx.conf,加入以下配置
+6. 新建一个目录cert,把申请下来的证书上传上去
+
+7. 打开配置文件nginx.conf,加入以下配置
 
 http{
 
@@ -47,6 +53,9 @@ http{
     }
 }
 
-8.重启nginx
+8. 重启nginx
 
+```shell
 ./nginx -s reload
+```
+

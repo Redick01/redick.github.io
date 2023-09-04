@@ -42,9 +42,9 @@ ps aux|grep nginx	#查看nginx进程
 sbin/nginx -c /conf/nginx.vonf #指定配置文件启动
 ```
 
-## 配置Nginx转发+负载均衡
 
 
+## 配置负载均衡
 
 ### 七层负载均衡
 
@@ -52,7 +52,7 @@ sbin/nginx -c /conf/nginx.vonf #指定配置文件启动
 
 ```
 http {
-     upstream [你的负载均衡机制名称，随便设置一个就好] {
+   upstream [你的负载均衡机制名称，随便设置一个就好] {
 	 server [ip地址]:[端口值];
 	 server [ip地址]:[端口值];
 	 server [ip地址]:[端口值];
@@ -70,48 +70,142 @@ http {
 
 #### nginx的负载均衡策略
 
- 1.轮询（默认）
+1. 轮询（Round Robin默认）
 
-​     每个请求按照请求时间顺序分配到不同的后端服务器，如果后端服务器挂了，则自动剔除
+​     轮询是最常见的一种负载均衡策略。Nginx默认使用轮询策略，将请求按照顺序分配到每个服务器，当请求到达最后一个服务器后，再从第一个服务器继续轮询。，如果后端服务器挂了，则自动剔除。
 
- 2.权重
+```conf
+upstream backend {
+   server [ip地址]:[端口值];
+	 server [ip地址]:[端口值];
+	 server [ip地址]:[端口值];
+	 server [ip地址]:[端口值];
+}
+
+server {
+   listen 80;
+   server_name example.com;
+   location / {
+       proxy_pass http://backend;
+   }
+}
+```
+
+
+
+2. 权重(Weighted Load Balancing)
 
 ​    指定轮询的频率，weight和访问率成正比，用于后端服务器性能不均匀的情况
 
- http {
-	upstream ipHashLoadBalanceServer {
-        ip_hash;
-        server www.address1.com weight=3;// 或者ip+端口 ， 不需要加入http/https前缀
-        server www.address2.com; // default weight=1
-        server www.address3.com;
-    }
-    server {
-        listen 80;
-        location / {
-            proxy_pass http://loadBalanceServer;
-        }
-    }
- }
-3.ip_hash
-
-​    客户端ip地址被用作hash key来判断客户端请求应该发送到哪个服务器，这种方法保证了来自相同客户端的请求总是发送到相同服务器（如果服务器可用的话
-
-upstream myapp1 {
-    ip_hash;
-    server srv1.example.com;
-    server srv2.example.com;
-    server srv3.example.com;
+```shell
+upstream backend {
+    server [ip地址]:[端口值] weight=3;
+	  server [ip地址]:[端口值] weight=2;
+	  server [ip地址]:[端口值] weight=1;
 }
-4.最少连接
+
+server {
+    listen 80;
+    server_name example.com;
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+
+
+3. IP Hash
+
+​    IP Hash是一种漂亮的负载均衡策略，具有Session保持的优点。算法的基本思路是通过对客户端的IP地址取Hash值，将此Hash值与服务器列表中的IP地址的Hash值进行比较，找到具有匹配Hash值的服务器。这样相同IP的请求总是被转发到同一台后端服务器处理，保证Session信息在同一台服务器上处理。
+
+```conf
+upstream backend {
+    ip_hash; #使用IP hash策略
+    server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+}
+
+server {
+    listen 80;
+    server_name example.com;
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+
+
+4. 最少连接（Least Connections）
 
 ​    nginx会尽量不让负载繁忙的应用服务器上负载过多的请求，相反的，会把新的请求发送到比较不繁忙的服务器。
 
-upstream myapp1 {
-        least_conn;
-        server srv1.example.com;
-        server srv2.example.com;
-        server srv3.example.com;
+```conf
+upstream backend {
+    least_conn; #使用Least Connections策略
+    server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
 }
+
+server {
+    listen 80;
+    server_name example.com;
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+5. 随机(Random)
+
+​    Random会将请求随机发送到后端服务器上，这种策略比较简单，但是不保证对后端服务器的负载均衡性。
+
+```shell
+upstream backend {
+    random; #使用Random策略
+    server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+}
+
+server {
+    listen 80;
+    server_name example.com;
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+6. URL Hash
+
+​    URL Hash会根据请求的URL的Hash值来将请求发送到后端服务器。相同URL的请求总是被转发到同一台后端服务器处理，从而保证Session信息在同一台服务器上处理。
+
+```conf
+upstream backend {
+    hash $request_uri; #使用URL Hash策略
+    server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+	  server [ip地址]:[端口值];
+}
+
+server {
+    listen 80;
+    server_name example.com;
+    location / {
+        proxy_pass http://backend;
+    }
+}
+```
+
+
 
 #### 故障下线和备份服务设置
 
@@ -119,26 +213,36 @@ upstream myapp1 {
 
 ​    假如有一台主机是出了故障，或者下线了，要暂时移出，那可以把它标为down，表示请求是会略过这台主机的。
 
+```
 upstream downServer {
-        server www.address1.com; // 或者ip+端口 ， 不需要加入http/https前缀
+        server www.address1.com; # 或者ip+端口 ， 不需要加入http/https前缀
         server www.address2.com down;
 }
+```
+
 2.backup
 
 ​    backup是指备份的机器，相对于备份的机器来说，其他的机器就相当于主要服务器，只要当主要服务器不可用的时候，才会用到备用服务器。
 
+```
 upstream backupServer {
-        server www.address1.com; // 或者ip+端口 ， 不需要加入http/https前缀
+        server www.address1.com; # 或者ip+端口 ， 不需要加入http/https前缀
         server www.address2.com backup;
 }
+```
+
 3.max_fails和fail_timeout
 
 ​    默认情况下，max_fails的值为1，表示的是请求失败的次数，请求1次失败就换到下台主机。另外还有一个参数是fail_timeout，表示的是请求失败的超时时间，在设定的时间内没有成功，那作为失败处理。
 
+```
 upstream backupServer {
-        server www.address1.com max_fails=2; // 或者ip+端口 ， 不需要加入http/https前缀
+        server www.address1.com max_fails=2; # 或者ip+端口 ， 不需要加入http/https前缀
         server www.address2.com backup;
 }
+```
+
+
 
 #### proxy_pass参数
 
