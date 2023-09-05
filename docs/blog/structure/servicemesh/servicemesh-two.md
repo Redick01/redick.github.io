@@ -123,7 +123,7 @@ liupenghui:kubernetes penghuiliu$ cat <<EOF | kubectl apply -f -
 clusterrolebinding.rbac.authorization.k8s.io/admin-user created
 ```
 
-获取 Token
+获取 Token1
 
 ```shell
 liupenghui:kubernetes penghuiliu$ kubectl -n kubernetes-dashboard describe secret $(kubectl -n kubernetes-dashboard get secret | grep admin-user | awk '{print $1}')
@@ -141,6 +141,14 @@ ca.crt:     1066 bytes
 namespace:  20 bytes
 token:      eyJhbGciOiJSUzI1NiIsImtpZCI6ImNxZkt4VnFnMEFwMTRzZjJJS1BzcWNIT1lCV1QyWkVaSUF3bGtSVjBxNzAifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlcm5ldGVzLWRhc2hib2FyZCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLXF2bjJ2Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiJjY2QxZjE5Ni0yNjFmLTQ4NGItYmEwZC1kOTBjNzY2NjY4MWIiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZXJuZXRlcy1kYXNoYm9hcmQ6YWRtaW4tdXNlciJ9.XsUoGF1gbw3xL7QM1C8e_Yx2LC3VoOMyaURfBAwKDJM_WqEZa2Q0M-hvWAZHO-xvxFCfcS-WeOMLd25rQGWI_yEk_QMxUBQbBFb8Hy9KwRCvGvXdg2OIo6MTdUfcrP0MNm51kATOQ6i2pRCMvInEq_uy0PNrDG36kK2e3Gk0_L_EeOqgAsFn-K-0vk0BkGK_YKgwPDTwbgGCsFxHQnSP1OnhC1YAW6_-rW-dHWZIitlhXcDCVv3k1MH17K1ztjpHxsSCBdkuSERyUe3ihZJXy8UTx9o9fNvQXHH56e5q0LT8VNbKTdjwjMzpEFQFyODzE9YctTKXPy0imtckyfut7Q
 ```
+
+获取Token2
+
+```shell
+kubectl create token admin  --namespace kube-system
+```
+
+
 
 拷贝token，并粘贴，即可进入dashboard
 
