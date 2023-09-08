@@ -10,7 +10,7 @@
 
 ## 1.1. Kubernetes环境准备
 
-### 1.1.1. 安装Docker Desktopi
+### 1.1.1. 安装Docker Desktop
 
 &nbsp; &nbsp; Istio 依托于 Kubernetes，因此，首先我们先安装 Kubernetes。Kubernetes 有许多安装的方法，包括：Minikube、kubeadm、Docker Desktop。本文选用较为便捷的 Docker Desktop。
 
