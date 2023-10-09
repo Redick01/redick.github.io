@@ -215,3 +215,12 @@
 * * [AsyncContext异步处理Http请求及在业务系统中应用](blog/spring/servlet3.0-async.md)
 * * [解析pfx文件文件报java.security.InvalidKeyException: Illegal key size](blog/problems/Illegal-key-size.md)
 * * [JDK升级兼容性分析工具EMT4J](blog/Middleware/emt4j/emt4j.md)
+* **软考学习记录**
+* - [计算机基础](blog/ncre/ncre-1.md)
+  - [开发模型](blog/ncre/ncre-2.md)
+  - [数据库MySQL](blog/ncre/ncre-3.md)
+  - [系统设计](blog/ncre/ncre-4.md)
+  - [软件开发方法](blog/ncre/ncre-5.md)
+  - [错题记录](blog/ncre/ncre-7.md)
+  - [案例分析题总结](blog/ncre/ncre-9.md)
+  - [论文题技巧及历年出题规律分析](blog/ncre/ncre-10.md)
