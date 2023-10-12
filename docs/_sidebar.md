@@ -224,3 +224,6 @@
   - [错题记录](blog/ncre/ncre-7.md)
   - [案例分析题总结](blog/ncre/ncre-9.md)
   - [论文题技巧及历年出题规律分析](blog/ncre/ncre-10.md)
+  - [论原型模型及应用](blog/ncre/ncre-11.md)
+  - [架构评估方法](blog/ncre/ncre-12.md)
+
