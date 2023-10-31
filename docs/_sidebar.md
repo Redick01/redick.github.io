@@ -224,10 +224,10 @@
   - [错题记录](blog/ncre/ncre-7.md)
   - [案例分析题总结](blog/ncre/ncre-9.md)
   - [论文题技巧及历年出题规律分析](blog/ncre/ncre-10.md)
-  - [论原型模型及应用](blog/ncre/ncre-11.md)
   - [架构评估方法](blog/ncre/ncre-12.md)
   - [面向服务架构的应用及设计](blog/ncre/ncre-13.md)
   - [敏捷宣言](blog/ncre/ncre-14.md)
   - [ABSD和ABSDM](blog/ncre/ncre-15.md)
   - [云原生](blog/ncre/ncre-16.md)
+  - [软件架构风格](blog/ncre/ncre-17.md)
 
