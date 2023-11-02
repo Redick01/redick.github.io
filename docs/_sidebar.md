@@ -230,4 +230,5 @@
   - [ABSD和ABSDM](blog/ncre/ncre-15.md)
   - [云原生](blog/ncre/ncre-16.md)
   - [软件架构风格](blog/ncre/ncre-17.md)
+  - [可靠性设计](blog/ncre/ncre-18.md)
 
