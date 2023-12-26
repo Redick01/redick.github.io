@@ -27,6 +27,7 @@
 * **Go语言学习笔记**
 * - [go mod命令作用](blog/go/go-1.md)
 * * [自定义包的目录结构](blog/go/go-2.md)
+* * [Go语言中的面向对象](blog/go/go-3.md)
 * **云原生技术**
 * * [Service Mesh（服务网格）演进](blog/structure/servicemesh/servicemesh-first.md)
 * * [Service Mesh - Istio](blog/structure/servicemesh/servicemesh-three.md)
