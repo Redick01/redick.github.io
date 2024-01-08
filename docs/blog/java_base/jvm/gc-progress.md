@@ -81,6 +81,26 @@
 -XX:+UseConcMarkSweepGC
 ```
 
+- CMS重要参数
+```Shell
+-XX:+UseConcMarkSweepGC：
+启用CMS垃圾收集器。
+-XX:ConcGCThreads：
+指定并发标记阶段使用的线程数量。可以根据系统配置调整。
+-XX:CMSInitiatingOccupancyFraction：
+设置触发CMS收集的老年代占用百分比阈值。当老年代占用达到该阈值时，CMS将启动垃圾收集。例如，-XX:CMSInitiatingOccupancyFraction=75 表示当老年代占用达到75%时启动CMS收集。
+-XX:+UseCMSInitiatingOccupancyOnly：
+使用此参数时，CMS将仅根据 CMSInitiatingOccupancyFraction 触发垃圾收集，而不考虑其他收集策略。这有助于固定CMS收集周期。
+-XX:+UseParNewGC：
+启用ParNew并行收集器用于年轻代。CMS通常与ParNew一起使用来实现并发标记-清理。
+-XX:MaxTenuringThreshold：
+设置对象在年轻代中经历多少次垃圾收集后晋升到老年代。可以根据应用程序的特性进行调整。
+-XX:CMSFullGCsBeforeCompaction：
+设置进行Full GC之前触发多少次CMS垃圾收集。在一些情况下，Full GC 可以帮助合并碎片。例如，-XX:CMSFullGCsBeforeCompaction=0 表示每次Full GC前都会执行CMS收集。
+-XX:+UseCMSCompactAtFullCollection：
+启用Full GC时进行碎片整理。此选项默认是开启的，可以通过 -XX:-UseCMSCompactAtFullCollection 关闭。 
+```
+
 其对年轻代采用并行`STW`方式的`mark-copy (标记-复制)`算法，对老年代主要使用并发`marksweep (标记-清除)`算法。
               
 CMS GC 的设计目标是避免在老年代垃圾收集时出现长时间的卡顿，主要通过两种手段来达成此目标：
@@ -226,3 +246,12 @@ G1收集器配置不当： G1垃圾收集器有许多配置选项，包括堆大
 调整堆大小： 确保为应用程序分配足够的堆内存，以减少频繁的垃圾收集操作。
 调整G1垃圾收集器的参数： 根据应用程序的需求，调整G1垃圾收集器的配置参数，以优化垃圾收集性能。
 监控和分析： 使用监控工具和分析工具来监视应用程序的垃圾收集行为，识别性能瓶颈并进行优化。
+
+
+#### JVM参数配置visualvm远程
+
+-Djava.rmi.server.hostname=172.18.215.59
+-Dcom.sun.management.jmxremote.port=1232
+-Dcom.sun.management.jmxremote.rmi.port=1240
+-Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote.authenticate=false
