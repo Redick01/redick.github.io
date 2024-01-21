@@ -24,6 +24,7 @@
   * [Spring Cloud Alibaba-分布式事务Seata（Demo测试）](blog/structure/spring-cloud-alibaba/sca-12.md)
   * [Spring Cloud Alibaba-全链路灰度设计](blog/structure/spring-cloud-alibaba/sca-13.md)
   * [Spring Cloud Alibaba-集成Elastic-JOB-Lite](blog/structure/spring-cloud-alibaba/sca-14.md)
+  * [Spring Cloud Alibaba 对比 Spring Cloud](blog/structure/spring-cloud-alibaba/sca-vs-sc.md)
 * **Go语言学习笔记**
 * - [go mod命令作用](blog/go/go-1.md)
 * * [自定义包的目录结构](blog/go/go-2.md)
