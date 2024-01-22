@@ -46,4 +46,6 @@ Spring Cloud Alibaba提供开源组件支持并且不，还有自家阿里云商
 | 对象存储  | -                                    | OSS                                  |
 | 短信服务  | -                                    | SMS                                  |
 
-## Spring Cloud Alibaba 还是 Dubbo
+
+## Spring Cloud Alibaba构建微服务架构
+<img src="../../../_media/image/spring/sc/WechatIMG258.jpg" style="width:80%;height:auto;">
