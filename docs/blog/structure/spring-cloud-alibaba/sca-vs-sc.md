@@ -1,5 +1,14 @@
-# Spring Cloud Alibaba 对比 Spring Cloud <!-- {docsify-ignore-all} -->
+# Spring Cloud技术选型分析 <!-- {docsify-ignore-all} -->
 
+### 私有云Spring Cloud架构现有问题
+
+私有云的组件基本上是Spring Cloud Netflix的，Netflix在2018年开始开始减少在开源领域的投入，逐步开始停止维护其组件。目前私有云的组件存在如下问题：
+
+1. 私有云的配置中心没有可视化界面；
+2. 私有云配置中心不支持配置热更新；
+3. 私有云的Eureka不能调节负载均衡；
+4. 服务容错Hystrix目前停止维护；
+5. 负载均衡Ribbon进入维护状态，不再进行扩展功能开发。
 
 ## Spring Cloud Netflix与Spring Cloud Alibaba开源组件对比
 
@@ -11,21 +20,25 @@
 | 服务容错    | Hystrix    （2020年停止维护）                               | Sentienl    （可视化配置，上手更容易）                       |
 | 负载均衡    | Ribbon                                               | Spring Cloud LoadBalancer                       |
 | RPC组件   | Spring Cloud OpenFeign/Rest Template                 | Spring Cloud OpenFeign/Rest Template            |                 |
-| 分布式事务   |                                                      | Seata                                           |
+| 分布式事务   | -                                                    | Seata                                           |
 | 分布式链路追踪 | Spring Cloud Sleuth                                  | Spring Cloud Sleuth/Skywalking                  |
 | 消息驱动    | Spring Cloud Stream Kafka                            | Spring Cloud Stream RocketMQ                    |
 | 分布式调度   | -                                                    | -                                               |
 
-### 对比结果
 
-如果选择 Spring Cloud 体系，就要思考选择哪一个 Spring Cloud 套件。目前最流行的，可能是 Netflix 提供的 Spring Cloud Netflix 套件。但是
-Netflix 开始减少在开源领域的投入，在2018年以后逐步开始停止维护其组件。如下：
 
-1. Netflix 将 Feign 捐献给 OpenFeign 社区
-2. Eureka2.0孵化失败，开源停止，使用后果自负
-3. Hystrix停止维护
-4. Spring Cloud 官方团队不考虑提供 Zuul 2 的支持，由Spring Cloud Gateway代替
-5. Ribbon 进入维护状态，不再进行扩展功能开发
+### Spring Cloud Alibaba具有的优势
+
+1. 注册中心基于Nacos，Nacos性能强劲，拥有更强的感知能力，并且支持简单的流量治理（调负载）；
+2. 配置中心基于Nacos，提供可视化界面管理配置；
+3. 服务容错组件Sentienl上手容易，并且可以与Nacos配置中心相结合，管理容错规则，Sentinel也提供一个可视化界面管理配置；
+4. 服务容错组件Sentienl与Spring Cloud Gateway方便集成，便于通过网关控制服务容错；
+5. 服务容错组件Sentienl支持OpenFeign和RestTemplate组件，通过简单配置即可实现服务容错，配置可由Nacos管理；
+6. 支持分布式事务Seata；
+7. 社区更活跃。
+
+## Spring Cloud Alibaba构建微服务架构
+<img src="../../../_media/image/spring/sc/WechatIMG258.jpg" style="width:50%;height:50%;">
 
 ## Spring Cloud Alibaba开源组件和商业组件对比
 
@@ -47,5 +60,3 @@ Spring Cloud Alibaba提供开源组件支持并且不，还有自家阿里云商
 | 短信服务  | -                                    | SMS                                  |
 
 
-## Spring Cloud Alibaba构建微服务架构
-<img src="../../../_media/image/spring/sc/WechatIMG258.jpg" style="width:80%;height:auto;">
