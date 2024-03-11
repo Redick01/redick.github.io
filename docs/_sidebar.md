@@ -25,6 +25,7 @@
   * [Spring Cloud Alibaba-全链路灰度设计](blog/structure/spring-cloud-alibaba/sca-13.md)
   * [Spring Cloud Alibaba-集成Elastic-JOB-Lite](blog/structure/spring-cloud-alibaba/sca-14.md)
   * [Spring Cloud Alibaba-共享Nacos配置文件](blog/structure/spring-cloud-alibaba/sca-15.md)
+  * [Spring Cloud Alibaba-整合Spring Boot Admin](blog/structure/spring-cloud-alibaba/sca-16.md)
   * [Spring Cloud Alibaba 对比 Spring Cloud](blog/structure/spring-cloud-alibaba/sca-vs-sc.md)
 * **Go语言学习笔记**
 * - [go mod命令作用](blog/go/go-1.md)
