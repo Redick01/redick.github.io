@@ -235,9 +235,11 @@
   - [论文题技巧及历年出题规律分析](blog/ncre/ncre-10.md)
   - [架构评估方法](blog/ncre/ncre-12.md)
   - [面向服务架构的应用及设计](blog/ncre/ncre-13.md)
-  - [敏捷宣言](blog/ncre/ncre-14.md)
   - [ABSD和ABSDM](blog/ncre/ncre-15.md)
   - [云原生](blog/ncre/ncre-16.md)
   - [软件架构风格](blog/ncre/ncre-17.md)
   - [可靠性设计](blog/ncre/ncre-18.md)
+* **PMP**
+  - [敏捷宣言](blog/pmp/pmp-0.md)
+  - [SCRUM](blog/pmp/pmp-1.md)
 
