@@ -243,4 +243,5 @@
 * **PMP**
   - [敏捷宣言](blog/pmp/pmp-0.md)
   - [SCRUM](blog/pmp/pmp-1.md)
+  - [五大过程组和十大知识领域](blog/pmp/pmp-2.md)
 
