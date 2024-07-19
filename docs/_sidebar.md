@@ -227,6 +227,7 @@
 * * [JDK升级兼容性分析工具EMT4J](blog/Middleware/emt4j/emt4j.md)
 * **架构师之路**
 * - [计算机基础](blog/ncre/ncre-1.md)
+  - [信息系统与安全](blog/ncre/ncre-1-2.md)
   - [开发模型](blog/ncre/ncre-2.md)
   - [数据库MySQL](blog/ncre/ncre-3.md)
   - [系统设计](blog/ncre/ncre-4.md)
