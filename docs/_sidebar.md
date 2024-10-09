@@ -241,6 +241,7 @@
   - [云原生](blog/ncre/ncre-16.md)
   - [软件架构风格](blog/ncre/ncre-17.md)
   - [可靠性设计](blog/ncre/ncre-18.md)
+  - [DSSA特定领域软件架构](blog/ncre/ncre-21.md)
 * **PMP**
   - [敏捷宣言](blog/pmp/pmp-0.md)
   - [SCRUM](blog/pmp/pmp-1.md)
