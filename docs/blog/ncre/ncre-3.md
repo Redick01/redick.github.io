@@ -19,7 +19,7 @@
 
 
 
-1. Statement（sql语句复制）：每一条更新的sql语句（insert，update，delete）都会记录到binlog中，进而同步到从库的relaylog中，被从库的sql线程取出，回访执行；该模式优点是binlog日志量比较少，缺点是同步的sql语句会绑定本地变量，如time，这样就会造成数据不一致
+1. Statement（sql语句复制）：每一条更新的sql语句（insert，update，delete）都会记录到binlog中，进而同步到从库的relaylog中，被从库的sql线程取出，回放执行；该模式优点是binlog日志量比较少，缺点是同步的sql语句会绑定本地变量，如time，这样就会造成数据不一致
 2. ROW模式：基于行的复制，不记录sql语句，只记录哪个记录更新前和更新后的数据，可以保证主从数据库数据的绝对相同，缺点是同步数据量大，比如一条sql更新1000行数据，那ROW模式必须原原本本同步1000行数据
 3. Mixed模式：以上两种模式的混合，选取两者有点，对于绑定本地变量并且评估可能造成数据不一致的sql语句，使用ROW模式，其他的选择Statement模式
 
